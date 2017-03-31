@@ -1,4 +1,4 @@
-# MiniMeToken
+# Aragon Network Token
 
 The MiniMeToken contract is a standard ERC20 token with extra functionality:
 
@@ -65,6 +65,3 @@ All these applications and more are enabled by the MiniMe Token Contract. The mo
 2. Deploy the MinimeToken
 3. Deploy the campaig
 4. Assign the controller of the MinimeToken to the campaign.
-
-
-
