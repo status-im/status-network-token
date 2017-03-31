@@ -12,6 +12,8 @@ contract AragonTokenSale is TokenController {
     uint public finalPrice;
     uint8 public priceStages;
 
+    mapping (address => bool) public activated;
+
     MiniMeToken public token;           // The token
     address public aragonDevMultisig;   // The address to hold the funds donated
     address public communityMultisig;   // Community trusted multisig to deploy network
@@ -89,6 +91,15 @@ Price increases by the same delta in every stage change
       if (address(token) != addressForContract(2)) throw;
 
       aragonNetwork = addressForContract(3); // network will eventually be deployed here
+    }
+
+    function activateSale() {
+      if (now >= _initialTime) throw;
+      activated[msg.sender] = true;
+    }
+
+    function isActivated() constant returns (bool) {
+      return activated[aragonDevMultisig] && activated[communityMultisig];
     }
 
     function getPrice(uint date) constant returns (uint256) {
@@ -177,6 +188,7 @@ Price increases by the same delta in every stage change
     function doPayment(address _owner) internal {
       if ((now < initialTime) || (now > finalTime)) throw;
       if (saleStopped) throw;
+      if (!isActivated()) throw;
       if (token.controller() != address(this)) throw;
       if (msg.value < dust) throw;
 
