@@ -4,8 +4,8 @@ import "./interface/Controller.sol";
 import "./MiniMeToken.sol";
 
 contract AragonTokenSale is TokenController {
-    uint public startFundingTime;       // In UNIX Time Format
-    uint public endFundingTime;         // In UNIX Time Format
+    uint public initialTime;       // In UNIX Time Format
+    uint public finalTime;         // In UNIX Time Format
     uint public totalCollected;         // In wei
     bool public saleStopped;            // Safe stop
     uint public initialPrice;
@@ -20,32 +20,57 @@ contract AragonTokenSale is TokenController {
     uint public dust = 1 finney;        // Minimum investment
 
 /// @dev There are several checks to make sure the parameters are acceptable
-/// @param _startFundingTime The UNIX time that the Campaign will be able to
-/// start receiving funds
-/// @param _endFundingTime The UNIX time that the Campaign will stop being able
-/// to receive funds
+/// @param _initialTime The UNIX time that the sale will start
+/// @param _finalTime The UNIX time that the sale will end
 /// @param _aragonDevMultisig The address that will store the donated funds and manager
 /// for the sale
+/// @param _initialPrice The price for the first stage of the sale. Price in wei.
+/// @param _finalPrice The price for the final stage of the sale. Price in wei.
+/// @param _priceStages The number of price stages. The price for every middle stage
+/// will be linearly interpolated.
+/*
+    // Price increase mechanism
+
+     price
+     (wei)  ^
+            |
+    Final   |                               3
+    price   |                           +------+
+            |                       2   |      |
+            |                    +------+      |
+            |                1   |             |
+            |             +------+             |
+            |         0   |                    |
+    Initial |      +------+                    |
+    price   |      |                           |
+            |      |    for priceStages = 4    |
+            +------+---------------------------+-------->
+                 Initial                     Final   time (s)
+                 time                        time
+Every stage is the same time length.
+Price increases by the same delta in every stage change
+
+*/
 
     function AragonTokenSale (
-        uint _startFundingTime,
-        uint _endFundingTime,
+        uint _initialTime,
+        uint _finalTime,
         address _aragonDevMultisig,
         address _communityMultisig,
         uint256 _initialPrice,
         uint256 _finalPrice,
         uint8 _priceStages
     ) {
-        if ((_endFundingTime < now) ||
-            (_endFundingTime <= _startFundingTime) ||
+        if ((_finalTime < now) ||
+            (_finalTime <= _initialTime) ||
             (_aragonDevMultisig == 0x0 || communityMultisig == 0x0) ||
             (_initialPrice > _finalPrice) ||
             (_priceStages < 1))
         {
           throw;
         }
-        startFundingTime = _startFundingTime;
-        endFundingTime = _endFundingTime;
+        initialTime = _initialTime;
+        finalTime = _finalTime;
         aragonDevMultisig = _aragonDevMultisig;
         communityMultisig = _communityMultisig;
         initialPrice = _initialPrice;
@@ -67,13 +92,13 @@ contract AragonTokenSale is TokenController {
     }
 
     function getPrice(uint date) constant returns (uint256) {
-      if (date < startFundingTime || date > endFundingTime) return 2**250;
+      if (date < initialTime || date > finalTime) return 2**250;
 
       return priceForStage(stageForDate(date));
     }
 
     function stageForDate(uint date) constant returns (uint8) {
-      return uint8(uint256(priceStages) * (date - startFundingTime) / (endFundingTime - startFundingTime));
+      return uint8(uint256(priceStages) * (date - initialTime) / (finalTime - initialTime));
     }
 
     function priceForStage(uint8 stage) constant returns (uint256) {
@@ -82,12 +107,12 @@ contract AragonTokenSale is TokenController {
     }
 
     function allocatePresaleTokens(address receiver, uint amount) only(aragonDevMultisig) {
-      if (now >= startFundingTime) throw;
+      if (now >= initialTime) throw;
       if (!token.generateTokens(receiver, amount)) throw;
     }
 
     function deployNetwork(bytes networkCode) only(communityMultisig) {
-      if (now <= endFundingTime || !saleStopped) throw;
+      if (now <= finalTime || !saleStopped) throw;
 
       address deployedAddress;
       assembly {
@@ -150,7 +175,7 @@ contract AragonTokenSale is TokenController {
 /// @param _owner The address that will hold the newly created tokens
 
     function doPayment(address _owner) internal {
-      if ((now < startFundingTime) || (now > endFundingTime)) throw;
+      if ((now < initialTime) || (now > finalTime)) throw;
       if (saleStopped) throw;
       if (token.controller() != address(this)) throw;
       if (msg.value < dust) throw;
@@ -169,8 +194,18 @@ contract AragonTokenSale is TokenController {
 ///  Campaign from receiving more ether
 /// @dev `finalizeFunding()` can only be called after the end of the funding period.
 
+    function emergencyStopSale() only(aragonDevMultisig) {
+      if (saleStopped) throw;
+      saleStopped = true;
+    }
+
+    function restartSale() only(aragonDevMultisig) {
+      if (now > finalTime) throw;
+      saleStopped = false;
+    }
+
     function finalizeSale() only(aragonDevMultisig) {
-      if (now < endFundingTime) throw;
+      if (now < finalTime) throw;
 
       uint256 aragonTokens = token.totalSupply() / 4; // So it is 20% of the total number of tokens
       if (!token.generateTokens(aragonDevMultisig, aragonTokens)) throw;
