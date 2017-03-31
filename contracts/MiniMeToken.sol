@@ -232,10 +232,25 @@ contract MiniMeToken is Controlled {
             msg.sender,
             _amount,
             this,
-            _extraData
+            uint256(byte(0x80)), uint256(_extraData.length), rightPad(_extraData) // ABI encoded bytes
             )) { throw;
         }
         return true;
+    }
+
+    function rightPad(bytes _data) constant returns (bytes) {
+      uint k = 32; // Pad in 32 byte sequences
+      uint n = _data.length / k + _data.length % k > 0 ? 1 : 0; // number of needed sequences
+      uint l = n * k; // Total number of bytes
+
+      if (_data.length == l) return _data; // Doesnt need padding because it is correct length
+
+      bytes memory paddedData = new bytes(l);
+      for (uint i = 0; i < _data.length; i++) {
+        paddedData[i] = _data[i];   // copy bytes one by one
+      }
+
+      return paddedData;
     }
 
     /// @dev This function makes it easy to get the total number of tokens
