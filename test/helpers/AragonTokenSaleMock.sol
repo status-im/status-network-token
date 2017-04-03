@@ -1,16 +1,30 @@
 pragma solidity ^0.4.8;
 
-import '../../contracts/MiniMeToken.sol';
 import '../../contracts/AragonTokenSale.sol';
 
-// @dev AragonTokenSaleMock for ERC20 tests purpose.
-// As it also deploys MiniMeTokenFactory, nonce will be broken.
+// @dev AragonTokenSaleMock mocks current block number
 
 contract AragonTokenSaleMock is AragonTokenSale {
-  function AragonTokenSaleMock(address initialAccount, uint initialBalance)
-    AragonTokenSale(block.number + 10, block.number + 100, msg.sender, 0xdead, 1 wei, 2 wei, 2)
-    {
-    deployANT(new MiniMeTokenFactory(), true);
-    token.generateTokens(initialAccount, initialBalance);
+
+  function AragonTokenSaleMock (
+      uint _initialBlock,
+      uint _finalBlock,
+      address _aragonDevMultisig,
+      address _communityMultisig,
+      uint256 _initialPrice,
+      uint256 _finalPrice,
+      uint8 _priceStages
+  ) AragonTokenSale(_initialBlock, _finalBlock, _aragonDevMultisig, _communityMultisig, _initialPrice, _finalPrice, _priceStages) {
+
   }
+
+  function getBlockNumber() constant returns (uint) {
+    return mockedBlockNumber;
+  }
+
+  function setMockedBlockNumber(uint _b) {
+    mockedBlockNumber = _b;
+  }
+
+  uint mockedBlockNumber = 1;
 }

@@ -148,7 +148,7 @@ contract MiniMeToken is Controlled {
 
            // Alerts the token controller of the transfer
            if (isContract(controller)) {
-               if (!TokenController(controller).onTransfer(_from, _to, _amount))
+               if (!Controller(controller).onTransfer(_from, _to, _amount))
                throw;
            }
 
@@ -190,7 +190,7 @@ contract MiniMeToken is Controlled {
 
         // Alerts the token controller of the approve function call
         if (isContract(controller)) {
-            if (!TokenController(controller).onApprove(msg.sender, _spender, _amount))
+            if (!Controller(controller).onApprove(msg.sender, _spender, _amount))
                 throw;
         }
 
@@ -475,7 +475,7 @@ contract MiniMeToken is Controlled {
     ///  ether and creates tokens as described in the token controller contract
     function ()  payable {
         if (isContract(controller)) {
-            if (! TokenController(controller).proxyPayment.value(msg.value)(msg.sender))
+            if (! Controller(controller).proxyPayment.value(msg.value)(msg.sender))
                 throw;
         } else {
             throw;

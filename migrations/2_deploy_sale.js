@@ -2,7 +2,6 @@ var AragonTokenSale = artifacts.require("AragonTokenSale");
 var MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
 
 module.exports = function(deployer, network, accounts) {
-  console.log(network)
   deployer.deploy(MiniMeTokenFactory);
   deployer.deploy(AragonTokenSale, 1000000, 10000000, accounts[2], accounts[1], 2, 5, 2)
     .then(() => {

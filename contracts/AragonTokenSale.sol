@@ -4,9 +4,9 @@ import "zeppelin/SafeMath.sol";
 import "./interface/Controller.sol";
 import "./MiniMeToken.sol";
 
-contract AragonTokenSale is TokenController, SafeMath {
-    uint public initialBlock;             // Block number in which the sale starts
-    uint public finalBlock;               // Block number in which the sale end
+contract AragonTokenSale is Controller, SafeMath {
+    uint public initialBlock;             // Block number in which the sale starts. Inclusive. sale will be opened at initial block.
+    uint public finalBlock;               // Block number in which the sale end. Exclusive, sale will be closed at ends block.
     uint public totalCollected;           // In wei
     bool public saleStopped;              // Safe stop
     uint public initialPrice;
@@ -64,7 +64,7 @@ Price increases by the same delta in every stage change
         uint256 _finalPrice,
         uint8 _priceStages
     ) {
-        if (_initialBlock < block.number) throw;
+        if (_initialBlock < getBlockNumber()) throw;
         if (_initialBlock >= _finalBlock) throw;
         if (_aragonDevMultisig == 0) throw;
         if (_communityMultisig == 0) throw;
@@ -93,7 +93,7 @@ Price increases by the same delta in every stage change
       // TODO: Token name = 'Aragon Network Token'
       // Kept as placeholder prior to announcement of the sale
       token = new MiniMeToken(_factory, 0x0, 0, "Token name", 18, "ANT", true);
-      //if (!_testMode && address(token) != addressForContract(1)) throw; // Assert we knew where it was going to be deployed
+      if (!_testMode && address(token) != addressForContract(1)) throw; // Assert we knew where it was going to be deployed
 
       aragonNetwork = addressForContract(2); // network will eventually be deployed here
 
@@ -110,6 +110,7 @@ Price increases by the same delta in every stage change
     }
 
     function doActivateSale(address _entity) only_before_sale private {
+      if (address(token) == 0x0) throw; // cannot activate before setting token
       activated[_entity] = true;
     }
 
@@ -124,7 +125,7 @@ Price increases by the same delta in every stage change
     // @return Price in wei for 1 ANT token.
     // If sale isn't ongoing for that block, returns a very high price 2^250 wei.
     function getPrice(uint _blockNumber) constant returns (uint256) {
-      if (_blockNumber < initialBlock || _blockNumber > finalBlock) return 2**250;
+      if (_blockNumber < initialBlock || _blockNumber >= finalBlock) return 2**250;
 
       return priceForStage(stageForDate(_blockNumber));
     }
@@ -185,7 +186,7 @@ Price increases by the same delta in every stage change
     }
 
 /////////////////
-// TokenController interface
+// Controller interface
 /////////////////
 
 /// @notice `proxyPayment()` allows the caller to send ether to the Campaign and
@@ -226,7 +227,7 @@ Price increases by the same delta in every stage change
       if (msg.value < dust) throw; // Check it is at least minimum investment
 
       totalCollected = safeAdd(totalCollected, msg.value); // Save total collected amount
-      uint256 boughtTokens = safeDiv(msg.value, getPrice(block.number)); // Calculate how many tokens bought
+      uint256 boughtTokens = safeDiv(msg.value, getPrice(getBlockNumber())); // Calculate how many tokens bought
 
       if (!aragonDevMultisig.send(msg.value)) throw; // Send funds to multisig
       if (!token.generateTokens(_owner, boughtTokens)) throw; // Allocate tokens
@@ -250,7 +251,7 @@ Price increases by the same delta in every stage change
     // on the token can be made until deploying the network.
 
     function finalizeSale() only(aragonDevMultisig) {
-      if (block.number < finalBlock) throw;
+      if (getBlockNumber() < finalBlock) throw;
 
       // Aragon Dev owns 25% of the total number of emitted tokens.
       uint256 aragonTokens = token.totalSupply() / 3;
@@ -268,19 +269,23 @@ Price increases by the same delta in every stage change
       communityMultisig = _newMultisig;
     }
 
+    function getBlockNumber() constant returns (uint) {
+      return block.number;
+    }
+
     modifier only(address x) {
       if (msg.sender != x) throw;
       _;
     }
 
     modifier only_before_sale {
-      if (block.number >= initialBlock) throw;
+      if (getBlockNumber() >= initialBlock) throw;
       _;
     }
 
     modifier only_during_sale_period {
-      if (block.number < initialBlock) throw;
-      if (block.number > finalBlock) throw;
+      if (getBlockNumber() < initialBlock) throw;
+      if (getBlockNumber() >= finalBlock) throw;
       _;
     }
 
@@ -305,7 +310,7 @@ Price increases by the same delta in every stage change
     }
 
     modifier only_after_sale {
-      if (block.number <= finalBlock) throw;
+      if (getBlockNumber() < finalBlock) throw;
       if (!saleStopped) throw;
       _;
     }

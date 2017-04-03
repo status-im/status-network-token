@@ -1,13 +1,13 @@
 // Zeppelin tests for ERC20 StandardToken.
 
 const assertJump = require('./helpers/assertJump');
-var AragonTokenSaleMock = artifacts.require("./helpers/AragonTokenSaleMock.sol");
+var AragonTokenSaleTokenMock = artifacts.require("./helpers/AragonTokenSaleTokenMock.sol");
 var StandardToken = artifacts.require("zeppelin/token/StandardToken.sol");
 
 contract('StandardToken', function(accounts) {
   let token;
   beforeEach(async () => {
-    const sale = await AragonTokenSaleMock.new(accounts[0], 100)
+    const sale = await AragonTokenSaleTokenMock.new(accounts[0], 100)
     token = StandardToken.at(await sale.token())
   })
 
