@@ -64,14 +64,13 @@ Price increases by the same delta in every stage change
         uint256 _finalPrice,
         uint8 _priceStages
     ) {
-        if ((_finalBlock < block.number) ||
-            (_finalBlock <= _initialBlock) ||
-            (_aragonDevMultisig == 0x0 || communityMultisig == 0x0) ||
-            (_initialPrice > _finalPrice) ||
-            (_priceStages < 1))
-        {
-          throw;
-        }
+        if (_initialBlock < block.number) throw;
+        if (_initialBlock >= _finalBlock) throw;
+        if (_aragonDevMultisig == 0) throw;
+        if (_communityMultisig == 0) throw;
+        if (_initialPrice >= _finalPrice) throw;
+        if (_initialPrice < 1 wei) throw;
+        if (_priceStages < 1) throw;
 
         // Save constructor arguments as global variables
         initialBlock = _initialBlock;
@@ -81,26 +80,22 @@ Price increases by the same delta in every stage change
         initialPrice = _initialPrice;
         finalPrice = _finalPrice;
         priceStages = _priceStages;
-
-        // Deploy contracts
-        deployANT();
     }
 
-    // Deploy ANT is called by the contract only once to setup all the needed contracts.
-    function deployANT() private {
+    // @notice Deploy ANT is called by the contract only once to setup all the needed contracts.
+    // @param _factory: Address of an instance of a MiniMeToken factory
+    // @param _testMode: Testrpc contract deployment address calculations are broken. Allow for tests to work.
+
+    function deployANT(address _factory, bool _testMode) only(aragonDevMultisig) {
       // Assert that the function hasn't been called before, as activate will happen at the end
       if (activated[this]) throw;
-      // Deploy token factory that allows the token to clone itself
-      MiniMeTokenFactory factory = new MiniMeTokenFactory();
-      // Assert that we knew where this first contract was going to be deployed.
-      if (address(factory) != addressForContract(1)) throw;
 
       // TODO: Token name = 'Aragon Network Token'
       // Kept as placeholder prior to announcement of the sale
-      token = new MiniMeToken(address(factory), 0x0, 0, "Token name", 18, "ANT", true);
-      if (address(token) != addressForContract(2)) throw; // Assert 2
+      token = new MiniMeToken(_factory, 0x0, 0, "Token name", 18, "ANT", true);
+      //if (!_testMode && address(token) != addressForContract(1)) throw; // Assert we knew where it was going to be deployed
 
-      aragonNetwork = addressForContract(3); // network will eventually be deployed here
+      aragonNetwork = addressForContract(2); // network will eventually be deployed here
 
       // Contract activates sale as all requirements are ready
       // Important in case this function stops being called in the constructor for gas limits.

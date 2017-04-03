@@ -1,19 +1,23 @@
-// Zeppelin tests for ERC20 StandardToken. Run against Standard23Token to check full backwards compatibility.
+// Zeppelin tests for ERC20 StandardToken.
 
 const assertJump = require('./helpers/assertJump');
-var StandardTokenMock = artifacts.require("./helpers/StandardTokenMock.sol");
+var AragonTokenSaleMock = artifacts.require("./helpers/AragonTokenSaleMock.sol");
+var StandardToken = artifacts.require("zeppelin/token/StandardToken.sol");
 
-contract('Standard23Token', function(accounts) {
+contract('StandardToken', function(accounts) {
+  let token;
+  beforeEach(async () => {
+    const sale = await AragonTokenSaleMock.new(accounts[0], 100)
+    token = StandardToken.at(await sale.token())
+  })
 
   it("should return the correct totalSupply after construction", async function() {
-    let token = await StandardTokenMock.new(accounts[0], 100);
     let totalSupply = await token.totalSupply();
 
     assert.equal(totalSupply, 100);
   })
 
   it("should return the correct allowance amount after approval", async function() {
-    let token = await StandardTokenMock.new();
     let approve = await token.approve(accounts[1], 100);
     let allowance = await token.allowance(accounts[0], accounts[1]);
 
@@ -21,7 +25,6 @@ contract('Standard23Token', function(accounts) {
   });
 
   it("should return correct balances after transfer", async function() {
-    let token = await StandardTokenMock.new(accounts[0], 100);
     let transfer = await token.transfer(accounts[1], 100);
     let balance0 = await token.balanceOf(accounts[0]);
     assert.equal(balance0, 0);
@@ -31,7 +34,6 @@ contract('Standard23Token', function(accounts) {
   });
 
   it("should throw an error when trying to transfer more than balance", async function() {
-    let token = await StandardTokenMock.new(accounts[0], 100);
     try {
       let transfer = await token.transfer(accounts[1], 101);
     } catch(error) {
@@ -41,7 +43,6 @@ contract('Standard23Token', function(accounts) {
   });
 
   it("should return correct balances after transfering from another account", async function() {
-    let token = await StandardTokenMock.new(accounts[0], 100);
     let approve = await token.approve(accounts[1], 100);
     let transferFrom = await token.transferFrom(accounts[0], accounts[2], 100, {from: accounts[1]});
 
@@ -56,7 +57,6 @@ contract('Standard23Token', function(accounts) {
   });
 
   it("should throw an error when trying to transfer more than allowed", async function() {
-    let token = await StandardTokenMock.new();
     let approve = await token.approve(accounts[1], 99);
     try {
       let transfer = await token.transferFrom(accounts[0], accounts[2], 100, {from: accounts[1]});
@@ -65,5 +65,4 @@ contract('Standard23Token', function(accounts) {
     }
     assert.fail('should have thrown before');
   });
-
 });

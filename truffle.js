@@ -7,12 +7,13 @@ module.exports = {
       network_id: 15,
       host: 'localhost',
       port: 8545,
+      gas: 10000000,
     },
     kovan: {
       network_id: 42,
       host: 'localhost',
       port: 8545,
-      gas: 4700000,
+      gas: 4900000,
       from: '0x0031EDb4846BAb2EDEdd7f724E58C50762a45Cb2',
     },
     ropsten: {
@@ -30,6 +31,7 @@ module.exports = {
       network_id: 15,
       host: 'localhost',
       port: 8546,
+      gas: 10000000,
     },
   },
   build: {},

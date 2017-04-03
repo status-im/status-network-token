@@ -117,7 +117,7 @@ contract MiniMeToken is Controlled {
             if (!transfersEnabled) throw;
 
             // The standard ERC 20 transferFrom functionality
-            if (allowed[_from][msg.sender] < _amount) return false;
+            if (allowed[_from][msg.sender] < _amount) throw;
             allowed[_from][msg.sender] -= _amount;
         }
         return doTransfer(_from, _to, _amount);
@@ -143,7 +143,7 @@ contract MiniMeToken is Controlled {
            //  account the transfer returns false
            var previousBalanceFrom = balanceOfAt(_from, block.number);
            if (previousBalanceFrom < _amount) {
-               return false;
+               throw;
            }
 
            // Alerts the token controller of the transfer
