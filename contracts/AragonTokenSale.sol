@@ -82,7 +82,7 @@ Price increases by the same delta in every stage change
       priceStages = _priceStages;
   }
 
-  // @notice Deploy ANT is called by the contract only once to setup all the needed contracts.
+  // @notice Deploy ANT is called only once to setup all the needed contracts.
   // @param _factory: Address of an instance of a MiniMeToken factory
   // @param _testMode: Testrpc contract deployment address calculations are broken. Allow for tests to work.
 
@@ -176,7 +176,7 @@ Price increases by the same delta in every stage change
 // Controller interface
 /////////////////
 
-/// @notice `proxyPayment()` allows the caller to send ether to the Campaign and
+/// @notice `proxyPayment()` allows the caller to send ether to the Token directly and
 /// have the tokens created in an address of their choosing
 /// @param _owner The address that will hold the newly created tokens
 
@@ -185,7 +185,7 @@ Price increases by the same delta in every stage change
     return true;
   }
 
-/// @notice Notifies the controller about a transfer, for this Campaign all
+/// @notice Notifies the controller about a transfer, for this sale all
 ///  transfers are allowed by default and no extra notifications are needed
 /// @param _from The origin of the transfer
 /// @param _to The destination of the transfer
@@ -195,7 +195,7 @@ Price increases by the same delta in every stage change
     return true;
   }
 
-/// @notice Notifies the controller about an approval, for this Campaign all
+/// @notice Notifies the controller about an approval, for this sale all
 ///  approvals are allowed by default and no extra notifications are needed
 /// @param _owner The address that calls `approve()`
 /// @param _spender The spender in the `approve()` call
