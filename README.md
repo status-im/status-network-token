@@ -95,7 +95,7 @@ This method will mint an additional 33% of tokens so at the end of the sale Arag
 
 In the process of doing so, it will make the Aragon Network the controller of the token contract. Which will make the token supply be constant until the network is deployed and it implements a new minting policy.
 
-### 9. sale.deployNetwork
+### 9. sale.deployNetwork()
 
 After the sale is finalized, the community multisig will be able to provide the bytecode for deploying the network at the already known address.
 
