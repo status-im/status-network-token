@@ -1,4 +1,4 @@
-pragma solidity ^0.4.6;
+pragma solidity ^0.4.8;
 
 import "zeppelin/SafeMath.sol";
 import "./interface/Controller.sol";
@@ -7,17 +7,18 @@ import "./MiniMeToken.sol";
 contract AragonTokenSale is Controller, SafeMath {
     uint public initialBlock;             // Block number in which the sale starts. Inclusive. sale will be opened at initial block.
     uint public finalBlock;               // Block number in which the sale end. Exclusive, sale will be closed at ends block.
-    uint public totalCollected;           // In wei
-    bool public saleStopped;              // Safe stop
-    uint public initialPrice;
-    uint public finalPrice;
-    uint8 public priceStages;
+    uint public initialPrice;             // Number of wei-ANT tokens for 1 wei, at the start of the sale (18 decimals)
+    uint public finalPrice;               // Number of wei-ANT tokens for 1 wei, at the end of the sale
+    uint8 public priceStages;             // Number of different price stages for interpolating between initialPrice and finalPrice
+    address public aragonDevMultisig;     // The address to hold the funds donated
+    address public communityMultisig;     // Community trusted multisig to deploy network
 
-    mapping (address => bool) public activated;
+    uint public totalCollected = 0;               // In wei
+    bool public saleStopped = false;              // Safe stop
+
+    mapping (address => bool) public activated;   // Address confirmates that wants to activate the sale
 
     MiniMeToken public token;           // The token
-    address public aragonDevMultisig;   // The address to hold the funds donated
-    address public communityMultisig;   // Community trusted multisig to deploy network
     address public aragonNetwork;       // Address where the network will eventually be deployed
 
     uint public dust = 1 finney;        // Minimum investment
@@ -32,24 +33,24 @@ contract AragonTokenSale is Controller, SafeMath {
 /// @param _priceStages The number of price stages. The price for every middle stage
 /// will be linearly interpolated.
 /*
-    // Price increase mechanism
+ price
+        ^
+        |
+Initial |       s = 0
+price   |      +------+
+        |      |      | s = 1
+        |      |      +------+
+        |      |             | s = 2
+        |      |             +------+
+        |      |                    | s = 3
+Final   |      |                    +------+
+price   |      |                           |
+        |      |    for priceStages = 4    |
+        +------+---------------------------+-------->
+          Initial                     Final       time
+          block                       block
 
-     price
-     (wei)  ^
-            |
-    Final   |                               3
-    price   |                           +------+
-            |                       2   |      |
-            |                    +------+      |
-            |                1   |             |
-            |             +------+             |
-            |         0   |                    |
-    Initial |      +------+                    |
-    price   |      |                           |
-            |      |    for priceStages = 4    |
-            +------+---------------------------+-------->
-                 Initial                     Final   time (s)
-                 block                       block
+
 Every stage is the same time length.
 Price increases by the same delta in every stage change
 
@@ -68,8 +69,7 @@ Price increases by the same delta in every stage change
         if (_initialBlock >= _finalBlock) throw;
         if (_aragonDevMultisig == 0) throw;
         if (_communityMultisig == 0) throw;
-        if (_initialPrice >= _finalPrice) throw;
-        if (_initialPrice < 1 wei) throw;
+        if (_initialPrice <= _finalPrice) throw;
         if (_priceStages < 1) throw;
 
         // Save constructor arguments as global variables
@@ -122,18 +122,18 @@ Price increases by the same delta in every stage change
 
     // @notice Get the price for a ANT token at any given block number
     // @param _blockNumber the block for which the price is requested
-    // @return Price in wei for 1 ANT token.
-    // If sale isn't ongoing for that block, returns a very high price 2^250 wei.
+    // @return Number of wei-ANT for 1 wei
+    // If sale isn't ongoing for that block, returns 0.
     function getPrice(uint _blockNumber) constant returns (uint256) {
-      if (_blockNumber < initialBlock || _blockNumber >= finalBlock) return 2**250;
+      if (_blockNumber < initialBlock || _blockNumber >= finalBlock) return 0;
 
-      return priceForStage(stageForDate(_blockNumber));
+      return priceForStage(stageForBlock(_blockNumber));
     }
 
     // @notice Get what the stage is for a given blockNumber
     // @param _blockNumber: Block number
     // @return The sale stage for that block. Number is between 0 and (priceStages - 1)
-    function stageForDate(uint _blockNumber) constant returns (uint8) {
+    function stageForBlock(uint _blockNumber) constant returns (uint8) {
       uint blockN = safeSub(_blockNumber, initialBlock);
       uint totalBlocks = safeSub(finalBlock, initialBlock);
 
@@ -143,12 +143,12 @@ Price increases by the same delta in every stage change
     // @notice Get what the price is for a given stage
     // @param _stage: Stage number
     // @return Price in wei for that stage.
-    // If sale stage doesn't exist, returns a very high price 2^250 wei.
+    // If sale stage doesn't exist, returns 0.
     function priceForStage(uint8 _stage) constant returns (uint256) {
-      if (_stage >= priceStages) return 2**250;
-      uint priceDifference = safeSub(finalPrice, initialPrice);
+      if (_stage >= priceStages) return 0;
+      uint priceDifference = safeSub(initialPrice, finalPrice);
       uint stageDelta = safeDiv(priceDifference, uint(priceStages - 1));
-      return safeAdd(initialPrice, safeMul(uint256(_stage), stageDelta));
+      return safeSub(initialPrice, safeMul(uint256(_stage), stageDelta));
     }
 
     // @notice Aragon Dev needs to make initial token allocations for presale partners
@@ -160,29 +160,13 @@ Price increases by the same delta in every stage change
       if (!token.generateTokens(_receiver, _amount)) throw;
     }
 
-    // @notice Deploy Aragon Network contract.
-    // @param _networkCode: The network contract bytecode followed by its constructor args.
-    function deployNetwork(bytes _networkCode) only_after_sale only(communityMultisig) {
-      address deployedAddress;
-      assembly {
-        deployedAddress := create(0,add(_networkCode,0x20), mload(_networkCode))
-        jumpi(invalidJumpLabel,iszero(extcodesize(deployedAddress)))
-      }
-
-      if (deployedAddress != aragonNetwork) throw;
-    }
-
-    function addressForContract(uint8 n) constant returns (address) {
-      return address(sha3(0xd6, 0x94, this, n));
-    }
-
 /// @dev The fallback function is called when ether is sent to the contract, it
 /// simply calls `doPayment()` with the address that sent the ether as the
 /// `_owner`. Payable is a required solidity modifier for functions to receive
 /// ether, without this modifier functions will throw if ether is sent to them
 
     function () payable {
-      doPayment(msg.sender);
+      return doPayment(msg.sender);
     }
 
 /////////////////
@@ -227,10 +211,13 @@ Price increases by the same delta in every stage change
       if (msg.value < dust) throw; // Check it is at least minimum investment
 
       totalCollected = safeAdd(totalCollected, msg.value); // Save total collected amount
-      uint256 boughtTokens = safeDiv(msg.value, getPrice(getBlockNumber())); // Calculate how many tokens bought
+      uint256 boughtTokens = safeMul(msg.value, getPrice(getBlockNumber())); // Calculate how many tokens bought
+
+      if (boughtTokens < 1) throw;
 
       if (!aragonDevMultisig.send(msg.value)) throw; // Send funds to multisig
       if (!token.generateTokens(_owner, boughtTokens)) throw; // Allocate tokens
+      return;
     }
 
     // @notice Function to stop sale for an emergency.
@@ -240,8 +227,8 @@ Price increases by the same delta in every stage change
     }
 
     // @notice Function to restart stopped sale.
-    // @dev Only Aragon Dev can do it after it has been disabled and during the sale period.
-    function restartSale() only_during_sale_period only_sale_stopped only(aragonDevMultisig) {
+    // @dev Only Aragon Dev can do it after it has been disabled and sale is activated.
+    function restartSale() only_sale_activated only_sale_stopped only(aragonDevMultisig) {
       saleStopped = false;
     }
 
@@ -252,13 +239,33 @@ Price increases by the same delta in every stage change
 
     function finalizeSale() only(aragonDevMultisig) {
       if (getBlockNumber() < finalBlock) throw;
+      // Doesn't check if saleStopped is true, because sale could end in a emergency stop.
+      // This function cannot be successfully called twice, because it will top being the controller,
+      // and the generateTokens call will fail if called again.
 
-      // Aragon Dev owns 25% of the total number of emitted tokens.
+      // Aragon Dev owns 25% of the total number of emitted tokens in the sale.
       uint256 aragonTokens = token.totalSupply() / 3;
       if (!token.generateTokens(aragonDevMultisig, aragonTokens)) throw;
-      token.changeController(aragonNetwork);
+      token.changeController(aragonNetwork); // Sale loses token controller power in favor of network
 
-      saleStopped = true;
+      saleStopped = true; // Set stop is true which will enable network deployment
+    }
+
+    // @notice Deploy Aragon Network contract.
+    // @param _networkCode: The network contract bytecode followed by its constructor args.
+    function deployNetwork(bytes _networkCode, bool _testMode) only_finalized_sale only(communityMultisig) {
+      address deployedAddress;
+      assembly {
+        deployedAddress := create(0,add(_networkCode,0x20), mload(_networkCode))
+        jumpi(invalidJumpLabel,iszero(extcodesize(deployedAddress)))
+      }
+
+      if (!_testMode && deployedAddress != aragonNetwork) throw;
+      suicide(aragonNetwork);
+    }
+
+    function addressForContract(uint8 n) constant returns (address) {
+      return address(sha3(0xd6, 0x94, this, n));
     }
 
     function setAragonDevMultisig(address _newMultisig) only(aragonDevMultisig) {
@@ -309,7 +316,7 @@ Price increases by the same delta in every stage change
       _;
     }
 
-    modifier only_after_sale {
+    modifier only_finalized_sale {
       if (getBlockNumber() < finalBlock) throw;
       if (!saleStopped) throw;
       _;
