@@ -28,8 +28,8 @@ contract AragonTokenSale is Controller, SafeMath {
 /// @param _finalBlock The Block number in which the sale ends
 /// @param _aragonDevMultisig The address that will store the donated funds and manager
 /// for the sale
-/// @param _initialPrice The price for the first stage of the sale. Price in wei.
-/// @param _finalPrice The price for the final stage of the sale. Price in wei.
+/// @param _initialPrice The price for the first stage of the sale. Price in wei-ANT per wei.
+/// @param _finalPrice The price for the final stage of the sale. Price in wei-ANT per wei.
 /// @param _priceStages The number of price stages. The price for every middle stage
 /// will be linearly interpolated.
 /*
@@ -98,7 +98,6 @@ Price increases by the same delta in every stage change
       aragonNetwork = addressForContract(2); // network will eventually be deployed here
 
       // Contract activates sale as all requirements are ready
-      // Important in case this function stops being called in the constructor for gas limits.
       doActivateSale(this);
     }
 
@@ -132,7 +131,7 @@ Price increases by the same delta in every stage change
 
     // @notice Get what the stage is for a given blockNumber
     // @param _blockNumber: Block number
-    // @return The sale stage for that block. Number is between 0 and (priceStages - 1)
+    // @return The sale stage for that block. Stage is between 0 and (priceStages - 1)
     function stageForBlock(uint _blockNumber) constant returns (uint8) {
       uint blockN = safeSub(_blockNumber, initialBlock);
       uint totalBlocks = safeSub(finalBlock, initialBlock);
@@ -156,7 +155,11 @@ Price increases by the same delta in every stage change
     // arbitrary allocations are possible and expresses conformity.
     // @param _receiver: The receiver of the tokens
     // @param _amount: Amount of tokens allocated for receiver.
-    function allocatePresaleTokens(address _receiver, uint _amount) only_before_sale_activation only_before_sale only(aragonDevMultisig) {
+    function allocatePresaleTokens(address _receiver, uint _amount)
+             only_before_sale_activation
+             only_before_sale
+             only(aragonDevMultisig) {
+
       if (!token.generateTokens(_receiver, _amount)) throw;
     }
 
@@ -206,7 +209,12 @@ Price increases by the same delta in every stage change
 ///  contract receives to the aragonDevMultisig and creates tokens in the address of the
 /// @param _owner The address that will hold the newly created tokens
 
-    function doPayment(address _owner) only_during_sale_period only_sale_not_stopped only_sale_activated internal {
+    function doPayment(address _owner)
+             only_during_sale_period
+             only_sale_not_stopped
+             only_sale_activated
+             internal {
+
       if (token.controller() != address(this)) throw; // Check is token controller and able to allocate tokens
       if (msg.value < dust) throw; // Check it is at least minimum investment
 
@@ -222,13 +230,21 @@ Price increases by the same delta in every stage change
 
     // @notice Function to stop sale for an emergency.
     // @dev Only Aragon Dev can do it after it has been activated.
-    function emergencyStopSale() only_sale_activated only_sale_not_stopped only(aragonDevMultisig) {
+    function emergencyStopSale()
+             only_sale_activated
+             only_sale_not_stopped
+             only(aragonDevMultisig) {
+
       saleStopped = true;
     }
 
     // @notice Function to restart stopped sale.
     // @dev Only Aragon Dev can do it after it has been disabled and sale is activated.
-    function restartSale() only_sale_activated only_sale_stopped only(aragonDevMultisig) {
+    function restartSale()
+             only_sale_activated
+             only_sale_stopped
+             only(aragonDevMultisig) {
+
       saleStopped = false;
     }
 
@@ -239,7 +255,7 @@ Price increases by the same delta in every stage change
 
     function finalizeSale() only(aragonDevMultisig) {
       if (getBlockNumber() < finalBlock) throw;
-      // Doesn't check if saleStopped is true, because sale could end in a emergency stop.
+      // Doesn't check if saleStopped is false, because sale could end in a emergency stop.
       // This function cannot be successfully called twice, because it will top being the controller,
       // and the generateTokens call will fail if called again.
 
@@ -253,7 +269,10 @@ Price increases by the same delta in every stage change
 
     // @notice Deploy Aragon Network contract.
     // @param _networkCode: The network contract bytecode followed by its constructor args.
-    function deployNetwork(bytes _networkCode, bool _testMode) only_finalized_sale only(communityMultisig) {
+    function deployNetwork(bytes _networkCode, bool _testMode)
+             only_finalized_sale
+             only(communityMultisig) {
+
       address deployedAddress;
       assembly {
         deployedAddress := create(0,add(_networkCode,0x20), mload(_networkCode))
