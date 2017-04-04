@@ -239,9 +239,9 @@ Price increases by the same delta in every stage change
   }
 
   // @notice Function to restart stopped sale.
-  // @dev Only Aragon Dev can do it after it has been disabled and sale is activated.
+  // @dev Only Aragon Dev can do it after it has been disabled and sale is ongoing.
   function restartSale()
-           only_sale_activated
+           only_during_sale_period
            only_sale_stopped
            only(aragonDevMultisig) {
 
