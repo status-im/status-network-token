@@ -238,7 +238,7 @@ contract MiniMeToken is Controlled {
         return true;
     }
 
-    function rightPad(bytes _data) constant returns (bytes) {
+    function rightPad(bytes _data) internal constant returns (bytes) {
       uint k = 32; // Pad in 32 byte sequences
       uint n = _data.length / k + _data.length % k > 0 ? 1 : 0; // number of needed sequences
       uint l = n * k; // Total number of bytes
