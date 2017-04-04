@@ -67,7 +67,7 @@ When both multisigs have called this function, the sale will be activated and no
 
 If the presale is successful in activating the sale, the sale will start on the initial block.
 
-### 5. sale.fallback || token.fallback
+### 5. sale.fallback || token.fallback
 
 After the sale is started, sending an ether amount greater than the dust value (1 finney) will result in tokens getting minted and assigned to the sender of the payment.
 
