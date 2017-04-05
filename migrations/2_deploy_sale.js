@@ -9,7 +9,7 @@ module.exports = function(deployer, network, accounts) {
   const testMS = accounts[0]// "0x538b3ef1eac22bdda9e649af2972c890ec2edec2"
 
   deployer.deploy(MiniMeTokenFactory);
-  deployer.deploy(AragonTokenSale, 663570, 663670, realMS, accounts[0], 100, 66, 2)
+  deployer.deploy(AragonTokenSale, 684100, 684200, testMS, accounts[0], 100, 66, 2)
     .then(() => {
       return MiniMeTokenFactory.deployed()
         .then(f => {

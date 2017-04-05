@@ -326,6 +326,23 @@
       "type": "function"
     },
     {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_holder",
+          "type": "address"
+        },
+        {
+          "name": "_grantId",
+          "type": "uint256"
+        }
+      ],
+      "name": "revokeTokenGrant",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
@@ -372,5 +389,5 @@
   ],
   "networks": {},
   "schema_version": "0.0.5",
-  "updated_at": 1491381349075
+  "updated_at": 1491391569950
 }
