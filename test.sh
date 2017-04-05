@@ -8,6 +8,8 @@ if [ ! $trpc_running ]; then
   trpc_pid=$!
 fi
 ./node_modules/truffle/cli.js test --network development46 test/TestTokenSale.sol
+./node_modules/truffle/cli.js test --network development46 test/TestTokenPresale.sol
+./node_modules/truffle/cli.js test --network development46 test/helpers/* test/*.js
 if [ ! $trpc_running ]; then
   kill -9 $trpc_pid
 fi

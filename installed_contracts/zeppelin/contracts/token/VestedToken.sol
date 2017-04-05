@@ -1,10 +1,10 @@
 pragma solidity ^0.4.8;
 
 
-import "./ERC20.sol";
+import "./StandardToken.sol";
 
 
-contract VestedToken is ERC20 {
+contract VestedToken is StandardToken {
   struct TokenGrant {
     address granter;
     uint256 value;
