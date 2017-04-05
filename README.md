@@ -17,7 +17,7 @@ Example of a successful testnet sale: https://kovan.etherscan.io/address/0x4f9b4
 
 ## Instantiation
 
-### 1. Deploy sale – 4135907 gas
+### 1. Deploy sale – 4,135,907 gas
 Aragon token sale will be deployed 1 week prior to the beggining of the sale with the following parameters:
 
 - Initial block: TBC
@@ -28,7 +28,7 @@ Aragon token sale will be deployed 1 week prior to the beggining of the sale wit
 - Final price: 66
 - Price stages: 2
 
-### 2. sale.deployANT() – 2108856 gas
+### 2. sale.deployANT() – 2,108,856 gas
 Deploy ANT needs to called from the Aragon Multisig. Its parameters are:
 
 - Factory: TBC (A mainnet deployed instance of MiniMe Token Factory)
@@ -51,13 +51,13 @@ The presale is the period between full sale instantiation to the initialBlock of
 
 During the presale it is required that the sale is activated, failing to activate the sale during this period, will cause the sale to never start.
 
-### 3. sale.allocatePresaleTokens() – 209075 gas
+### 3. sale.allocatePresaleTokens() – 209,075 gas
 
 Aragon dev will be able to allocate at its own discretion as many presale tokens as needed before the sale is activated.
 
 Aragon dev will only issue presale token to presale partners that took part in a private sale done for gathering the funds needed for the sale.
 
-### 4. sale.activateSale() – 2 * 42862 gas
+### 4. sale.activateSale() – 2 * 42,862 gas
 
 Both Aragon Dev and the Community Multisig must call activateSale in order to consider the sale activated.
 
@@ -67,7 +67,7 @@ When both multisigs have called this function, the sale will be activated and no
 
 If the presale is successful in activating the sale, the sale will start on the initial block.
 
-### 5. sale.fallback || token.fallback – 108242 gas || 118912 gas
+### 5. sale.fallback || token.fallback – 108,242 gas || 118,912 gas
 
 After the sale is started, sending an ether amount greater than the dust value (1 finney) will result in tokens getting minted and assigned to the sender of the payment.
 
@@ -75,11 +75,11 @@ All the funds collected will be instantly sent to the Aragon Dev multisig for se
 
 Disclaimer: Please do not send from exchanges.
 
-### 6. sale.emergencyStopSale() – 43864 gas
+### 6. sale.emergencyStopSale() – 43,864 gas
 
 After the sale is activated, Aragon Dev will be able to stop the sale for an emergency.
 
-### 7. sale.restartSale() – 14031 gas
+### 7. sale.restartSale() – 14,031 gas
 
 After the sale has been stopped for an emergency and the sale is still ongoing, Aragon Dev will be able to restart it.
 
@@ -89,13 +89,13 @@ After the sale has ended, it cannot be restarted. The sale can end in a stopped 
 
 The after sale period is considered from the final block (inclusive) until the sale contract is destroyed.
 
-### 8. sale.finalizeSale() – 105348 gas
+### 8. sale.finalizeSale() – 105,348 gas
 
 This method will mint an additional 33% of tokens so at the end of the sale Aragon Dev will own 25% of all the ANT.
 
 In the process of doing so, it will make the Aragon Network the controller of the token contract. Which will make the token supply be constant until the network is deployed and it implements a new minting policy.
 
-### 9. sale.deployNetwork() – 77679 gas for [basic contract](https://github.com/izqui/lib/blob/master/contracts/Basic.sol) Depends on network code
+### 9. sale.deployNetwork() – 77,679 gas for [basic contract](https://github.com/izqui/lib/blob/master/contracts/Basic.sol) Depends on network code
 
 After the sale is finalized, the community multisig will be able to provide the bytecode for deploying the network at the already known address.
 
@@ -105,5 +105,5 @@ The sale contract is now suicided in favor of the network, though it shouldn't h
 
 ## Token operations
 
-### transfer – 95121 gas
-### grantVestedTokens – 163094 gas
+### transfer – 95,121 gas
+### grantVestedTokens – 163,094 gas
