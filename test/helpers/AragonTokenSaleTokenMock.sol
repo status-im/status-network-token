@@ -3,7 +3,7 @@ pragma solidity ^0.4.8;
 import '../../contracts/AragonTokenSale.sol';
 
 // @dev AragonTokenSaleTokenMock for ERC20 tests purpose.
-// As it also deploys MiniMeTokenFactory, nonce will be broken.
+// As it also deploys MiniMeTokenFactory, nonce will increase and therefore will be broken for future deployments
 
 contract AragonTokenSaleTokenMock is AragonTokenSale {
   function AragonTokenSaleTokenMock(address initialAccount, uint initialBalance)

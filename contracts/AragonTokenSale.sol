@@ -2,7 +2,7 @@ pragma solidity ^0.4.8;
 
 import "zeppelin/SafeMath.sol";
 import "./interface/Controller.sol";
-import "./MiniMeToken.sol";
+import "./ANT.sol";
 
 contract AragonTokenSale is Controller, SafeMath {
     uint public initialBlock;             // Block number in which the sale starts. Inclusive. sale will be opened at initial block.
@@ -18,7 +18,7 @@ contract AragonTokenSale is Controller, SafeMath {
 
     mapping (address => bool) public activated;   // Address confirmates that wants to activate the sale
 
-    MiniMeToken public token;           // The token
+    ANT public token;                   // The token
     address public aragonNetwork;       // Address where the network will eventually be deployed
 
     uint public dust = 1 finney;        // Minimum investment
@@ -90,9 +90,7 @@ Price increases by the same delta in every stage change
     // Assert that the function hasn't been called before, as activate will happen at the end
     if (activated[this]) throw;
 
-    // TODO: Token name = 'Aragon Network Token'
-    // Kept as placeholder prior to announcement of the sale
-    token = new MiniMeToken(_factory, 0x0, 0, "Token name", 18, "ANT", true);
+    token = new ANT(_factory);
     if (!_testMode && address(token) != addressForContract(1)) throw; // Assert we knew where it was going to be deployed
 
     aragonNetwork = addressForContract(2); // network will eventually be deployed here
@@ -160,7 +158,8 @@ Price increases by the same delta in every stage change
            only_before_sale
            only(aragonDevMultisig) {
 
-    if (!token.generateTokens(_receiver, _amount)) throw;
+    if (!token.generateTokens(address(this), _amount)) throw;
+    token.grantVestedTokens(_receiver, _amount, uint64(now), uint64(now + 12 weeks), uint64(now + 24 weeks));
   }
 
 /// @dev The fallback function is called when ether is sent to the contract, it

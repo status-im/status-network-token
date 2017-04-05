@@ -1,10 +1,10 @@
 pragma solidity ^0.4.8;
 
+// Slightly modified Zeppelin's Vested Token
+import "zeppelin/token/ERC20.sol";
+import "zeppelin/SafeMath.sol";
 
-import "./ERC20.sol";
-
-
-contract VestedToken is ERC20 {
+contract IrrevocableVestedToken is ERC20, SafeMath {
   struct TokenGrant {
     address granter;
     uint256 value;
@@ -53,21 +53,7 @@ contract VestedToken is ERC20 {
   }
 
   function revokeTokenGrant(address _holder, uint _grantId) {
-    TokenGrant grant = grants[_holder][_grantId];
-
-    if (grant.granter != msg.sender) {
-      throw;
-    }
-    uint256 nonVested = nonVestedTokens(grant, uint64(now));
-
-    // remove grant from array
-    delete grants[_holder][_grantId];
-    grants[_holder][_grantId] = grants[_holder][grants[_holder].length - 1];
-    grants[_holder].length -= 1;
-
-    balances[msg.sender] = safeAdd(balances[msg.sender], nonVested);
-    balances[_holder] = safeSub(balances[_holder], nonVested);
-    Transfer(_holder, msg.sender, nonVested);
+    throw;
   }
 
   function tokenGrantsCount(address _holder) constant returns (uint index) {
@@ -138,6 +124,6 @@ contract VestedToken is ERC20 {
       nonVested = safeAdd(nonVested, nonVestedTokens(grants[holder][i], time));
     }
 
-    return safeSub(balances[holder], nonVested);
+    return safeSub(balanceOf(holder), nonVested);
   }
 }

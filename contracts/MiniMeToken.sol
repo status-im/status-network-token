@@ -2,8 +2,9 @@ pragma solidity ^0.4.8;
 
 import "./interface/Controlled.sol";
 import "./interface/Controller.sol";
+import "zeppelin/token/ERC20.sol";
 
-contract MiniMeToken is Controlled {
+contract MiniMeToken is ERC20, Controlled {
     string public name;                //The Token's name: e.g. DigixDAO Tokens
     uint8 public decimals;             //Number of decimals of the smallest unit
     string public symbol;              //An identifier: e.g. REP
@@ -486,14 +487,7 @@ contract MiniMeToken is Controlled {
 ////////////////
 // Events
 ////////////////
-    event Transfer(address indexed _from, address indexed _to, uint256 _amount);
     event NewCloneToken(address indexed _cloneToken, uint _snapshotBlock);
-    event Approval(
-        address indexed _owner,
-        address indexed _spender,
-        uint256 _amount
-        );
-
 }
 
 
