@@ -121,6 +121,8 @@ contract IrrevocableVestedToken is ERC20, SafeMath {
   function transferableTokens(address holder, uint64 time) constant public returns (uint256 nonVested) {
     uint256 grantIndex = grants[holder].length;
 
+    if (grantIndex == 0) return balanceOf(holder);
+
     for (uint256 i = 0; i < grantIndex; i++) {
       nonVested = safeAdd(nonVested, nonVestedTokens(grants[holder][i], time));
     }
