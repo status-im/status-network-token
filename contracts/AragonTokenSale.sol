@@ -258,8 +258,8 @@ Price increases by the same delta in every stage change
     // This function cannot be successfully called twice, because it will top being the controller,
     // and the generateTokens call will fail if called again.
 
-    // Aragon Dev owns 25% of the total number of emitted tokens in the sale.
-    uint256 aragonTokens = token.totalSupply() / 3;
+    // Aragon Dev owns 30% of the total number of emitted tokens at the end of the sale.
+    uint256 aragonTokens = token.totalSupply() * 3 / 7;
     if (!token.generateTokens(aragonDevMultisig, aragonTokens)) throw;
     token.changeController(aragonNetwork); // Sale loses token controller power in favor of network
 
