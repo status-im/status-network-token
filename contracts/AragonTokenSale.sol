@@ -153,13 +153,13 @@ Price increases by the same delta in every stage change
   // arbitrary allocations are possible and expresses conformity.
   // @param _receiver: The receiver of the tokens
   // @param _amount: Amount of tokens allocated for receiver.
-  function allocatePresaleTokens(address _receiver, uint _amount)
+  function allocatePresaleTokens(address _receiver, uint _amount, uint64 cliffDate, uint64 vestingDate)
            only_before_sale_activation
            only_before_sale
            only(aragonDevMultisig) {
 
     if (!token.generateTokens(address(this), _amount)) throw;
-    token.grantVestedTokens(_receiver, _amount, uint64(now), uint64(now + 12 weeks), uint64(now + 24 weeks));
+    token.grantVestedTokens(_receiver, _amount, uint64(now), cliffDate, vestingDate);
   }
 
 /// @dev The fallback function is called when ether is sent to the contract, it
@@ -191,7 +191,9 @@ Price increases by the same delta in every stage change
 /// @param _amount The amount of the transfer
 /// @return False if the controller does not authorize the transfer
   function onTransfer(address _from, address _to, uint _amount) returns (bool) {
-    return true;
+    // Until the sale is finalized, only allows transfers originated by the sale contract.
+    // When finalizeSale is called, this function will stop being called and will always be true.
+    return _from == address(this);
   }
 
 /// @notice Notifies the controller about an approval, for this sale all
@@ -201,7 +203,8 @@ Price increases by the same delta in every stage change
 /// @param _amount The amount in the `approve()` call
 /// @return False if the controller does not authorize the approval
   function onApprove(address _owner, address _spender, uint _amount) returns (bool) {
-    return true;
+    // No approve/transferFrom during the sale
+    return false;
   }
 
 /// @dev `doPayment()` is an internal function that sends the ether that this
