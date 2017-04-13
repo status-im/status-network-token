@@ -77,9 +77,9 @@ contract TestTokenPresale {
   function testSetPresaleTokens() {
     AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), 0x2, 2, 1, 2);
     sale.deployANT(factory, true);
-    sale.allocatePresaleTokens(0x1, 100 finney);
-    sale.allocatePresaleTokens(0x2, 30 finney);
-    sale.allocatePresaleTokens(address(this), 20 finney);
+    sale.allocatePresaleTokens(0x1, 100 finney, uint64(now + 12 weeks), uint64(now + 24 weeks));
+    sale.allocatePresaleTokens(0x2, 30 finney, uint64(now + 12 weeks), uint64(now + 24 weeks));
+    sale.allocatePresaleTokens(address(this), 20 finney, uint64(now + 12 weeks), uint64(now + 24 weeks));
     Assert.equal(ERC20(sale.token()).balanceOf(0x1), 100 finney, 'Should have correct balance after allocation');
     Assert.equal(IrrevocableVestedToken(sale.token()).transferableTokens(0x1, uint64(now)), 0, 'Should have 0 tokens transferable now');
     Assert.equal(IrrevocableVestedToken(sale.token()).transferableTokens(0x1, uint64(now + 12 weeks - 1)), 0, 'Should have 0 tokens transferable just before cliff');
@@ -107,7 +107,7 @@ contract TestTokenPresale {
     AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 2, 1, 2);
     sale.deployANT(factory, true);
     sale.activateSale(); // this is both multisigs
-    sale.allocatePresaleTokens(0x1, 100);
+    sale.allocatePresaleTokens(0x1, 100, uint64(now + 12 weeks), uint64(now + 24 weeks));
   }
 
   function testCannotSetPresaleTokensAfterSaleStarts() {
@@ -119,6 +119,6 @@ contract TestTokenPresale {
     AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 2, 1, 2);
     sale.deployANT(factory, true);
     sale.setMockedBlockNumber(13);
-    sale.allocatePresaleTokens(0x1, 100);
+    sale.allocatePresaleTokens(0x1, 100, uint64(now + 12 weeks), uint64(now + 24 weeks));
   }
 }

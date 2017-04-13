@@ -159,15 +159,43 @@ contract TestTokenSale {
     AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
     ms.activateSale(sale, factory);
     sale.setMockedBlockNumber(12);
-    sale.proxyPayment.value(15 finney)(address(this));
+    sale.proxyPayment.value(35 finney)(address(this));
 
-    Assert.equal(ERC20(sale.token()).balanceOf(address(this)), 30 finney, 'Should have correct balance after allocation');
-    Assert.equal(ERC20(sale.token()).totalSupply(), 30 finney, 'Should have correct supply before ending sale');
+    Assert.equal(ERC20(sale.token()).balanceOf(address(this)), 70 finney, 'Should have correct balance after allocation');
+    Assert.equal(ERC20(sale.token()).totalSupply(), 70 finney, 'Should have correct supply before ending sale');
 
     sale.setMockedBlockNumber(21);
     ms.finalizeSale(sale);
 
-    Assert.equal(ERC20(sale.token()).balanceOf(address(ms)), 10 finney, 'Should have correct balance after ending sale');
-    Assert.equal(ERC20(sale.token()).totalSupply(), 40 finney, 'Should have correct supply after ending sale');
+    Assert.equal(ERC20(sale.token()).balanceOf(address(ms)), 30 finney, 'Should have correct balance after ending sale');
+    Assert.equal(ERC20(sale.token()).totalSupply(), 100 finney, 'Should have correct supply after ending sale');
+  }
+
+  function testTokensAreLockedDuringSale() {
+    TestTokenSale(throwProxy).throwsWhenTransferingDuringSale();
+    throwProxy.assertThrows("Should have thrown transferring during sale");
+  }
+
+  function throwsWhenTransferingDuringSale() {
+    MultisigMock ms = new MultisigMock();
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    ms.activateSale(sale, factory);
+    sale.setMockedBlockNumber(12);
+    sale.proxyPayment.value(15 finney)(address(this));
+
+    ERC20(sale.token()).transfer(0x1, 10 finney);
+  }
+
+  function testTokensAreTransferrableAfterSale() {
+    MultisigMock ms = new MultisigMock();
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    ms.activateSale(sale, factory);
+    sale.setMockedBlockNumber(12);
+    sale.proxyPayment.value(15 finney)(address(this));
+    sale.setMockedBlockNumber(22);
+    ms.finalizeSale(sale);
+
+    ERC20(sale.token()).transfer(0x1, 10 finney);
+    Assert.equal(ERC20(sale.token()).balanceOf(0x1), 10 finney, 'Should have correct balance after receiving tokens');
   }
 }

@@ -7,8 +7,10 @@ var StandardToken = artifacts.require("zeppelin/token/StandardToken.sol");
 contract('StandardToken', function(accounts) {
   let token;
   beforeEach(async () => {
-    const sale = await AragonTokenSaleTokenMock.new(accounts[0], 100)
+    const sale = await AragonTokenSaleTokenMock.new(accounts[0], 70) // 30 extra tokens are 30% extra at sale end
+    console.log('sale', sale.address)
     token = StandardToken.at(await sale.token())
+    console.log('token', token.address)
   })
 
   it("should return the correct totalSupply after construction", async function() {
