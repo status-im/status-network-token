@@ -21,7 +21,7 @@ contract AragonTokenSale is Controller, SafeMath {
     ANT public token;                   // The token
     address public aragonNetwork;       // Address where the network will eventually be deployed
 
-    uint public dust = 1 finney;        // Minimum investment
+    uint constant public dust = 1 finney;        // Minimum investment
 
 /// @dev There are several checks to make sure the parameters are acceptable
 /// @param _initialBlock The Block number in which the sale starts
