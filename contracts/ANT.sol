@@ -23,11 +23,11 @@ contract ANT is MiniMeToken, IrrevocableVestedToken {
     address _tokenFactory
   ) MiniMeToken(
     _tokenFactory,
-    0x0,          // no parent token
-    0,            // no snapshot block number from parent
-    "Token name", // Token name // TODO: Token name = 'Aragon Network Token'
-    18,           // Decimals
-    "ANT",        // Symbol
-    true          // Enable transfers
+    0x0,                    // no parent token
+    0,                      // no snapshot block number from parent
+    "Aragon Network Token", // Token name
+    18,                     // Decimals
+    "ANT",                  // Symbol
+    true                    // Enable transfers
     ) {}
 }
