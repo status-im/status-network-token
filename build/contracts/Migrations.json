@@ -70,10 +70,10 @@
     "42": {
       "events": {},
       "links": {},
-      "address": "0x635890f60e6bb1e34f7f4f1cc930251d214cf0c8",
-      "updated_at": 1492425689148
+      "address": "0x94a35395805d166fca90d87f4e4ebf39f74fbd10",
+      "updated_at": 1492426249301
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1492425689148
+  "updated_at": 1492426249301
 }

@@ -487,10 +487,10 @@
     "42": {
       "events": {},
       "links": {},
-      "address": "0x0e6e26494c8357334722401ae04f301e27803610",
-      "updated_at": 1492425689142
+      "address": "0x506e1db7da1b3876eacd2eddf6ed551a7f2787d0",
+      "updated_at": 1492426249301
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1492425689142
+  "updated_at": 1492426249301
 }

@@ -23,6 +23,7 @@ module.exports = function(deployer, network, accounts) {
           return ANT.new(factory.address)
         }).then(a => {
           ant = a
+          console.log('ANT deployed:', ant.address)
           return ant.changeController(sale.address)
         })
         .then(() => {
