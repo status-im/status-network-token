@@ -71,6 +71,7 @@ Price increases by the same delta in every stage change
       if (_communityMultisig == 0) throw;
       if (_initialPrice <= _finalPrice) throw;
       if (_priceStages < 1) throw;
+      if (_priceStages > _initialPrice - finalPrice) throw;
 
       // Save constructor arguments as global variables
       initialBlock = _initialBlock;
