@@ -21,7 +21,7 @@ contract TestTokenSale {
   }
 
   function testHasCorrectPriceForStages() {
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 3, 1, 2);
     Assert.equal(sale.getPrice(10), 2, "Should have correct price for start stage 1");
     Assert.equal(sale.getPrice(13), 2, "Should have correct price for middle stage 1");
     Assert.equal(sale.getPrice(14), 2, "Should have correct price for final stage 1");
@@ -49,7 +49,7 @@ contract TestTokenSale {
   function testAllocatesTokensInSale() {
     MultisigMock ms = new MultisigMock();
 
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
 
     sale.setMockedBlockNumber(12);
@@ -71,7 +71,7 @@ contract TestTokenSale {
   function throwsWhenGettingTokensInNotInitiatedSale() {
     MultisigMock ms = new MultisigMock();
 
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(this), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(this), 3, 1, 2);
     ms.activateSale(sale, factory);
     // Would need activation from this too
 
@@ -81,7 +81,7 @@ contract TestTokenSale {
 
   function testEmergencyStop() {
     MultisigMock ms = new MultisigMock();
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
 
     sale.setMockedBlockNumber(12);
@@ -106,7 +106,7 @@ contract TestTokenSale {
 
   function throwsWhenGettingTokensWithStoppedSale() {
     MultisigMock ms = new MultisigMock();
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
     sale.setMockedBlockNumber(12);
 
@@ -121,7 +121,7 @@ contract TestTokenSale {
 
   function throwsWhenGettingTokensWithEndedSale() {
     MultisigMock ms = new MultisigMock();
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
     sale.setMockedBlockNumber(21);
 
@@ -135,7 +135,7 @@ contract TestTokenSale {
 
   function throwsWhenFinalizingNotEndedSale() {
     MultisigMock ms = new MultisigMock();
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
     sale.setMockedBlockNumber(19);
     ms.finalizeSale(sale);
@@ -148,7 +148,7 @@ contract TestTokenSale {
 
   function throwsWhenFinalizingIfNotMultisig() {
     MultisigMock ms = new MultisigMock();
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
     sale.setMockedBlockNumber(30);
     sale.finalizeSale();
@@ -156,7 +156,7 @@ contract TestTokenSale {
 
   function testCanFinalizeEndedSale() {
     MultisigMock ms = new MultisigMock();
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
     sale.setMockedBlockNumber(12);
     sale.proxyPayment.value(35 finney)(address(this));
@@ -178,7 +178,7 @@ contract TestTokenSale {
 
   function throwsWhenTransferingDuringSale() {
     MultisigMock ms = new MultisigMock();
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
     sale.setMockedBlockNumber(12);
     sale.proxyPayment.value(15 finney)(address(this));
@@ -188,7 +188,7 @@ contract TestTokenSale {
 
   function testTokensAreTransferrableAfterSale() {
     MultisigMock ms = new MultisigMock();
-    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 2, 1, 2);
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 3, 1, 2);
     ms.activateSale(sale, factory);
     sale.setMockedBlockNumber(12);
     sale.proxyPayment.value(15 finney)(address(this));
