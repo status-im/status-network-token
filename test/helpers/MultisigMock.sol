@@ -4,7 +4,7 @@ import '../../contracts/AragonTokenSale.sol';
 
 contract MultisigMock {
   function activateSale(address sale, address factory) {
-    AragonTokenSale(sale).deployANT(factory, true);
+    AragonTokenSale(sale).deployANT(factory);
     AragonTokenSale(sale).activateSale();
   }
 

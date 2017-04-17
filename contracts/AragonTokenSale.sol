@@ -3,6 +3,7 @@ pragma solidity ^0.4.8;
 import "zeppelin/SafeMath.sol";
 import "./interface/Controller.sol";
 import "./ANT.sol";
+import "./ANPlaceholder.sol";
 
 contract AragonTokenSale is Controller, SafeMath {
     uint public initialBlock;             // Block number in which the sale starts. Inclusive. sale will be opened at initial block.
@@ -18,8 +19,8 @@ contract AragonTokenSale is Controller, SafeMath {
 
     mapping (address => bool) public activated;   // Address confirmates that wants to activate the sale
 
-    ANT public token;                   // The token
-    address public aragonNetwork;       // Address where the network will eventually be deployed
+    ANT public token;                             // The token
+    ANPlaceholder public networkPlaceholder;      // The network placeholder
 
     uint constant public dust = 1 finney;        // Minimum investment
 
@@ -87,14 +88,16 @@ Price increases by the same delta in every stage change
   // @param _factory: Address of an instance of a MiniMeToken factory
   // @param _testMode: Testrpc contract deployment address calculations are broken. Allow for tests to work.
 
-  function deployANT(address _factory, bool _testMode) only(aragonDevMultisig) {
+  function setANT(address _token, address _networkPlaceholder) only(aragonDevMultisig) {
     // Assert that the function hasn't been called before, as activate will happen at the end
     if (activated[this]) throw;
 
-    token = new ANT(_factory);
-    if (!_testMode && address(token) != addressForContract(1)) throw; // Assert we knew where it was going to be deployed
+    token = ANT(_token);
+    networkPlaceholder = ANPlaceholder(_networkPlaceholder);
 
-    aragonNetwork = addressForContract(2); // network will eventually be deployed here
+    if (token.controller() != address(this)) throw;
+    if (networkPlaceholder.sale() != address(this)) throw;
+    if (networkPlaceholder.token() != address(token)) throw;
 
     // Contract activates sale as all requirements are ready
     doActivateSale(this);
@@ -265,29 +268,19 @@ Price increases by the same delta in every stage change
     // Aragon Dev owns 30% of the total number of emitted tokens at the end of the sale.
     uint256 aragonTokens = token.totalSupply() * 3 / 7;
     if (!token.generateTokens(aragonDevMultisig, aragonTokens)) throw;
-    token.changeController(aragonNetwork); // Sale loses token controller power in favor of network
+    token.changeController(networkPlaceholder); // Sale loses token controller power in favor of network placeholder
 
     saleStopped = true; // Set stop is true which will enable network deployment
   }
 
   // @notice Deploy Aragon Network contract.
-  // @param _networkCode: The network contract bytecode followed by its constructor args.
-  function deployNetwork(bytes _networkCode, bool _testMode)
+  // @param networkAddress: The address the network was deployed at.
+  function deployNetwork(address networkAddress)
            only_finalized_sale
            only(communityMultisig) {
 
-    address deployedAddress;
-    assembly {
-      deployedAddress := create(0,add(_networkCode,0x20), mload(_networkCode))
-      jumpi(invalidJumpLabel,iszero(extcodesize(deployedAddress)))
-    }
-
-    if (!_testMode && deployedAddress != aragonNetwork) throw;
-    suicide(aragonNetwork);
-  }
-
-  function addressForContract(uint8 n) constant returns (address) {
-    return address(sha3(0xd6, 0x94, this, n));
+    networkPlaceholder.changeController(networkAddress);
+    suicide(networkAddress);
   }
 
   function setAragonDevMultisig(address _newMultisig) only(aragonDevMultisig) {

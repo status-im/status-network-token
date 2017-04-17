@@ -1,5 +1,7 @@
 var AragonTokenSale = artifacts.require("AragonTokenSale");
 var MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
+var ANPlaceholder = artifacts.require("ANPlaceholder");
+var ANT = artifacts.require("ANT");
 var MultiSigWallet = artifacts.require("MultiSigWallet");
 
 module.exports = function(deployer, network, accounts) {
@@ -9,13 +11,25 @@ module.exports = function(deployer, network, accounts) {
   const testMS = accounts[0]// "0x538b3ef1eac22bdda9e649af2972c890ec2edec2"
 
   deployer.deploy(MiniMeTokenFactory);
-  deployer.deploy(AragonTokenSale, 684100, 684200, testMS, accounts[0], 100, 66, 2)
+  deployer.deploy(AragonTokenSale, 905850, 906350, testMS, accounts[0], 100, 66, 2)
     .then(() => {
       return MiniMeTokenFactory.deployed()
         .then(f => {
           factory = f
           return AragonTokenSale.deployed()
         })
-        .then(sale => sale.deployANT(factory.address, network.indexOf('dev') > -1, { from: accounts[0] }))
+        .then(s => {
+          sale = s
+          return ANT.new(factory.address)
+        }).then(a => {
+          ant = a
+          return ant.changeController(sale.address)
+        })
+        .then(() => {
+          return ANPlaceholder.new(sale.address, ant.address)
+        })
+        .then(networkPlaceholder => {
+          return sale.setANT(ant.address, networkPlaceholder.address)
+        })
     })
 };

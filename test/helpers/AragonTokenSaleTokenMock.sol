@@ -9,7 +9,7 @@ contract AragonTokenSaleTokenMock is AragonTokenSaleMock {
   function AragonTokenSaleTokenMock(address initialAccount, uint initialBalance)
     AragonTokenSaleMock(10, 20, msg.sender, msg.sender, 100, 50, 2)
     {
-    deployANT(new MiniMeTokenFactory(), true);
+    deployANT(new MiniMeTokenFactory());
     allocatePresaleTokens(initialAccount, initialBalance, uint64(now), uint64(now));
     activateSale();
     setMockedBlockNumber(21);
