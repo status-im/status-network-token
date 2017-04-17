@@ -1,4 +1,4 @@
-# Aragon Multisig structure
+# Aragon Multisig structure
 
 Having a good multisig structure is important for security, ANT holders' trust and ensuring the project can and will do everything as planned.
 
