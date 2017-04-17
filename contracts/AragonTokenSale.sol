@@ -95,9 +95,10 @@ Price increases by the same delta in every stage change
     token = ANT(_token);
     networkPlaceholder = ANPlaceholder(_networkPlaceholder);
 
-    if (token.controller() != address(this)) throw;
-    if (networkPlaceholder.sale() != address(this)) throw;
-    if (networkPlaceholder.token() != address(token)) throw;
+    if (token.controller() != address(this)) throw; // sale is controller
+    if (networkPlaceholder.sale() != address(this)) throw; // placeholder has reference to Sale
+    if (networkPlaceholder.token() != address(token)) throw; // placeholder has reference to ANT
+    if (token.totalSupply() > 0) throw; // token is empty
 
     // Contract activates sale as all requirements are ready
     doActivateSale(this);
@@ -255,9 +256,7 @@ Price increases by the same delta in every stage change
   }
 
   // @notice Finalizes sale generating the tokens for Aragon Dev.
-  // @dev Transfer the token controller power to the future Aragon Network,
-  // as until it is deployed it will be a non contract, no more modifications
-  // on the token can be made until deploying the network.
+  // @dev Transfers the token controller power to the ANPlaceholder.
 
   function finalizeSale() only(aragonDevMultisig) {
     if (getBlockNumber() < finalBlock) throw;

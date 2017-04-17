@@ -3,6 +3,16 @@ pragma solidity ^0.4.8;
 import "./interface/Controller.sol";
 import "./ANT.sol";
 
+/*
+
+@notice The ANPlaceholder contract will take control over the ANT after the sale
+        is finalized and before the Aragon Network is deployed.
+
+        The contract allows for ANT transfers and transferFrom and implements the
+        logic for transfering control of the token to the network when the sale
+        asks it to do so.
+*/
+
 contract ANPlaceholder is Controller {
   address public sale;
   ANT public token;
