@@ -233,7 +233,7 @@ contract MiniMeToken is ERC20, Controlled {
             msg.sender,
             _amount,
             this,
-            uint256(byte(0x80)), uint256(_extraData.length), rightPad(_extraData) // ABI encoded bytes
+            uint256(byte(0x80)), uint256(_extraData.length), rightPad(_extraData) // ABI encoded bytes. See: https://github.com/ConsenSys/Tokens/pull/45
             )) { throw;
         }
         return true;

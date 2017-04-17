@@ -15,7 +15,8 @@ contract AragonTokenSale is Controller, SafeMath {
     address public communityMultisig;     // Community trusted multisig to deploy network
 
     uint public totalCollected = 0;               // In wei
-    bool public saleStopped = false;              // Safe stop
+    bool public saleStopped = false;              // Has Aragon Dev stopped the sale?
+    bool public saleFinalized = false;            // Has Aragon Dev finalized the sale?
 
     mapping (address => bool) public activated;   // Address confirmates that wants to activate the sale
 
@@ -65,11 +66,12 @@ Price increases by the same delta in every stage change
       uint256 _initialPrice,
       uint256 _finalPrice,
       uint8 _priceStages
-  ) {
+  )
+      non_zero_address(_aragonDevMultisig)
+      non_zero_address(_communityMultisig)
+  {
       if (_initialBlock < getBlockNumber()) throw;
       if (_initialBlock >= _finalBlock) throw;
-      if (_aragonDevMultisig == 0) throw;
-      if (_communityMultisig == 0) throw;
       if (_initialPrice <= _finalPrice) throw;
       if (_priceStages < 1) throw;
       if (_priceStages > _initialPrice - _finalPrice) throw;
@@ -88,7 +90,11 @@ Price increases by the same delta in every stage change
   // @param _factory: Address of an instance of a MiniMeToken factory
   // @param _testMode: Testrpc contract deployment address calculations are broken. Allow for tests to work.
 
-  function setANT(address _token, address _networkPlaceholder) only(aragonDevMultisig) {
+  function setANT(address _token, address _networkPlaceholder)
+           non_zero_address(_token)
+           non_zero_address(_networkPlaceholder)
+           only(aragonDevMultisig) {
+
     // Assert that the function hasn't been called before, as activate will happen at the end
     if (activated[this]) throw;
 
@@ -111,8 +117,10 @@ Price increases by the same delta in every stage change
     doActivateSale(msg.sender);
   }
 
-  function doActivateSale(address _entity) only_before_sale private {
-    if (address(token) == 0x0) throw; // cannot activate before setting token
+  function doActivateSale(address _entity)
+    non_zero_address(token)               // cannot activate before setting token
+    only_before_sale
+    private {
     activated[_entity] = true;
   }
 
@@ -220,15 +228,11 @@ Price increases by the same delta in every stage change
            only_during_sale_period
            only_sale_not_stopped
            only_sale_activated
+           minimum_value(dust)
            internal {
-
-    if (token.controller() != address(this)) throw; // Check is token controller and able to allocate tokens
-    if (msg.value < dust) throw; // Check it is at least minimum investment
 
     totalCollected = safeAdd(totalCollected, msg.value); // Save total collected amount
     uint256 boughtTokens = safeMul(msg.value, getPrice(getBlockNumber())); // Calculate how many tokens bought
-
-    if (boughtTokens < 1) throw;
 
     if (!aragonDevMultisig.send(msg.value)) throw; // Send funds to multisig
     if (!token.generateTokens(_owner, boughtTokens)) throw; // Allocate tokens
@@ -258,8 +262,9 @@ Price increases by the same delta in every stage change
   // @notice Finalizes sale generating the tokens for Aragon Dev.
   // @dev Transfers the token controller power to the ANPlaceholder.
 
-  function finalizeSale() only(aragonDevMultisig) {
-    if (getBlockNumber() < finalBlock) throw;
+  function finalizeSale()
+           only_after_sale
+           only(aragonDevMultisig) {
     // Doesn't check if saleStopped is false, because sale could end in a emergency stop.
     // This function cannot be successfully called twice, because it will top being the controller,
     // and the generateTokens call will fail if called again.
@@ -269,24 +274,31 @@ Price increases by the same delta in every stage change
     if (!token.generateTokens(aragonDevMultisig, aragonTokens)) throw;
     token.changeController(networkPlaceholder); // Sale loses token controller power in favor of network placeholder
 
-    saleStopped = true; // Set stop is true which will enable network deployment
+    saleFinalized = true; // Set stop is true which will enable network deployment
   }
 
   // @notice Deploy Aragon Network contract.
   // @param networkAddress: The address the network was deployed at.
   function deployNetwork(address networkAddress)
            only_finalized_sale
+           non_zero_address(networkAddress)
            only(communityMultisig) {
 
     networkPlaceholder.changeController(networkAddress);
     suicide(networkAddress);
   }
 
-  function setAragonDevMultisig(address _newMultisig) only(aragonDevMultisig) {
+  function setAragonDevMultisig(address _newMultisig)
+           non_zero_address(_newMultisig)
+           only(aragonDevMultisig) {
+
     aragonDevMultisig = _newMultisig;
   }
 
-  function setCommunityMultisig(address _newMultisig) only(communityMultisig) {
+  function setCommunityMultisig(address _newMultisig)
+           non_zero_address(_newMultisig)
+           only(communityMultisig) {
+
     communityMultisig = _newMultisig;
   }
 
@@ -307,6 +319,11 @@ Price increases by the same delta in every stage change
   modifier only_during_sale_period {
     if (getBlockNumber() < initialBlock) throw;
     if (getBlockNumber() >= finalBlock) throw;
+    _;
+  }
+
+  modifier only_after_sale {
+    if (getBlockNumber() < finalBlock) throw;
     _;
   }
 
@@ -332,7 +349,17 @@ Price increases by the same delta in every stage change
 
   modifier only_finalized_sale {
     if (getBlockNumber() < finalBlock) throw;
-    if (!saleStopped) throw;
+    if (!saleFinalized) throw;
+    _;
+  }
+
+  modifier non_zero_address(address x) {
+    if (x == 0) throw;
+    _;
+  }
+
+  modifier minimum_value(uint256 x) {
+    if (msg.value < x) throw;
     _;
   }
 }
