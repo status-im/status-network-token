@@ -6,9 +6,13 @@ contract MultisigMock {
   function activateSale(address sale, address factory) {
     ANT token = new ANT(factory);
     ANPlaceholder networkPlaceholder = new ANPlaceholder(sale, token);
-    token.changeController(address(this));
+    token.changeController(address(sale));
 
     AragonTokenSale(sale).setANT(token, networkPlaceholder);
+    activateSale(sale);
+  }
+
+  function activateSale(address sale) {
     AragonTokenSale(sale).activateSale();
   }
 
@@ -22,6 +26,10 @@ contract MultisigMock {
 
   function finalizeSale(address sale) {
     AragonTokenSale(sale).finalizeSale();
+  }
+
+  function deployNetwork(address sale, address network) {
+    AragonTokenSale(sale).deployNetwork(network);
   }
 
   function () payable {}
