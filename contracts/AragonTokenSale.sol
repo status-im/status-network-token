@@ -25,6 +25,8 @@ contract AragonTokenSale is Controller, SafeMath {
 
     uint constant public dust = 1 finney;        // Minimum investment
 
+    event NewBuyer(address buyer, uint256 antAmount, uint256 etherAmount);
+
 /// @dev There are several checks to make sure the parameters are acceptable
 /// @param _initialBlock The Block number in which the sale starts
 /// @param _finalBlock The Block number in which the sale ends
@@ -231,12 +233,14 @@ Price increases by the same delta in every stage change
            minimum_value(dust)
            internal {
 
-    totalCollected = safeAdd(totalCollected, msg.value); // Save total collected amount
     uint256 boughtTokens = safeMul(msg.value, getPrice(getBlockNumber())); // Calculate how many tokens bought
 
     if (!aragonDevMultisig.send(msg.value)) throw; // Send funds to multisig
     if (!token.generateTokens(_owner, boughtTokens)) throw; // Allocate tokens
-    return;
+
+    totalCollected = safeAdd(totalCollected, msg.value); // Save total collected amount
+
+    NewBuyer(_owner, boughtTokens, msg.value);
   }
 
   // @notice Function to stop sale for an emergency.
