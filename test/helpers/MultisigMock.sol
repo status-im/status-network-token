@@ -4,7 +4,11 @@ import '../../contracts/AragonTokenSale.sol';
 
 contract MultisigMock {
   function activateSale(address sale, address factory) {
-    AragonTokenSale(sale).deployANT(factory);
+    ANT token = new ANT(factory);
+    ANPlaceholder networkPlaceholder = new ANPlaceholder(this, token);
+    token.changeController(address(this));
+
+    AragonTokenSale(sale).setANT(token, networkPlaceholder);
     AragonTokenSale(sale).activateSale();
   }
 
