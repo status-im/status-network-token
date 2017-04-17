@@ -2,7 +2,7 @@
 
 const assertJump = require('./helpers/assertJump');
 var AragonTokenSaleTokenMock = artifacts.require("./helpers/AragonTokenSaleTokenMock");
-var VestedToken = artifacts.require("zeppelin/token/VestedToken");
+var IrrevocableVestedToken = artifacts.require("IrrevocableVestedToken");
 const timer = require('./helpers/timer');
 
 contract('IrrevocableVestedToken', function(accounts) {
@@ -16,7 +16,7 @@ contract('IrrevocableVestedToken', function(accounts) {
 
   beforeEach(async () => {
     const sale = await AragonTokenSaleTokenMock.new(granter, 100);
-    token = VestedToken.at(await sale.token());
+    token = IrrevocableVestedToken.at(await sale.token());
     now = web3.eth.getBlock(web3.eth.blockNumber).timestamp;
   })
 
@@ -25,6 +25,19 @@ contract('IrrevocableVestedToken', function(accounts) {
 
     assert.equal(await token.balanceOf(receiver), tokenAmount);
     assert.equal(await token.transferableTokens(receiver, now), tokenAmount);
+  })
+
+  it('can disable receiving token grants', async () => {
+    await token.setVestedGrantsDisabled(true, { from: receiver })
+
+    await token.transfer(receiver, 10, { from: granter })
+    assert.equal(await token.spendableBalanceOf(receiver), 10)
+
+    try {
+      await token.grantVestedTokens(receiver, tokenAmount, now, now + 10000, now + 20000, { from: granter })
+    } catch(error) {
+      return assertJump(error);
+    }
   })
 
   describe('getting a token grant', async () => {
