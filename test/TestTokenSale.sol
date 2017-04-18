@@ -10,7 +10,13 @@ import "./helpers/NetworkMock.sol";
 contract TestTokenSale {
   uint public initialBalance = 200 finney;
 
+  address factory;
+
   ThrowProxy throwProxy;
+
+  function beforeAll() {
+    factory = address(new MiniMeTokenFactory());
+  }
 
   function beforeEach() {
     throwProxy = new ThrowProxy(address(this));

@@ -18,7 +18,7 @@ contract TestTokenPresale {
   }
 
   function deployAndSetANT(AragonTokenSale sale) {
-    ANT a = new ANT();
+    ANT a = new ANT(new MiniMeTokenFactory());
     a.changeController(sale);
     sale.setANT(a, new ANPlaceholder(address(sale), a));
   }
@@ -84,7 +84,7 @@ contract TestTokenPresale {
 
   function throwsWhenNetworkPlaceholderIsBad() {
     AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 3, 1, 2);
-    ANT a = new ANT();
+    ANT a = new ANT(new MiniMeTokenFactory());
     a.changeController(sale);
     sale.setANT(a, new ANPlaceholder(address(sale), address(sale))); // should be initialized with token address
   }
@@ -96,7 +96,7 @@ contract TestTokenPresale {
 
   function throwsWhenSaleIsNotTokenController() {
     AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 3, 1, 2);
-    ANT a = new ANT();
+    ANT a = new ANT(new MiniMeTokenFactory());
     // Not called a.changeController(sale);
     sale.setANT(a, new ANPlaceholder(address(sale), a)); // should be initialized with token address
   }
