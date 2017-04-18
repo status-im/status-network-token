@@ -10,17 +10,17 @@ Both use Gnosis Multisig at commit [25fba5](https://github.com/ConsenSys/gnosis-
 
 #### Required signatures: 2/4
 
-#### Signers: 
+#### Signers:
 
 - Luis Cuende, Aragon Project Lead. [0xddc1b51b67dabd408b224d0f7dfcc93ec4b06265](https://etherscan.io/address/0xddc1b51b67dabd408b224d0f7dfcc93ec4b06265) – [Proof](https://etherscan.io/tx/0xc7b285395c0cbf09599ffac4aa4a05bced65522994fc94597456fadc7c6c1d3f)
-- Jorge Izquierdo, Aragon Tech Lead. [0x4838Eab6F43841E0D233Db4CeA47BD64F614f0c5](https://etherscan.io/address/0x4838eab6f43841e0d233db4cea47bd64f614f0c5) – [Proof](https://etherscan.io/tx/0x190cb10d1c41e475dae81f6d73e0b8953174015c746a10d9dc500d814003d7fd) with tx data signed with [Jorge's Keybase identity](https://keybase.io/ji).
+- Jorge Izquierdo, Aragon Tech Lead. [0x4838Eab6F43841E0D233Db4CeA47BD64F614f0c5](https://etherscan.io/address/0x4838eab6f43841e0d233db4cea47bd64f614f0c5) – [Proof](https://etherscan.io/tx/0x5aaeb2d0361dbdf3b4ecadad1b49c239eb1b3b5e1cf973f6a4597ad56edc47b9).
 - Community Multisig – [0xbeefbeef03c7e5a1c29e0aa675f8e16aee0a5fad](https://etherscan.io/address/0xbeefbeef03c7e5a1c29e0aa675f8e16aee0a5fad)
 - Recovery address, recoverable only by both Luis and Jorge – TBD – Pending proof by Jorge and Luis.
 
 
 #### Responsibilities
 
-- The AragonDev multisig will be the address responsible to control the whole token sale process. 
+- The AragonDev multisig will be the address responsible to control the whole token sale process.
 - It will hold the Aragon Foundation ether funds and ANT tokens. It will make the token allocations for founders and early contributors.
 
 #### Rationale
@@ -45,17 +45,17 @@ Both use Gnosis Multisig at commit [25fba5](https://github.com/ConsenSys/gnosis-
 
 - Advisor 1.
 - Advisor 2.
-- Community extremely respected member. From EF or EthCore. 
+- Community extremely respected member. From EF or EthCore.
 - A 'The DAO' respected community responder. Took good action in emergency.
 
 #### Responsibilities
 
-- The community multisig will serve ANT holders and the broader crypto community to ensure Aragon's stated mission is carried. 
+- The community multisig will serve ANT holders and the broader crypto community to ensure Aragon's stated mission is carried.
 - The community multisig will be responsible for deploying the Aragon Network code (provided by AragonDev) once it is considered secure to do it and it matches the original expectations of it.
 - Solving hypothetic deadlock problems in the AragonDev multisig to ensure resources won't get locked and the project will continue its course.
 
 #### Rationale
 
-- Deploying the Aragon Network is a huge responsibility, and that's why we consider it a community effort. AragonDev will provide the bytecode for such network, but without support from the community it won't be deployed. 
+- Deploying the Aragon Network is a huge responsibility, and that's why we consider it a community effort. AragonDev will provide the bytecode for such network, but without support from the community it won't be deployed.
 
 - In case of a deadlock, the multisig will be a 4/6 multisig assuming that the AragonDev cannot sign. Support from the community multisig this plus one of the founders can solve the deadlock.
