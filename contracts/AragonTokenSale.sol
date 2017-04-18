@@ -172,7 +172,7 @@ Price increases by the same delta in every stage change
   function allocatePresaleTokens(address _receiver, uint _amount, uint64 cliffDate, uint64 vestingDate)
            only_before_sale_activation
            only_before_sale
-           non_zero_address(receiver)
+           non_zero_address(_receiver)
            only(aragonDevMultisig) {
 
     if (_amount > 10 ** 24) throw; // 1 million ANT. No presale partner will have more than this allocated. Prevent overflows.
