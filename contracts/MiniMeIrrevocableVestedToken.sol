@@ -5,6 +5,15 @@ pragma solidity ^0.4.8;
 import "./MiniMeToken.sol";
 import "zeppelin/SafeMath.sol";
 
+/*
+    Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+
+    Based on VestedToken.sol from https://github.com/OpenZeppelin/zeppelin-solidity
+
+    SafeMath – Copyright (c) 2016 Smart Contract Solutions, Inc.
+    MiniMeToken – Copyright 2017, Jordi Baylina (Giveth)
+ */
+
 // @dev MiniMeIrrevocableVestedToken is a derived version of MiniMeToken adding the
 // ability to createTokenGrants which are basically a transfer that limits the
 // receiver of the tokens how can he spend them over time.

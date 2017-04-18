@@ -1,5 +1,12 @@
 pragma solidity ^0.4.8;
 
+/*
+    Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+    Copyright 2017, Jordi Baylina (Giveth)
+
+    Based on MiniMeToken.sol from https://github.com/Giveth/minime
+ */
+
 /// @dev The token controller contract must implement these functions
 contract Controller {
     /// @notice Called when `_owner` sends ether to the MiniMe Token contract

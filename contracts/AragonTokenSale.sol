@@ -5,6 +5,13 @@ import "./interface/Controller.sol";
 import "./ANT.sol";
 import "./ANPlaceholder.sol";
 
+/*
+    Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+    Copyright 2017, Jordi Baylina (Giveth)
+
+    Based on SampleCampaign-TokenController.sol from https://github.com/Giveth/minime
+ */
+
 contract AragonTokenSale is Controller, SafeMath {
     uint public initialBlock;             // Block number in which the sale starts. Inclusive. sale will be opened at initial block.
     uint public finalBlock;               // Block number in which the sale end. Exclusive, sale will be closed at ends block.

@@ -2,6 +2,10 @@ pragma solidity ^0.4.8;
 
 import "./MiniMeIrrevocableVestedToken.sol";
 
+/*
+    Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+*/
+
 contract ANT is MiniMeIrrevocableVestedToken {
   // @dev ANT constructor just parametrizes the MiniMeIrrevocableVestedToken constructor
   function ANT(

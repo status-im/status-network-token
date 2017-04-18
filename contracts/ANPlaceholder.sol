@@ -4,6 +4,9 @@ import "./interface/Controller.sol";
 import "./ANT.sol";
 
 /*
+    Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+*/
+/*
 
 @notice The ANPlaceholder contract will take control over the ANT after the sale
         is finalized and before the Aragon Network is deployed.

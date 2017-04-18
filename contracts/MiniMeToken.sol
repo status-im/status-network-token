@@ -4,6 +4,13 @@ import "./interface/Controlled.sol";
 import "./interface/Controller.sol";
 import "zeppelin/token/ERC20.sol";
 
+/*
+    Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+    Copyright 2017, Jordi Baylina (Giveth)
+
+    Based on MineMeToken.sol from https://github.com/Giveth/minime
+ */
+
 contract MiniMeToken is ERC20, Controlled {
     string public name;                //The Token's name: e.g. DigixDAO Tokens
     uint8 public decimals;             //Number of decimals of the smallest unit
