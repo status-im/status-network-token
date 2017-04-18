@@ -68,7 +68,7 @@ contract IrrevocableVestedToken is ERC20, SafeMath {
     TokenGrant memory grant = TokenGrant(msg.sender, _value, _cliff, _vesting, _start);
     grants[_to].push(grant);
 
-    transfer(_to, _value);
+    if (!transfer(_to, _value)) throw;
   }
 
   function revokeTokenGrant(address _holder, uint _grantId) {
