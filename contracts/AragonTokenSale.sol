@@ -90,8 +90,8 @@ Price increases by the same delta in every stage change
   }
 
   // @notice Deploy ANT is called only once to setup all the needed contracts.
-  // @param _factory: Address of an instance of a MiniMeToken factory
-  // @param _testMode: Testrpc contract deployment address calculations are broken. Allow for tests to work.
+  // @param _token: Address of an instance of the ANT token
+  // @param _networkPlaceholder: Address of an instance of ANPlaceholder
 
   function setANT(address _token, address _networkPlaceholder)
            non_zero_address(_token)
