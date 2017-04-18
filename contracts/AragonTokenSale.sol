@@ -236,6 +236,7 @@ Price increases by the same delta in every stage change
            only_during_sale_period
            only_sale_not_stopped
            only_sale_activated
+           non_zero_address(_owner)
            minimum_value(dust)
            internal {
 
