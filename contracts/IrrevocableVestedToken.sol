@@ -25,7 +25,7 @@ contract IrrevocableVestedToken is ERC20, SafeMath {
   // @dev Add canTransfer modifier before allowing transfer and transferFrom to go through
   function transfer(address _to, uint _value)
            canTransfer(msg.sender, _value)
-          returns (bool success) {
+           returns (bool success) {
 
     return super.transfer(_to, _value);
   }

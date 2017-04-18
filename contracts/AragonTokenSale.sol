@@ -25,7 +25,8 @@ contract AragonTokenSale is Controller, SafeMath {
 
     uint constant public dust = 1 finney;        // Minimum investment
 
-    event NewBuyer(address buyer, uint256 antAmount, uint256 etherAmount);
+    event NewPresaleAllocation(address holder, uint256 antAmount);
+    event NewBuyer(address holder, uint256 antAmount, uint256 etherAmount);
 
 /// @dev There are several checks to make sure the parameters are acceptable
 /// @param _initialBlock The Block number in which the sale starts
@@ -175,6 +176,8 @@ Price increases by the same delta in every stage change
 
     if (!token.generateTokens(address(this), _amount)) throw;
     token.grantVestedTokens(_receiver, _amount, uint64(now), cliffDate, vestingDate);
+
+    NewPresaleAllocation(_receiver, _amount);
   }
 
 /// @dev The fallback function is called when ether is sent to the contract, it
