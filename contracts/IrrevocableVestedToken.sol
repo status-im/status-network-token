@@ -62,7 +62,8 @@ contract IrrevocableVestedToken is ERC20, SafeMath {
       throw;
     }
 
-    if (disabledGrants[_to]) throw; // If the receiver has explicitely blocked receiving grants, throw.
+    if (disabledGrants[_to]) throw;       // If the receiver has explicitely blocked receiving grants, throw.
+    if (grants[_to].length > 20) throw;   // To prevent a user being spammed and have his balance locked (out of gas attack when calculating vesting).
 
     TokenGrant memory grant = TokenGrant(msg.sender, _value, _cliff, _vesting, _start);
     grants[_to].push(grant);
