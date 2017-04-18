@@ -219,8 +219,7 @@ contract MiniMeToken is ERC20, Controlled {
     /// @return True if the function call was successful
     function approveAndCall(address _spender, uint256 _amount, bytes _extraData
     ) returns (bool success) {
-        allowed[msg.sender][_spender] = _amount;
-        Approval(msg.sender, _spender, _amount);
+        approve(_spender, _amount);
 
         // This portion is copied from ConsenSys's Standard Token Contract. It
         //  calls the receiveApproval function that is part of the contract that
