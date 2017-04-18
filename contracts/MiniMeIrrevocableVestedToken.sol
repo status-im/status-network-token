@@ -1,10 +1,19 @@
 pragma solidity ^0.4.8;
 
-// Slightly modified Zeppelin's Vested Token
-import "zeppelin/token/ERC20.sol";
+// Slightly modified Zeppelin's Vested Token deriving MiniMeToken
+
+import "./MiniMeToken.sol";
 import "zeppelin/SafeMath.sol";
 
-contract IrrevocableVestedToken is ERC20, SafeMath {
+// @dev MiniMeIrrevocableVestedToken is a derived version of MiniMeToken adding the
+// ability to createTokenGrants which are basically a transfer that limits the
+// receiver of the tokens how can he spend them over time.
+
+// For simplicity, token grants are not saved in MiniMe type checkpoints.
+// Vanilla cloning ANT will clone it into a MiniMeToken without vesting.
+// More complex cloning could account for past vesting calendars.
+
+contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
   struct TokenGrant {
     address granter;
     uint256 value;
@@ -21,6 +30,16 @@ contract IrrevocableVestedToken is ERC20, SafeMath {
     if (_value > spendableBalanceOf(_sender)) throw;
     _;
   }
+
+  function MiniMeIrrevocableVestedToken (
+      address _tokenFactory,
+      address _parentToken,
+      uint _parentSnapShotBlock,
+      string _tokenName,
+      uint8 _decimalUnits,
+      string _tokenSymbol,
+      bool _transfersEnabled
+  ) MiniMeToken(_tokenFactory, _parentToken, _parentSnapShotBlock, _tokenName, _decimalUnits, _tokenSymbol, _transfersEnabled) {}
 
   // @dev Add canTransfer modifier before allowing transfer and transferFrom to go through
   function transfer(address _to, uint _value)

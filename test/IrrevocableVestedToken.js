@@ -2,10 +2,10 @@
 
 const assertJump = require('./helpers/assertJump');
 var AragonTokenSaleTokenMock = artifacts.require("./helpers/AragonTokenSaleTokenMock");
-var IrrevocableVestedToken = artifacts.require("IrrevocableVestedToken");
+var MiniMeIrrevocableVestedToken = artifacts.require("MiniMeIrrevocableVestedToken");
 const timer = require('./helpers/timer');
 
-contract('IrrevocableVestedToken', function(accounts) {
+contract('MiniMeIrrevocableVestedToken', function(accounts) {
   let token = null
   let now = 0
 
@@ -16,7 +16,7 @@ contract('IrrevocableVestedToken', function(accounts) {
 
   beforeEach(async () => {
     const sale = await AragonTokenSaleTokenMock.new(granter, 100);
-    token = IrrevocableVestedToken.at(await sale.token());
+    token = MiniMeIrrevocableVestedToken.at(await sale.token());
     now = web3.eth.getBlock(web3.eth.blockNumber).timestamp;
   })
 

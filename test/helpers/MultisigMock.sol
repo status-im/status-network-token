@@ -3,13 +3,12 @@ pragma solidity ^0.4.8;
 import '../../contracts/AragonTokenSale.sol';
 
 contract MultisigMock {
-  function activateSale(address sale, address factory) {
-    ANT token = new ANT(factory);
+  function deployAndSetANT(address sale) {
+    ANT token = new ANT();
     ANPlaceholder networkPlaceholder = new ANPlaceholder(sale, token);
     token.changeController(address(sale));
 
     AragonTokenSale(sale).setANT(token, networkPlaceholder);
-    activateSale(sale);
   }
 
   function activateSale(address sale) {
