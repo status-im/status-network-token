@@ -7,7 +7,7 @@ Important resources:
 - [Presale allocation details](/PRESALE.md)
 - [Multisig structure](/MULTISIG.md)
 
-## ABIs
+## ABIs
 
 Sale:
 
