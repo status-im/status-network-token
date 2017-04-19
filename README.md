@@ -1,6 +1,6 @@
 # Aragon Network Token
 
-<img src="rsc/ant_header.jpg" width="75%"/>
+<img src="rsc/ant_header.jpg"/>
 
 Important resources:
 - If integrating ANT in an exchange or automated system, please read: [A note for exchanges or holders interacting with ANT in an automated manner](https://blog.aragon.one/a-note-for-exchanges-or-holders-interacting-with-ant-in-an-automated-manner-fe13152c1b36)
