@@ -20,6 +20,7 @@ contract AragonTokenSale is Controller, SafeMath {
     uint8 public priceStages;             // Number of different price stages for interpolating between initialPrice and finalPrice
     address public aragonDevMultisig;     // The address to hold the funds donated
     address public communityMultisig;     // Community trusted multisig to deploy network
+    bytes32 public capCommitment;
 
     uint public totalCollected = 0;               // In wei
     bool public saleStopped = false;              // Has Aragon Dev stopped the sale?
@@ -75,7 +76,8 @@ Price increases by the same delta in every stage change
       address _communityMultisig,
       uint256 _initialPrice,
       uint256 _finalPrice,
-      uint8 _priceStages
+      uint8 _priceStages,
+      bytes32 _capCommitment
   )
       non_zero_address(_aragonDevMultisig)
       non_zero_address(_communityMultisig)
@@ -85,6 +87,7 @@ Price increases by the same delta in every stage change
       if (_initialPrice <= _finalPrice) throw;
       if (_priceStages < 1) throw;
       if (_priceStages > _initialPrice - _finalPrice) throw;
+      if (uint(_capCommitment) == 0) throw;
 
       // Save constructor arguments as global variables
       initialBlock = _initialBlock;
@@ -94,6 +97,7 @@ Price increases by the same delta in every stage change
       initialPrice = _initialPrice;
       finalPrice = _finalPrice;
       priceStages = _priceStages;
+      capCommitment = _capCommitment;
   }
 
   // @notice Deploy ANT is called only once to setup all the needed contracts.
@@ -250,7 +254,7 @@ Price increases by the same delta in every stage change
     uint256 boughtTokens = safeMul(msg.value, getPrice(getBlockNumber())); // Calculate how many tokens bought
 
     if (!aragonDevMultisig.send(msg.value)) throw; // Send funds to multisig
-    if (!token.generateTokens(_owner, boughtTokens)) throw; // Allocate tokens
+    if (!token.generateTokens(_owner, boughtTokens)) throw; // Allocate tokens. This will fail after sale is finalized in case it is hidden cap finalized.
 
     totalCollected = safeAdd(totalCollected, msg.value); // Save total collected amount
 
@@ -277,12 +281,26 @@ Price increases by the same delta in every stage change
     saleStopped = false;
   }
 
+  function revealCap(uint256 _cap, uint256 _cap_secure)
+           only_during_sale_period
+           only_sale_activated {
+
+    if (totalCollected < _cap) throw;
+    doFinalizeSale(_cap, _cap_secure); // cap will be checked on finalize sale
+  }
+
   // @notice Finalizes sale generating the tokens for Aragon Dev.
   // @dev Transfers the token controller power to the ANPlaceholder.
-
-  function finalizeSale()
+  function finalizeSale(uint256 _cap, uint256 _cap_secure)
            only_after_sale
            only(aragonDevMultisig) {
+
+    doFinalizeSale(_cap, _cap_secure);
+  }
+
+  function doFinalizeSale(uint256 _cap, uint256 _cap_secure)
+           verify_cap(_cap, _cap_secure)
+           internal {
     // Doesn't check if saleStopped is false, because sale could end in a emergency stop.
     // This function cannot be successfully called twice, because it will top being the controller,
     // and the generateTokens call will fail if called again.
@@ -292,7 +310,8 @@ Price increases by the same delta in every stage change
     if (!token.generateTokens(aragonDevMultisig, aragonTokens)) throw;
     token.changeController(networkPlaceholder); // Sale loses token controller power in favor of network placeholder
 
-    saleFinalized = true; // Set stop is true which will enable network deployment
+    saleFinalized = true;  // Set stop is true which will enable network deployment
+    saleStopped = true;
   }
 
   // @notice Deploy Aragon Network contract.
@@ -324,8 +343,21 @@ Price increases by the same delta in every stage change
     return block.number;
   }
 
+  function computeCap(uint256 _cap, uint256 _cap_secure) constant returns (bytes32) {
+    return sha3(_cap, _cap_secure);
+  }
+
+  function isValidCap(uint256 _cap, uint256 _cap_secure) constant returns (bool) {
+    return computeCap(_cap, _cap_secure) == capCommitment;
+  }
+
   modifier only(address x) {
     if (msg.sender != x) throw;
+    _;
+  }
+
+  modifier verify_cap(uint256 _cap, uint256 _cap_secure) {
+    if (!isValidCap(_cap, _cap_secure)) throw;
     _;
   }
 
