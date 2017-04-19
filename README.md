@@ -61,8 +61,6 @@ A bug bounty for the ANT token and sale started on [pending date]. More details.
 
 ## ANT Initial Sale flow
 
-<img src="rsc/sale_flow.png"/>
-
 Example of a successful testnet sale: https://kovan.etherscan.io/address/0x506E1db7DA1B3876eAcd2EdDf6ED551A7F2787D0
 
 ### Instantiation
@@ -119,13 +117,15 @@ When both multisigs have called this function, the sale will be activated and no
 
 If the presale is successful in activating the sale, the sale will start on the initial block.
 
-#### 5. sale.fallback || token.fallback – 108,242 gas || 118,912 gas
+#### 5. Buy tokens sale.fallback || token.fallback – 108,242 gas || 118,912 gas
 
 After the sale is started, sending an ether amount greater than the dust value (1 finney) will result in tokens getting minted and assigned to the sender of the payment.
 
 All the funds collected will be instantly sent to the Aragon Dev multisig for security.
 
 Disclaimer: Please do not send from exchanges.
+
+<img src="rsc/ant_buy.png"/>
 
 #### 6. sale.emergencyStopSale() – 43,864 gas
 
@@ -154,6 +154,8 @@ After the sale is finalized, the community multisig will be able to provide the 
 The ANPlaceholder will transfer its Token Controller power and it will be able to mint further tokens if the network governance decides so.
 
 The sale contract is now suicided in favor of the network, though it shouldn't have any ether.
+
+<img src="rsc/an_deploy.png"/>
 
 ### Token operations
 
