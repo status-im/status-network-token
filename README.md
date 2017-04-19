@@ -61,6 +61,8 @@ A bug bounty for the ANT token and sale started on [pending date]. More details.
 
 ## ANT Initial Sale flow
 
+<img src="rsc/sale_flow.png"/>
+
 Example of a successful testnet sale: https://kovan.etherscan.io/address/0x506E1db7DA1B3876eAcd2EdDf6ED551A7F2787D0
 
 ### Instantiation
