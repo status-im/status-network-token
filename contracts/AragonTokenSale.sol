@@ -4,6 +4,7 @@ import "zeppelin/SafeMath.sol";
 import "./interface/Controller.sol";
 import "./ANT.sol";
 import "./ANPlaceholder.sol";
+import "./SaleWallet.sol";
 
 /*
     Copyright 2017, Jorge Izquierdo (Aragon Foundation)
@@ -30,6 +31,7 @@ contract AragonTokenSale is Controller, SafeMath {
 
     ANT public token;                             // The token
     ANPlaceholder public networkPlaceholder;      // The network placeholder
+    SaleWallet public saleWallet;                    // Wallet that receives all sale funds
 
     uint constant public dust = 1 finney;         // Minimum investment
     uint constant public hardCap = 1000000 ether; // Hard cap to protect the ETH network from a really high raise
@@ -104,10 +106,12 @@ Price increases by the same delta in every stage change
   // @notice Deploy ANT is called only once to setup all the needed contracts.
   // @param _token: Address of an instance of the ANT token
   // @param _networkPlaceholder: Address of an instance of ANPlaceholder
+  // @param _saleWallet: Address of the wallet receiving the funds of the sale
 
-  function setANT(address _token, address _networkPlaceholder)
+  function setANT(address _token, address _networkPlaceholder, address _saleWallet)
            non_zero_address(_token)
            non_zero_address(_networkPlaceholder)
+           non_zero_address(_saleWallet)
            only(aragonDevMultisig) {
 
     // Assert that the function hasn't been called before, as activate will happen at the end
@@ -115,11 +119,14 @@ Price increases by the same delta in every stage change
 
     token = ANT(_token);
     networkPlaceholder = ANPlaceholder(_networkPlaceholder);
+    saleWallet = SaleWallet(_saleWallet);
 
     if (token.controller() != address(this)) throw; // sale is controller
     if (networkPlaceholder.sale() != address(this)) throw; // placeholder has reference to Sale
     if (networkPlaceholder.token() != address(token)) throw; // placeholder has reference to ANT
     if (token.totalSupply() > 0) throw; // token is empty
+    if (saleWallet.finalBlock() != finalBlock) throw; // final blocks must match
+    if (saleWallet.multisig() != aragonDevMultisig) throw; // receiving wallet must match
 
     // Contract activates sale as all requirements are ready
     doActivateSale(this);
@@ -256,7 +263,7 @@ Price increases by the same delta in every stage change
 
     uint256 boughtTokens = safeMul(msg.value, getPrice(getBlockNumber())); // Calculate how many tokens bought
 
-    if (!aragonDevMultisig.send(msg.value)) throw; // Send funds to multisig
+    if (!saleWallet.send(msg.value)) throw; // Send funds to multisig
     if (!token.generateTokens(_owner, boughtTokens)) throw; // Allocate tokens. This will fail after sale is finalized in case it is hidden cap finalized.
 
     totalCollected = safeAdd(totalCollected, msg.value); // Save total collected amount
