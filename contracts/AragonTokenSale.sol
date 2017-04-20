@@ -31,7 +31,8 @@ contract AragonTokenSale is Controller, SafeMath {
     ANT public token;                             // The token
     ANPlaceholder public networkPlaceholder;      // The network placeholder
 
-    uint constant public dust = 1 finney;        // Minimum investment
+    uint constant public dust = 1 finney;         // Minimum investment
+    uint constant public hardCap = 1000000 ether; // Hard cap to protect the ETH network from a really high raise
 
     event NewPresaleAllocation(address holder, uint256 antAmount);
     event NewBuyer(address holder, uint256 antAmount, uint256 etherAmount);
@@ -250,6 +251,8 @@ Price increases by the same delta in every stage change
            non_zero_address(_owner)
            minimum_value(dust)
            internal {
+
+    if (totalCollected + msg.value > hardCap) throw; // If past hard cap, throw
 
     uint256 boughtTokens = safeMul(msg.value, getPrice(getBlockNumber())); // Calculate how many tokens bought
 
