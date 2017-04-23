@@ -3,15 +3,22 @@ var MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
 var ANPlaceholder = artifacts.require("ANPlaceholder");
 var ANT = artifacts.require("ANT");
 var MultiSigWallet = artifacts.require("MultiSigWallet");
+var SaleWallet = artifacts.require("SaleWallet");
 
 module.exports = function(deployer, network, accounts) {
-  if (network.indexOf('dev') > -1) return // dont deploy on tests
+  // if (network.indexOf('dev') > -1) return // dont deploy on tests
 
-  const realMS = "0x19050b771c18b9125629e73acbd7db44efad89a7"
-  const testMS = accounts[0]// "0x538b3ef1eac22bdda9e649af2972c890ec2edec2"
+  const aragonMs = accounts[0]
+  const communityMs = accounts[0]
 
+  const initialBlock = 1014520
+  const finalBlock = 1014550
+
+  // cap is 1 eth for secret 1
+
+  deployer.deploy(SaleWallet, aragonMs, finalBlock)
   deployer.deploy(MiniMeTokenFactory);
-  deployer.deploy(AragonTokenSale, 981724, 991724, testMS, accounts[0], 100, 66, 2)
+  deployer.deploy(AragonTokenSale, initialBlock, finalBlock, aragonMs, communityMs, 100, 66, 2, '0xdaa1cf71fb601ffe59f8ee702b6597cff2aba8d7a3c59f6f476f9afe353ba7b6')
     .then(() => {
       return MiniMeTokenFactory.deployed()
         .then(f => {
@@ -20,6 +27,10 @@ module.exports = function(deployer, network, accounts) {
         })
         .then(s => {
           sale = s
+          return SaleWallet.deployed()
+        })
+        .then(w => {
+          wallet = w
           return ANT.new(factory.address)
         }).then(a => {
           ant = a
@@ -29,7 +40,7 @@ module.exports = function(deployer, network, accounts) {
           return ANPlaceholder.new(sale.address, ant.address)
         })
         .then(networkPlaceholder => {
-          return sale.setANT(ant.address, networkPlaceholder.address)
+          return sale.setANT(ant.address, networkPlaceholder.address, wallet.address)
         })
     })
 };

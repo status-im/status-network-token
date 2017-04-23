@@ -66,7 +66,7 @@ Example of a successful testnet sale: https://kovan.etherscan.io/address/0x506E1
 ### Instantiation
 
 #### 1. Deploy sale – 1,425,663 gas
-Aragon token sale will be deployed 1 week prior to the beggining of the sale with the following parameters:
+Aragon token sale will be deployed 1 week prior to the beginning of the sale with the following parameters:
 
 - Initial block: TBC
 - Final block: Initial block + 172,800 (4 weeks)
@@ -75,12 +75,14 @@ Aragon token sale will be deployed 1 week prior to the beggining of the sale wit
 - Initial price: 100
 - Final price: 66
 - Price stages: 2
+- Cap commitment: sealed commitment for the soft hidden cap.
 
 #### 2. sale.setANT() – 95,427 gas
 Set ANT needs to called from the Aragon Multisig. Its parameters are:
 
 - ANT token address: An empty deployed instance of ANT.
 - ANPlaceholder: A network placeholder with references to the Sale and ANT.
+- Sale wallet: A contract that holds sale funds until final block.
 
 Aragon Dev will perform setANT inmediately after deploying the sale so it is instantiated as soon as possible.
 
