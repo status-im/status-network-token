@@ -23,6 +23,7 @@ import "zeppelin/SafeMath.sol";
 // More complex cloning could account for past vesting calendars.
 
 contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
+  // Keep the struct at 2 sstores (1 slot for value + 64 * 3 (dates) + 20 (address) = 2 slots (2nd slot is 212 bytes, lower than 256))
   struct TokenGrant {
     address granter;
     uint256 value;
@@ -54,7 +55,6 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
   function transfer(address _to, uint _value)
            canTransfer(msg.sender, _value)
            returns (bool success) {
-
     return super.transfer(_to, _value);
   }
 
@@ -80,15 +80,10 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     uint64 _cliff,
     uint64 _vesting) {
 
-    if (_cliff < _start) {
-      throw;
-    }
-    if (_vesting < _start) {
-      throw;
-    }
-    if (_vesting < _cliff) {
-      throw;
-    }
+    // Check start, cliff and vesting are properly order to ensure correct functionality of the formula.
+    if (_cliff < _start) throw;
+    if (_vesting < _start) throw;
+    if (_vesting < _cliff) throw;
 
     if (disabledGrants[_to]) throw;       // If the receiver has explicitely blocked receiving grants, throw.
     if (grants[_to].length > 20) throw;   // To prevent a user being spammed and have his balance locked (out of gas attack when calculating vesting).
@@ -99,10 +94,12 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     if (!transfer(_to, _value)) throw;
   }
 
+  // @dev Not allow token grants
   function revokeTokenGrant(address _holder, uint _grantId) {
     throw;
   }
 
+  //
   function tokenGrantsCount(address _holder) constant returns (uint index) {
     return grants[_holder].length;
   }
@@ -134,30 +131,55 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     uint256 time,
     uint256 start,
     uint256 cliff,
-    uint256 vesting) internal constant returns (uint256 vestedTokens)
+    uint256 vesting) internal constant returns (uint256)
     {
 
-    if (time < cliff) {
-      return 0;
-    }
+    // Shortcuts for before cliff and after vesting cases.
+    if (time < cliff) return 0;
+    if (time >= vesting) return tokens;
 
-    if (time >= vesting) {
-      return tokens;
-    }
+    // Cliff tokens is the part of the tokens that gets unlocked after the cliff.
+    // Interpolated in function of the relation of vesting and cliff time.
 
-    uint256 cliffTokens = safeDiv(safeMul(tokens, safeSub(cliff, start)), safeSub(vesting, start));
-    vestedTokens = cliffTokens;
+    // Actual order of operations is changed to divide the biggest numbers because
+    // of the lack of floating point types
 
+    // cliffTokens = tokens * (cliff - start) / (vesting - start)
+    uint256 cliffTokens = safeDiv(
+                                  safeMul(
+                                          tokens,
+                                          safeSub(cliff, start)
+                                          ),
+                                  safeSub(vesting, start)
+                                  );
+
+    // Vesting tokens is the part of the token grant that wasn't part of the cliff tokens
+    // vestingTokens = tokens - cliffTokens
     uint256 vestingTokens = safeSub(tokens, cliffTokens);
 
-    vestedTokens = safeAdd(vestedTokens, safeDiv(safeMul(vestingTokens, safeSub(time, cliff)), safeSub(vesting, cliff)));
+    // Vested vesting tokens is the part of the vesting tokens that are already vested
+
+    // vestedVestingTokens = vestingTokens * (time - cliff) / (vesting - cliff)
+    uint256 vestedVestingTokens = safeDiv(
+                                          safeMul(
+                                                  vestingTokens,
+                                                  safeSub(time, cliff)
+                                                  ),
+                                          safeSub(vesting, cliff)
+                                          );
+
+    // cliff tokens + vestedVestingToken
+    return safeAdd(cliffTokens, vestedVestingTokens);
   }
 
   function nonVestedTokens(TokenGrant grant, uint64 time) internal constant returns (uint256) {
+    // Of all the tokens of the grant, how many of them are not vested?
+    // grantValue - vestedTokens
     return safeSub(grant.value, vestedTokens(grant, time));
   }
 
   // @dev The date in which all tokens are transferable for the holder
+  // Useful for displaying purposes (not used in any logic calculations)
   function lastTokenIsTransferableDate(address holder) constant public returns (uint64 date) {
     date = uint64(now);
     uint256 grantIndex = grants[holder].length;
@@ -170,13 +192,15 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
   function transferableTokens(address holder, uint64 time) constant public returns (uint256) {
     uint256 grantIndex = grants[holder].length;
 
-    if (grantIndex == 0) return balanceOf(holder);
+    if (grantIndex == 0) return balanceOf(holder); // shortcut for holder without grants
 
+    // Iterate through all the grants the holder has, and add all non-vested tokens
     uint256 nonVested = 0;
     for (uint256 i = 0; i < grantIndex; i++) {
       nonVested = safeAdd(nonVested, nonVestedTokens(grants[holder][i], time));
     }
 
+    // Balance - totalNonVested is the amount of tokens a holder can transfer at any given time
     return safeSub(balanceOf(holder), nonVested);
   }
 }
