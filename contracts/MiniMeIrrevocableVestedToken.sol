@@ -146,12 +146,12 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
 
     // cliffTokens = tokens * (cliff - start) / (vesting - start)
     uint256 cliffTokens = safeDiv(
-                                  safeMul(
-                                          tokens,
-                                          safeSub(cliff, start)
-                                          ),
-                                  safeSub(vesting, start)
-                                  );
+                            safeMul(
+                              tokens,
+                              safeSub(cliff, start)
+                              ),
+                            safeSub(vesting, start)
+                            );
 
     // Vesting tokens is the part of the token grant that wasn't part of the cliff tokens
     // vestingTokens = tokens - cliffTokens
@@ -161,12 +161,12 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
 
     // vestedVestingTokens = vestingTokens * (time - cliff) / (vesting - cliff)
     uint256 vestedVestingTokens = safeDiv(
-                                          safeMul(
-                                                  vestingTokens,
-                                                  safeSub(time, cliff)
-                                                  ),
-                                          safeSub(vesting, cliff)
-                                          );
+                                    safeMul(
+                                      vestingTokens,
+                                      safeSub(time, cliff)
+                                      ),
+                                    safeSub(vesting, cliff)
+                                    );
 
     // cliff tokens + vestedVestingToken
     return safeAdd(cliffTokens, vestedVestingTokens);
