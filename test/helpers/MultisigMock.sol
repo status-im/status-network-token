@@ -1,6 +1,6 @@
 pragma solidity ^0.4.8;
 
-import '../../contracts/AragonTokenSale.sol';
+import './AragonTokenSaleMock.sol';
 
 contract MultisigMock {
   function deployAndSetANT(address sale) {
@@ -8,7 +8,8 @@ contract MultisigMock {
     ANPlaceholder networkPlaceholder = new ANPlaceholder(sale, token);
     token.changeController(address(sale));
 
-    AragonTokenSale(sale).setANT(token, networkPlaceholder);
+    AragonTokenSale s = AragonTokenSale(sale);
+    s.setANT(token, networkPlaceholder, new SaleWallet(s.aragonDevMultisig(), s.finalBlock()));
   }
 
   function activateSale(address sale) {
@@ -24,7 +25,11 @@ contract MultisigMock {
   }
 
   function finalizeSale(address sale) {
-    AragonTokenSale(sale).finalizeSale();
+    finalizeSale(sale, AragonTokenSaleMock(sale).mock_hiddenCap());
+  }
+
+  function finalizeSale(address sale, uint256 cap) {
+    AragonTokenSale(sale).finalizeSale(cap, AragonTokenSaleMock(sale).mock_capSecret());
   }
 
   function deployNetwork(address sale, address network) {

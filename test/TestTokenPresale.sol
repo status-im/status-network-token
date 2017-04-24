@@ -20,7 +20,7 @@ contract TestTokenPresale {
   function deployAndSetANT(AragonTokenSale sale) {
     ANT a = new ANT(new MiniMeTokenFactory());
     a.changeController(sale);
-    sale.setANT(a, new ANPlaceholder(address(sale), a));
+    sale.setANT(a, new ANPlaceholder(address(sale), a), new SaleWallet(sale.aragonDevMultisig(), sale.finalBlock()));
   }
 
   function testCreateSale() {
@@ -86,7 +86,7 @@ contract TestTokenPresale {
     AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 3, 1, 2);
     ANT a = new ANT(new MiniMeTokenFactory());
     a.changeController(sale);
-    sale.setANT(a, new ANPlaceholder(address(sale), address(sale))); // should be initialized with token address
+    sale.setANT(a, new ANPlaceholder(address(sale), address(sale)), new SaleWallet(sale.aragonDevMultisig(), sale.finalBlock())); // should be initialized with token address
   }
 
   function testThrowsIfSaleIsNotTokenController() {
@@ -98,7 +98,31 @@ contract TestTokenPresale {
     AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 3, 1, 2);
     ANT a = new ANT(new MiniMeTokenFactory());
     // Not called a.changeController(sale);
-    sale.setANT(a, new ANPlaceholder(address(sale), a)); // should be initialized with token address
+    sale.setANT(a, new ANPlaceholder(address(sale), a), new SaleWallet(sale.aragonDevMultisig(), sale.finalBlock())); // should be initialized with token address
+  }
+
+  function testThrowsSaleWalletIncorrectBlock() {
+    TestTokenPresale(throwProxy).throwsSaleWalletIncorrectBlock();
+    throwProxy.assertThrows("Should have thrown sale wallet releases in incorrect block");
+  }
+
+  function throwsSaleWalletIncorrectBlock() {
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 3, 1, 2);
+    ANT a = new ANT(new MiniMeTokenFactory());
+    a.changeController(sale);
+    sale.setANT(a, new ANPlaceholder(address(sale), a), new SaleWallet(sale.aragonDevMultisig(), sale.finalBlock() - 1));
+  }
+
+  function testThrowsSaleWalletIncorrectMultisig() {
+    TestTokenPresale(throwProxy).throwsSaleWalletIncorrectMultisig();
+    throwProxy.assertThrows("Should have thrown when sale wallet has incorrect multisig");
+  }
+
+  function throwsSaleWalletIncorrectMultisig() {
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(this), address(this), 3, 1, 2);
+    ANT a = new ANT(new MiniMeTokenFactory());
+    a.changeController(sale);
+    sale.setANT(a, new ANPlaceholder(address(sale), a), new SaleWallet(0x1a77ed, sale.finalBlock()));
   }
 
   function testSetPresaleTokens() {

@@ -15,12 +15,16 @@ module.exports = {
       port: 8545,
       gas: 1e8,
     },
-    development46: {
-      network_id: 15,
-      host: 'localhost',
-      port: 8546,
-      gas: 8e7,
-    },
+    test: {
+     provider: require('ethereumjs-testrpc').provider({ gasLimit: 1000000000 }), // in-memory TestRPC provider
+     network_id: "*" // Match any network id
+   },
+   development46: {
+     network_id: 15,
+     host: 'localhost',
+     port: 8546,
+     gas: 8e7,
+   },
     ropsten: {
       network_id: 3,
       provider: ropstenProvider,

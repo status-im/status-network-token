@@ -14,17 +14,24 @@ contract AragonTokenSaleMock is AragonTokenSale {
       uint256 _initialPrice,
       uint256 _finalPrice,
       uint8 _priceStages
-  ) AragonTokenSale(_initialBlock, _finalBlock, _aragonDevMultisig, _communityMultisig, _initialPrice, _finalPrice, _priceStages) {
+  ) AragonTokenSale(_initialBlock, _finalBlock, _aragonDevMultisig, _communityMultisig, _initialPrice, _finalPrice, _priceStages, computeCap(mock_hiddenCap, mock_capSecret)) {
 
   }
 
   function getBlockNumber() constant returns (uint) {
-    return mockedBlockNumber;
+    return mock_blockNumber;
   }
 
   function setMockedBlockNumber(uint _b) {
-    mockedBlockNumber = _b;
+    mock_blockNumber = _b;
   }
 
-  uint mockedBlockNumber = 1;
+  function setMockedTotalCollected(uint _totalCollected) {
+    totalCollected = _totalCollected;
+  }
+
+  uint mock_blockNumber = 1;
+
+  uint public mock_hiddenCap = 100 finney;
+  uint public mock_capSecret = 1;
 }

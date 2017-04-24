@@ -57,13 +57,15 @@ contract TestTokenSale {
 
     sale.setMockedBlockNumber(12);
     Assert.isTrue(sale.proxyPayment.value(25 finney)(address(this)), 'proxy payment should succeed'); // Gets 5 @ 10 finney
+    Assert.equal(sale.totalCollected(), 25 finney, 'Should have correct total collected');
 
     sale.setMockedBlockNumber(17);
     if (!sale.proxyPayment.value(10 finney)(address(this))) throw; // Gets 1 @ 20 finney
 
     Assert.equal(ERC20(sale.token()).balanceOf(address(this)), 85 finney, 'Should have correct balance after allocation');
     Assert.equal(ERC20(sale.token()).totalSupply(), 85 finney, 'Should have correct supply after allocation');
-    Assert.equal(ms.balance, 35 finney, 'Should have sent money to multisig');
+    Assert.equal(sale.saleWallet().balance, 35 finney, 'Should have sent money to multisig');
+    Assert.equal(sale.totalCollected(), 35 finney, 'Should have correct total collected');
   }
 
   function testCannotGetTokensInNotInitiatedSale() {
@@ -161,7 +163,67 @@ contract TestTokenSale {
     ms.deployAndSetANT(sale);
     ms.activateSale(sale);
     sale.setMockedBlockNumber(30);
-    sale.finalizeSale();
+    sale.finalizeSale(1, 1);
+  }
+
+  function testCantFinalizeWithIncorrectCap() {
+    TestTokenSale(throwProxy).throwsWhenFinalizingWithIncorrectCap();
+    throwProxy.assertThrows("Should have thrown if incorrect cap");
+  }
+
+  function throwsWhenFinalizingWithIncorrectCap() {
+    MultisigMock ms = new MultisigMock();
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 5, 1, 2);
+    ms.deployAndSetANT(sale);
+    ms.activateSale(sale);
+    sale.setMockedBlockNumber(21);
+    ms.finalizeSale(sale, 101 finney); // cap is 100
+  }
+
+  function testCanFinalizeOnCap() {
+    MultisigMock ms = new MultisigMock();
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 5, 1, 2);
+    ms.deployAndSetANT(sale);
+    ms.activateSale(sale);
+    sale.setMockedBlockNumber(12);
+    sale.proxyPayment.value(100 finney)(address(this));
+
+    sale.revealCap(100 finney, sale.mock_capSecret());
+
+    Assert.isTrue(sale.saleFinalized(), 'Sale should be finished after revealing cap');
+  }
+
+  function testCantFinalizeBeforeCap() {
+    TestTokenSale(throwProxy).throwsWhenFinalizingBeforeCap();
+    throwProxy.assertThrows("Should have thrown finalizing before cap");
+  }
+
+  function throwsWhenFinalizingBeforeCap() {
+    MultisigMock ms = new MultisigMock();
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 5, 1, 2);
+    ms.deployAndSetANT(sale);
+    ms.activateSale(sale);
+    sale.setMockedBlockNumber(12);
+    sale.proxyPayment.value(99 finney)(address(this));
+
+    sale.revealCap(100 finney, sale.mock_capSecret());
+
+    Assert.isTrue(sale.saleFinalized(), 'Sale should be finished after revealing cap');
+  }
+
+  function testHardCap() {
+    TestTokenSale(throwProxy).throwsWhenHittingHardCap();
+    throwProxy.assertThrows("Should have thrown when hitting hard cap");
+  }
+
+  function throwsWhenHittingHardCap() {
+    MultisigMock ms = new MultisigMock();
+    AragonTokenSaleMock sale = new AragonTokenSaleMock(10, 20, address(ms), address(ms), 5, 1, 2);
+    ms.deployAndSetANT(sale);
+    ms.activateSale(sale);
+    sale.setMockedBlockNumber(12);
+    sale.setMockedTotalCollected(1499999 ether + 950 finney); // hard cap is 1.5m
+    sale.proxyPayment.value(100 finney)(address(this));
   }
 
   function testCanFinalizeEndedSale() {
