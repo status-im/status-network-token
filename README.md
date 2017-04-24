@@ -1,4 +1,4 @@
-# Aragon Network Token
+# Aragon Network Token <img src="https://aragon.chat/badge.svg">
 
 <img src="rsc/ant_header.jpg"/>
 
