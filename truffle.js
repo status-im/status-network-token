@@ -3,7 +3,7 @@ require('babel-polyfill');
 
 var HDWalletProvider = require('truffle-hdwallet-provider');
 
-const mnemonic = process.env.TEST_MNETONIC;
+const mnemonic = process.env.TEST_MNETONIC || 'burger burger burger burger burger burger burger burger burger burger burger burger';
 const ropstenProvider = new HDWalletProvider(mnemonic, 'https://ropsten.infura.io/');
 const kovanProvider = new HDWalletProvider(mnemonic, 'https://kovan.aragon.one');
 
