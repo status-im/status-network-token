@@ -32,6 +32,8 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     uint64 start;
   }
 
+  event NewTokenGrant(address from, address to, uint256 value, uint64 start, uint64 cliff, uint64 vesting);
+
   mapping (address => TokenGrant[]) public grants;
 
   mapping (address => bool) public disabledGrants;
@@ -92,6 +94,8 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     grants[_to].push(grant);
 
     if (!transfer(_to, _value)) throw;
+
+    NewTokenGrant(msg.sender, _to, _value, _cliff, _vesting, _start);
   }
 
   // @dev Not allow token grants
