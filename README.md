@@ -1,4 +1,4 @@
-# Aragon Network Token <img src="https://aragon.chat/badge.svg">
+# Aragon Network Token ![Join our slack](https://aragon.chat/badge.svg) [![Build Status](https://travis-ci.org/AragonOne/aragon-network-token.svg?branch=master)](https://travis-ci.org/AragonOne/aragon-network-token)
 
 <img src="rsc/ant_header.jpg"/>
 
@@ -7,6 +7,7 @@ Important resources:
 - [Presale allocation details](/PRESALE.md)
 - [Multisig structure](/MULTISIG.md)
 - [Token sale flow](/SALE_FLOW.md)
+- [Technical overview](https://blog.aragon.one/aragon-token-sale-technical-overview-9c2a4b910755) blogpost.
 
 ## ABIs
 
