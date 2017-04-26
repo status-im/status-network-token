@@ -296,6 +296,8 @@ Price increases by the same delta in every stage change
            only_sale_activated
            verify_cap(_cap, _cap_secure) {
 
+    if (_cap > hardCap) throw;
+
     if (totalCollected < _cap) {
       hardCap = _cap;
     } else {
