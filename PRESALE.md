@@ -9,7 +9,7 @@
 | Daniele Levi | 0x53C72d570fB57DB8bfAd81F2eb6b4a3910f49976 | 10,000 USD | Fiat | | Fiat  | |
 
 
-All presale contributions were denominated in USD but payed in ETH. Ether amounts vary for different presale entities because all agreements weren't signed at the same time. The amount of ANT calculated is how many ANT could have been bought with x USD in the preallocation day.
+All presale contributions were denominated in USD but payed in ETH. Ether amounts vary for different presale entities because all agreements weren't signed at the same time. The amount of ANT calculated is how many ANT could have been bought with the USD amount in the preallocation day.
 
 ANT amount will be calculated on allocation day using the following formula:
 
