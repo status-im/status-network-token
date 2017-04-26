@@ -150,6 +150,22 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     );
   }
 
+  //  transferableTokens
+  //   |                         _/--------   NonVestedTokens
+  //   |                       _/
+  //   |                     _/
+  //   |                   _/
+  //   |                 _/
+  //   |                /
+  //   |              .|
+  //   |            .  |
+  //   |          .    |
+  //   |        .      |
+  //   |      .        |
+  //   |    .          |
+  //   +===+===========+---------+----------> time
+  //      Start       Clift    Vesting
+
   function calculateVestedTokens(
     uint256 tokens,
     uint256 time,
@@ -162,38 +178,20 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     if (time < cliff) return 0;
     if (time >= vesting) return tokens;
 
-    // Cliff tokens is the part of the tokens that gets unlocked after the cliff.
-    // Interpolated in function of the relation of vesting and cliff time.
+    // Interpolate all vested tokens.
+    // As before cliff the shortcut returns 0, we can use just this function to
+    // calculate it.
 
-    // Actual order of operations is changed to divide the biggest numbers because
-    // of the lack of floating point types
+    // vestedTokens = tokens * (time - start) / (vesting - start)
+    uint256 vestedTokens = safeDiv(
+                                  safeMul(
+                                    tokens,
+                                    safeSub(time, start)
+                                    ),
+                                  safeSub(vesting, start)
+                                  );
 
-    // cliffTokens = tokens * (cliff - start) / (vesting - start)
-    uint256 cliffTokens = safeDiv(
-                            safeMul(
-                              tokens,
-                              safeSub(cliff, start)
-                              ),
-                            safeSub(vesting, start)
-                            );
-
-    // Vesting tokens is the part of the token grant that wasn't part of the cliff tokens
-    // vestingTokens = tokens - cliffTokens
-    uint256 vestingTokens = safeSub(tokens, cliffTokens);
-
-    // Vested vesting tokens is the part of the vesting tokens that are already vested
-
-    // vestedVestingTokens = vestingTokens * (time - cliff) / (vesting - cliff)
-    uint256 vestedVestingTokens = safeDiv(
-                                    safeMul(
-                                      vestingTokens,
-                                      safeSub(time, cliff)
-                                      ),
-                                    safeSub(vesting, cliff)
-                                    );
-
-    // cliff tokens + vestedVestingToken
-    return safeAdd(cliffTokens, vestedVestingTokens);
+    return vestedTokens;
   }
 
   function nonVestedTokens(TokenGrant grant, uint64 time) internal constant returns (uint256) {
