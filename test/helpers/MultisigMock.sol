@@ -9,6 +9,7 @@ contract MultisigMock {
     token.changeController(address(sale));
 
     AragonTokenSale s = AragonTokenSale(sale);
+    token.setCanCreateGrants(sale, true);
     s.setANT(token, networkPlaceholder, new SaleWallet(s.aragonDevMultisig(), s.finalBlock()));
   }
 

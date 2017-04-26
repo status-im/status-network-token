@@ -88,7 +88,7 @@ Price increases by the same delta in every stage change
       if (_initialBlock < getBlockNumber()) throw;
       if (_initialBlock >= _finalBlock) throw;
       if (_initialPrice <= _finalPrice) throw;
-      if (_priceStages < 1) throw;
+      if (_priceStages < 2) throw;
       if (_priceStages > _initialPrice - _finalPrice) throw;
       if (uint(_capCommitment) == 0) throw;
 

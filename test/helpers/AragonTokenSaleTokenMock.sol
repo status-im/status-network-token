@@ -18,5 +18,7 @@ contract AragonTokenSaleTokenMock is AragonTokenSaleMock {
       activateSale();
       setMockedBlockNumber(21);
       finalizeSale(mock_hiddenCap, mock_capSecret);
+
+      token.changeVestingWhitelister(msg.sender);
   }
 }

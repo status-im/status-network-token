@@ -37,6 +37,12 @@ module.exports = function(deployer, network, accounts) {
           return ant.changeController(sale.address)
         })
         .then(() => {
+          return ant.setCanCreateGrants(sale.address, true)
+        })
+        .then(() => {
+          return ant.changeVestingWhitelister(aragonMs)
+        })
+        .then(() => {
           return ANPlaceholder.new(sale.address, ant.address)
         })
         .then(networkPlaceholder => {

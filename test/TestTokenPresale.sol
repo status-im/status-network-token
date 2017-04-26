@@ -20,6 +20,7 @@ contract TestTokenPresale {
   function deployAndSetANT(AragonTokenSale sale) {
     ANT a = new ANT(new MiniMeTokenFactory());
     a.changeController(sale);
+    a.setCanCreateGrants(sale, true);
     sale.setANT(a, new ANPlaceholder(address(sale), a), new SaleWallet(sale.aragonDevMultisig(), sale.finalBlock()));
   }
 

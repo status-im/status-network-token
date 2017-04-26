@@ -36,10 +36,16 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
 
   mapping (address => TokenGrant[]) public grants;
 
-  mapping (address => bool) public disabledGrants;
+  mapping (address => bool) canCreateGrants;
+  address vestingWhitelister;
 
   modifier canTransfer(address _sender, uint _value) {
     if (_value > spendableBalanceOf(_sender)) throw;
+    _;
+  }
+
+  modifier onlyVestingWhitelister {
+    if (msg.sender != vestingWhitelister) throw;
     _;
   }
 
@@ -51,7 +57,10 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
       uint8 _decimalUnits,
       string _tokenSymbol,
       bool _transfersEnabled
-  ) MiniMeToken(_tokenFactory, _parentToken, _parentSnapShotBlock, _tokenName, _decimalUnits, _tokenSymbol, _transfersEnabled) {}
+  ) MiniMeToken(_tokenFactory, _parentToken, _parentSnapShotBlock, _tokenName, _decimalUnits, _tokenSymbol, _transfersEnabled) {
+    vestingWhitelister = msg.sender;
+    doSetCanCreateGrants(vestingWhitelister, true);
+  }
 
   // @dev Add canTransfer modifier before allowing transfer and transferFrom to go through
   function transfer(address _to, uint _value)
@@ -70,11 +79,6 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     return transferableTokens(_holder, uint64(now));
   }
 
-  // @notice An exchange or account that is not managed by a human may want to refuse to receive tokens with vesting.
-  function setVestedGrantsDisabled(bool disabled) public {
-    disabledGrants[msg.sender] = disabled;
-  }
-
   function grantVestedTokens(
     address _to,
     uint256 _value,
@@ -87,7 +91,7 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     if (_vesting < _start) throw;
     if (_vesting < _cliff) throw;
 
-    if (disabledGrants[_to]) throw;       // If the receiver has explicitely blocked receiving grants, throw.
+    if (!canCreateGrants[msg.sender]) throw;
     if (grants[_to].length > 20) throw;   // To prevent a user being spammed and have his balance locked (out of gas attack when calculating vesting).
 
     TokenGrant memory grant = TokenGrant(msg.sender, _value, _cliff, _vesting, _start);
@@ -96,6 +100,22 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     if (!transfer(_to, _value)) throw;
 
     NewTokenGrant(msg.sender, _to, _value, _cliff, _vesting, _start);
+  }
+
+  function setCanCreateGrants(address _addr, bool _allowed)
+           onlyVestingWhitelister {
+    doSetCanCreateGrants(_addr, _allowed);
+  }
+
+  function doSetCanCreateGrants(address _addr, bool _allowed)
+           internal {
+    canCreateGrants[_addr] = _allowed;
+  }
+
+  function changeVestingWhitelister(address _newWhitelister) onlyVestingWhitelister {
+    doSetCanCreateGrants(vestingWhitelister, false);
+    vestingWhitelister = _newWhitelister;
+    doSetCanCreateGrants(vestingWhitelister, true);
   }
 
   // @dev Not allow token grants

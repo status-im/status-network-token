@@ -27,14 +27,26 @@ contract('MiniMeIrrevocableVestedToken', function(accounts) {
     assert.equal(await token.transferableTokens(receiver, now), tokenAmount);
   })
 
-  it('can disable receiving token grants', async () => {
-    await token.setVestedGrantsDisabled(true, { from: receiver })
-
-    await token.transfer(receiver, 10, { from: granter })
-    assert.equal(await token.spendableBalanceOf(receiver), 10)
-
+  it('cannot create token grants after losing whitelisting ability', async () => {
+    await token.changeVestingWhitelister(accounts[2]);
     try {
       await token.grantVestedTokens(receiver, tokenAmount, now, now + 10000, now + 20000, { from: granter })
+    } catch(error) {
+      return assertJump(error);
+    }
+  })
+
+  it('can create token grants after being whitelisted', async () => {
+    await token.changeVestingWhitelister(accounts[2]);
+    await token.setCanCreateGrants(accounts[0], true, { from: accounts[2] });
+    await token.grantVestedTokens(receiver, tokenAmount, now, now + 10000, now + 20000, { from: granter });
+    assert.equal(await token.balanceOf(receiver), tokenAmount);
+  })
+
+  it('cannot whitelist ppl after losing vesting whitelisting ability', async () => {
+    await token.changeVestingWhitelister(accounts[2]);
+    try {
+      await token.setCanCreateGrants(accounts[2], true, { from: accounts[0] });
     } catch(error) {
       return assertJump(error);
     }
