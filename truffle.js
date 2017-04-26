@@ -16,8 +16,8 @@ module.exports = {
       gas: 1e8,
     },
     test: {
-     provider: require('ethereumjs-testrpc').provider({ gasLimit: 1000000000 }), // in-memory TestRPC provider
-     network_id: "*" // Match any network id
+     provider: require('ethereumjs-testrpc').provider({ gasLimit: 100000000 }),
+     network_id: "*"
    },
    development46: {
      network_id: 15,
