@@ -32,7 +32,7 @@ contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
     uint64 start;
   }
 
-  event NewTokenGrant(address from, address to, uint256 value, uint64 start, uint64 cliff, uint64 vesting);
+  event NewTokenGrant(address indexed from, address indexed to, uint256 value, uint64 start, uint64 cliff, uint64 vesting);
 
   mapping (address => TokenGrant[]) public grants;
 

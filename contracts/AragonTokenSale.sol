@@ -36,8 +36,8 @@ contract AragonTokenSale is Controller, SafeMath {
     uint constant public dust = 1 finney;         // Minimum investment
     uint public hardCap = 1500000 ether;          // Hard cap to protect the ETH network from a really high raise
 
-    event NewPresaleAllocation(address holder, uint256 antAmount);
-    event NewBuyer(address holder, uint256 antAmount, uint256 etherAmount);
+    event NewPresaleAllocation(address indexed holder, uint256 antAmount);
+    event NewBuyer(address indexed holder, uint256 antAmount, uint256 etherAmount);
 
 /// @dev There are several checks to make sure the parameters are acceptable
 /// @param _initialBlock The Block number in which the sale starts
