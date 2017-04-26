@@ -30,23 +30,20 @@ Both use Gnosis Multisig at commit [25fba5](https://github.com/ConsenSys/gnosis-
 
 
 
-
 ## Community multisig – Beef beef [0xbeefbeef03c7e5a1c29e0aa675f8e16aee0a5fad](https://etherscan.io/address/0xbeefbeef03c7e5a1c29e0aa675f8e16aee0a5fad)
 
-#### Required signatures: 4/7
+#### Required signatures: 3/5
 
 #### Signers
 
 - AragonDev multisig. [0xcafe1a77e84698c83ca8931f54a755176ef75f2c](https://etherscan.io/address/0xcafe1a77e84698c83ca8931f54a755176ef75f2c)
 - Joe Urgo, CEO [Sourcerers](http://sourcerers.io) & [Dapp daily](https://dappdaily.com) author. [0x75d83a0ae1543fd4b49594023977e1daf5a954c5](https://etherscan.io/address/0x75d83a0ae1543fd4b49594023977e1daf5a954c5) – [Proof](https://etherscan.io/tx/0x796538ed7dd4d76953b045c6341129f8976fefeb160de72618dc28c50138cc5a)
-- Zeppelin, top smart contract security firm. TBD – Pending proof.
 
 #### Pending signers
 
-- Advisor 1.
-- Advisor 2.
-- Community extremely respected member. From EF or EthCore.
-- A 'The DAO' respected community responder. Took good action in emergency.
+- Pending 1
+- Pending 2
+- Pending 3
 
 #### Responsibilities
 
