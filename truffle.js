@@ -3,7 +3,7 @@ require('babel-polyfill');
 
 var HDWalletProvider = require('truffle-hdwallet-provider');
 
-const mnemonic = 'stumble story behind hurt patient ball whisper art swift tongue ice alien';
+const mnemonic = process.env.TEST_MNETONIC;
 const ropstenProvider = new HDWalletProvider(mnemonic, 'https://ropsten.infura.io/');
 const kovanProvider = new HDWalletProvider(mnemonic, 'https://kovan.aragon.one');
 
