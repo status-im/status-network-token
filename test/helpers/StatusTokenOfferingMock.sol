@@ -1,20 +1,20 @@
 pragma solidity ^0.4.8;
 
-import '../../contracts/AragonTokenSale.sol';
+import '../../contracts/StatusContributionPeriod.sol';
 
-// @dev AragonTokenSaleMock mocks current block number
+// @dev StatusContributionPeriodMock mocks current block number
 
-contract AragonTokenSaleMock is AragonTokenSale {
+contract StatusContributionPeriodMock is StatusContributionPeriod {
 
-  function AragonTokenSaleMock (
+  function StatusContributionPeriodMock (
       uint _initialBlock,
       uint _finalBlock,
-      address _aragonDevMultisig,
+      address _statusDevMultisig,
       address _communityMultisig,
       uint256 _initialPrice,
       uint256 _finalPrice,
       uint8 _priceStages
-  ) AragonTokenSale(_initialBlock, _finalBlock, _aragonDevMultisig, _communityMultisig, _initialPrice, _finalPrice, _priceStages, computeCap(mock_hiddenCap, mock_capSecret)) {
+  ) StatusContributionPeriod(_initialBlock, _finalBlock, _statusDevMultisig, _communityMultisig, _initialPrice, _finalPrice, _priceStages, computeCap(mock_hiddenCap, mock_capSecret)) {
 
   }
 

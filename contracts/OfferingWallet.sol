@@ -1,11 +1,11 @@
 pragma solidity ^0.4.8;
 
-// @dev Contract to hold sale raised funds during the sale period.
-// Prevents attack in which the Aragon Multisig sends raised ether
-// to the sale contract to mint tokens to itself, and getting the
+// @dev Contract to hold raised funds during the offering period.
+// Prevents attack in which the Status Multisig sends raised ether
+// to the offering contract to mint tokens to itself, and getting the
 // funds back immediately.
 
-contract SaleWallet {
+contract OfferingWallet {
   // Public variables
   address public multisig;
   uint public finalBlock;
@@ -13,7 +13,7 @@ contract SaleWallet {
   // @dev Constructor initializes public variables
   // @param _multisig The address of the multisig that will receive the funds
   // @param _finalBlock Block after which the multisig can request the funds
-  function SaleWallet(address _multisig, uint _finalBlock) {
+  function OfferingWallet(address _multisig, uint _finalBlock) {
     multisig = _multisig;
     finalBlock = _finalBlock;
   }

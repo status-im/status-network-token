@@ -1,40 +1,40 @@
 pragma solidity ^0.4.8;
 
-import './AragonTokenSaleMock.sol';
+import './StatusContributionPeriodMock.sol';
 
 contract MultisigMock {
-  function deployAndSetANT(address sale) {
-    ANT token = new ANT(new MiniMeTokenFactory());
-    ANPlaceholder networkPlaceholder = new ANPlaceholder(sale, token);
-    token.changeController(address(sale));
+  function deployAndSetSNT(address offering) {
+    SNT token = new SNT(new MiniMeTokenFactory());
+    SNPlaceholder networkPlaceholder = new SNPlaceholder(offering, token);
+    token.changeController(address(offering));
 
-    AragonTokenSale s = AragonTokenSale(sale);
-    token.setCanCreateGrants(sale, true);
-    s.setANT(token, networkPlaceholder, new SaleWallet(s.aragonDevMultisig(), s.finalBlock()));
+    StatusContributionPeriod s = StatusContributionPeriod(offering);
+    token.setCanCreateGrants(offering, true);
+    s.setSNT(token, networkPlaceholder, new OfferingWallet(s.statusDevMultisig(), s.finalBlock()));
   }
 
-  function activateSale(address sale) {
-    AragonTokenSale(sale).activateSale();
+  function activateOffering(address offering) {
+    StatusContributionPeriod(offering).activateOffering();
   }
 
-  function emergencyStopSale(address sale) {
-    AragonTokenSale(sale).emergencyStopSale();
+  function emergencyStopOffering(address offering) {
+    StatusContributionPeriod(offering).emergencyStopOffering();
   }
 
-  function restartSale(address sale) {
-    AragonTokenSale(sale).restartSale();
+  function restartOffering(address offering) {
+    StatusContributionPeriod(offering).restartOffering();
   }
 
-  function finalizeSale(address sale) {
-    finalizeSale(sale, AragonTokenSaleMock(sale).mock_hiddenCap());
+  function finalizeOffering(address offering) {
+    finalizeOffering(offering, StatusContributionPeriodMock(offering).mock_hiddenCap());
   }
 
-  function finalizeSale(address sale, uint256 cap) {
-    AragonTokenSale(sale).finalizeSale(cap, AragonTokenSaleMock(sale).mock_capSecret());
+  function finalizeOffering(address offering, uint256 cap) {
+    StatusContributionPeriod(offering).finalizeOffering(cap, StatusContributionPeriodMock(offering).mock_capSecret());
   }
 
-  function deployNetwork(address sale, address network) {
-    AragonTokenSale(sale).deployNetwork(network);
+  function deployNetwork(address offering, address network) {
+    StatusContributionPeriod(offering).deployNetwork(network);
   }
 
   function () payable {}

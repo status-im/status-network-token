@@ -19,7 +19,7 @@ import "zeppelin/SafeMath.sol";
 // receiver of the tokens how can he spend them over time.
 
 // For simplicity, token grants are not saved in MiniMe type checkpoints.
-// Vanilla cloning ANT will clone it into a MiniMeToken without vesting.
+// Vanilla cloning SNT will clone it into a MiniMeToken without vesting.
 // More complex cloning could account for past vesting calendars.
 
 contract MiniMeIrrevocableVestedToken is MiniMeToken, SafeMath {
