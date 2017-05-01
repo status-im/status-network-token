@@ -11,6 +11,14 @@ import "./OfferingWallet.sol";
     Copyright 2017, Jordi Baylina (Giveth)
 
     Based on SampleCampaign-TokenController.sol from https://github.com/Giveth/minime
+
+    // TODO
+    - Allow SGT Redemption for SNT after contribution, using first contribution period (40%) as scaling factor
+    - explicit softcap with 6 hour countdown
+    - treat committed hidden cap as hard cap
+    - keep `hardCap` but to something reasonable
+    - remove staggered pricing
+    - tokens minted with ETH deposits as opposed to fixed amount and sold.
  */
 
 contract StatusContributionPeriod is Controller, SafeMath {
@@ -31,7 +39,7 @@ contract StatusContributionPeriod is Controller, SafeMath {
 
     SNT public token;                             // The token
     SNPlaceholder public networkPlaceholder;      // The network placeholder
-    OfferingWallet public offeringWallet;                    // Wallet that receives all offering funds
+    OfferingWallet public offeringWallet;         // Wallet that receives all offering funds
 
     uint constant public dust = 1 finney;         // Minimum investment
     uint public hardCap = 1500000 ether;          // Hard cap to protect the ETH network from a really high raise

@@ -4,6 +4,7 @@ import "./MiniMeIrrevocableVestedToken.sol";
 
 /*
     Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+
 */
 
 contract SNT is MiniMeIrrevocableVestedToken {
