@@ -9,6 +9,8 @@ import "./MiniMeToken.sol";
 */
 
 contract SGT is MiniMeToken {
+  uint constant D160 = 0x10000000000000000000000000000000000000000;
+
   function SGT(
     address _tokenFactory
   ) MiniMeToken(
@@ -20,4 +22,15 @@ contract SGT is MiniMeToken {
     "SGT",                  // Symbol
     true                    // Enable transfers
     ) {}
+
+    // _transfers is an array of uints. Each uint represents a transfer.
+    // The 160 LSB is the destination of the addess that wants to be sent
+    // The 96 MSB is the amount of tokens that wants to be sent.
+    function multiTransfer(uint[] _transfers) {
+        for (uint i=0; i<_transfers.length; i++) {
+            address to = address( _transfers[i] & (D160-1) );
+            uint amount = _transfers[i] / D160;
+            super.transfer(to, amount);
+        }
+    }
 }
