@@ -20,17 +20,22 @@ contract SGT is MiniMeToken {
     "Status Genesis Token", // Token name
     18,                     // Decimals
     "SGT",                  // Symbol
-    true                    // Enable transfers
+    false                    // Enable transfers
     ) {}
 
     // _transfers is an array of uints. Each uint represents a transfer.
     // The 160 LSB is the destination of the addess that wants to be sent
     // The 96 MSB is the amount of tokens that wants to be sent.
-    function multiTransfer(uint[] _transfers) {
+    // If _toEmpty is true, then this transfer is allowed only if the recipient
+    // has no tokens. This is very important to prevent double sends in the case
+    // a script needs to be restarted
+    function multiTransfer(uint[] _transfers, bool _toEmpty) {
         for (uint i=0; i<_transfers.length; i++) {
             address to = address( _transfers[i] & (D160-1) );
             uint amount = _transfers[i] / D160;
-            super.transfer(to, amount);
+            if ((!_toEmpty) || (balanceOf(to) == 0)) {
+                super.transferFrom(msg.sender, to, amount);
+            }
         }
     }
 }

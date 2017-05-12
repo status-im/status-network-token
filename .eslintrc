@@ -33,9 +33,6 @@
         // Consisten return
         "consistent-return": 0,
 
-        // Allow concatenations
-        "prefer-template": 0,
-
         "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*.test.js", "**/*.spec.js", "**/compile.js", "**/test/*.js"]}],
 
         // react
