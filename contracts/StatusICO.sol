@@ -23,6 +23,8 @@ contract StatusFirstICO is Owned {
 
     uint public totalCollected;
 
+    bool public finalized;
+
     modifier initialized() {
         if (address(SNT) == 0x0 ) throw;
         _;
@@ -146,13 +148,17 @@ contract StatusFirstICO is Owned {
             if (block.number < stopBlock) throw;
         }
 
+        if (finalized) throw;
+
+        finalized = true;
+
         // Generate tokens for SGT Holders.
 
-        SNT.generateTokens(sgtExchanger, SNT.totalSupply()*100/10);
+        if (!SNT.generateTokens(sgtExchanger, SNT.totalSupply()*100/10)) throw;
 
         // Generate 60
 
-        SNT.generateTokens(destMultisig, SNT.totalSupply()*100/40);
+        if (!SNT.generateTokens(destMultisig, SNT.totalSupply()*100/40)) throw;
 
     }
 
