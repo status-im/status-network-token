@@ -1,36 +1,55 @@
 pragma solidity ^0.4.11;
 
 import "./Owned.sol";
-import "./Controller.sol";
 import "./MiniMeToken.sol";
 
-contract StatusFirstICO is Owned {
+contract StatusICO is Owned {
 
+    uint constant maxSGTSupply = 50000000 * (10**18);
+    uint constant price = 10**18 / 100;
+
+    MiniMeToken public SGT;
     MiniMeToken public SNT;
     uint public startBlock;
     uint public stopBlock;
     uint public hardLimit;
-    uint public softLimit;
-    address public destMultisig;
-    address public sgtExchanger;
+
+    uint public startRaiseBlock;
+    uint public startLimit;
+    uint public stopRaiseBlock;
+    uint public stopLimit;
+
+    address public destEthDevs;
+
+    address public destTokensDevs;
+    address public destTokensSecundarySale;
+    address public destTokensSgt;
+
     address public sntController;
 
-    mapping (address => uint) public specialPrices;
+    mapping (address => uint) public guaranteedBuyersLimit;
+    mapping (address => uint) public guaranteedBuyersBuyed;
 
+    uint public totalGuaranteedCollected;
+    uint public totalNormalCollected;
 
-    bool public softLimitReached;
-    uint public earlyStopBlock;
-
-    uint public totalCollected;
-
-    bool public finalized;
+    uint public finalized;
 
     modifier initialized() {
         if (address(SNT) == 0x0 ) throw;
         _;
     }
 
-    function StatusFirstICO() {
+    modifier selling() {
+        if ((block.number<startBlock) ||
+            (block.number>=stopBlock) ||
+            (finalized > 0) ||
+            (address(SNT) == 0x0 ))
+            throw;
+        _;
+    }
+
+    function StatusICO() {
 
     }
 
@@ -39,9 +58,12 @@ contract StatusFirstICO is Owned {
         uint _startBlock,
         uint _stopBlock,
         uint _hardLimit,
-        uint _softLimit,
-        address _destMultisig,
-        address _sgtExchanger,
+
+        address _destEthDevs,
+
+        address _destTokensDevs,
+        address _destTokensSecundarySale,
+        address _destTokensSgt,
         address _sntController
     ) {
         // Initialize only once
@@ -58,107 +80,157 @@ contract StatusFirstICO is Owned {
         stopBlock = _stopBlock;
 
         if (_hardLimit > 1000000 ether ) throw;
-        if (_softLimit > _hardLimit ) throw;
         hardLimit = _hardLimit;
-        softLimit = _softLimit;
 
-        if (_destMultisig == 0x0) throw;
-        destMultisig = _destMultisig;
+        if (_destEthDevs == 0x0) throw;
+        destEthDevs = _destEthDevs;
 
-        if (_sgtExchanger == 0x0) throw;
-        sgtExchanger = sgtExchanger;
+        if (_destTokensDevs == 0x0) throw;
+        destTokensDevs = _destTokensDevs;
+
+        if (_destTokensSecundarySale == 0x0) throw;
+        destTokensSecundarySale = _destTokensSecundarySale;
+
+        if (_destTokensSgt == 0x0) throw;
+        destTokensSgt = _destTokensSgt;
 
         if (_sntController == 0x0) throw;
         sntController = _sntController;
+
+    }
+
+    function setGuaranteedAddress(address th, uint limit) initialized onlyOwner {
+        if (block.number >= startBlock) throw;
+        guaranteedBuyersLimit[th] = limit;
+        GuaranteedAddress(th, limit);
+    }
+
+    function currentCap() constant returns (uint) {
+        if (block.number < startBlock) return 0;
+        if (block.number < startRaiseBlock) return startLimit;
+        if (block.number >= stopRaiseBlock) return stopLimit;
+
+        return (block.number - startRaiseBlock) *
+                    (stopLimit - startLimit) /
+                    (stopBlock - startBlock);
+    }
+
+    function setSoftCap(uint _startRaiseBlock, uint _startLimit, uint _stopRaiseBlock, uint _stopLimit) onlyOwner {
+        if (_stopLimit > hardLimit) throw;
+        if (_stopLimit > _startLimit) throw;
+        if (_stopRaiseBlock < _startRaiseBlock) throw;
+
+        startRaiseBlock = _startRaiseBlock;
+        startLimit = _startLimit;
+        stopRaiseBlock = _stopRaiseBlock;
+        stopLimit = _stopLimit;
+
+        SoftCapSet(_startRaiseBlock, _startLimit, _stopRaiseBlock, _stopLimit);
     }
 
     function () payable {
         proxyPayment(msg.sender);
     }
 
-
-    function setSpecialPrice(address th, uint price) initialized onlyOwner {
-        if (block.number >= startBlock) throw;
-        specialPrices[th] = price;
-        SpecialPriceSet(th, price);
-    }
-
-
-    function preallocateTokens(address _th, uint _amount) initialized onlyOwner  {
-        if (block.number>=startBlock) throw;
-        if (!SNT.generateTokens(_th, _amount))
-            throw;
-        PreallocatedTokens(_th, _amount);
-    }
-
-
-    function getPrice(address th) constant returns(uint) {
-        return (specialPrices[th] > 0) ? specialPrices[th] : 10**15;
-    }
-
-    function proxyPayment(address th) payable initialized {
+    function proxyPayment(address _th) payable initialized selling {
         uint toFund;
-        uint toReturn;
+        uint cap = currentCap();
 
-        if ((block.number<startBlock) ||
-            (block.number>=stopBlock) ||
-            (softLimitReached && block.number >=  earlyStopBlock) ||
-            (msg.value == 0))
-            throw;
+        if (cap>hardLimit) cap = hardLimit;
 
-        if (totalCollected + msg.value > hardLimit) {
-            toFund = hardLimit -totalCollected;
-            toReturn = totalCollected + msg.value - hardLimit;
+        if (totalNormalCollected + msg.value > cap) {
+            toFund = cap - totalNormalCollected;
         } else {
             toFund = msg.value;
-            toReturn = 0;
+        }
+
+        totalNormalCollected += toFund;
+
+        doBuy(_th, toFund, false);
+    }
+
+    function buyGuaranteed() payable selling {
+
+        uint toFund;
+        uint cap = guaranteedBuyersLimit[msg.sender];
+
+        if (guaranteedBuyersBuyed[msg.sender] + msg.value > cap) {
+            toFund = cap - guaranteedBuyersBuyed[msg.sender];
+        } else {
+            toFund = msg.value;
         }
 
         if (toFund == 0) throw;
 
-        // The special prices are for Token Holders or for Resellers ?
+        guaranteedBuyersBuyed[msg.sender] += msg.value;
+        totalGuaranteedCollected += msg.value;
 
-        uint price = getPrice(th);
+        doBuy(msg.sender, toFund, true);
+    }
 
-        totalCollected += toFund;
+    function doBuy(address _th, uint _toFund, bool _guaranteed) internal {
 
-        if ((!softLimitReached) && ( totalCollected > softLimit)) {
-            softLimitReached = true;
-            earlyStopBlock = min(block.number + 6000, stopBlock);
-        }
+        uint toFund;
 
-        uint tokensGenerated = toFund * price / (10**18);
+        if (toFund == 0) throw;
+        if (msg.value < _toFund) throw;
 
-        if (!SNT.generateTokens(th, tokensGenerated))
+        uint tokensGenerated = _toFund * price / (10**18);
+        uint toReturn = msg.value - _toFund;
+
+        if (!SNT.generateTokens(_th, tokensGenerated))
             throw;
 
-        if (!destMultisig.send(toFund)) throw;
+        if (!destEthDevs.send(_toFund)) throw;
 
         if (toReturn>0) {
             if (!msg.sender.send(toReturn)) throw;
         }
 
-        NewSale(th, toFund, tokensGenerated);
+        NewSale(_th, _toFund, tokensGenerated, _guaranteed);
     }
 
     function finalize() initialized {
-        if (softLimitReached) {
-            if (block.number < earlyStopBlock) throw;
+        if (block.number < startBlock) throw;
+
+        if (finalized>0) throw;
+
+        finalized = now;
+
+
+        uint percentageToSgt;
+        if ( SGT.totalSupply() > maxSGTSupply) {
+            percentageToSgt =  10 * (10**16);  // 10%
         } else {
-            if (block.number < stopBlock) throw;
+            percentageToSgt =  ( 10 * (10**16)) * SGT.totalSupply() / maxSGTSupply;
         }
 
-        if (finalized) throw;
+        uint percentageToDevs = 20 * (10**16); // 20%
 
-        finalized = true;
+        uint percenageToContributors = 41*(10**16) + ( 10*(10**16) -  percentageToSgt );
+
+        uint percentageToSecundary = 29*(10**16);
+
+        uint totalTokens = SNT.totalSupply() * (10**18) / percenageToContributors;
+
 
         // Generate tokens for SGT Holders.
 
-        if (!SNT.generateTokens(sgtExchanger, SNT.totalSupply()*100/10)) throw;
+        if (!SNT.generateTokens(
+            destTokensSecundarySale,
+            totalTokens * percentageToSecundary / (10**18))) throw;
 
-        // Generate 60
+        if (!SNT.generateTokens(
+            destTokensSgt,
+            totalTokens * percentageToSgt / (10**18))) throw;
 
-        if (!SNT.generateTokens(destMultisig, SNT.totalSupply()*100/40)) throw;
+        if (!SNT.generateTokens(
+            destTokensDevs,
+            totalTokens * percentageToDevs / (10**18))) throw;
+
+        SNT.changeController(sntController);
+
+        Finalized();
 
     }
 
@@ -174,11 +246,13 @@ contract StatusFirstICO is Owned {
         return SNT.totalSupply();
     }
 
-    function min(uint a, uint b) internal returns (uint) {
-      return a < b ? a : b;
+    function totalCollected()  constant returns (uint) {
+        return totalNormalCollected + totalGuaranteedCollected;
     }
 
-    event NewSale(address indexed th, uint amount, uint tokens);
-    event SpecialPriceSet(address indexed th, uint price);
-    event PreallocatedTokens(address indexed th, uint amount);
+    event SoftCapSet(uint startRaiseBlock, uint startLimit, uint stopRaiseBlock, uint stopLimit);
+    event NewSale(address indexed th, uint amount, uint tokens, bool guaranteed);
+    event GuaranteedAddress(address indexed th, uint limiy);
+    event Finalized();
 }
+

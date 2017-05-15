@@ -3,8 +3,9 @@ pragma solidity ^0.4.8;
 import "./MiniMeIrrevocableVestedToken.sol";
 
 /*
-    Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+    Copyright 2017, Jarrad Hope (Status Research & Development GmbH)
 
+    // TODO Issuance & Deploy
 */
 
 contract SNT is MiniMeIrrevocableVestedToken {
