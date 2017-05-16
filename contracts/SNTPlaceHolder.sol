@@ -2,6 +2,7 @@ pragma solidity ^0.4.8;
 
 import "./MiniMeToken.sol";
 import "./Controller.sol";
+import "./StatusContribution";
 
 
 /*
@@ -17,25 +18,21 @@ import "./Controller.sol";
         asks it to do so.
 */
 
-contract ICO {
-  function finalized() returns (uint);
-}
-
 contract SNTPlaceHolder is Controller {
   address public owner;
-  MiniMeToken public token;
-  ICO public ico;
+  MiniMeToken public snt;
+  StatusContribution public contribution;
   uint public activationTime;
 
-  function SNPlaceholder(address _owner, address _snt, address _ico) {
+  function SNPlaceholder(address _owner, address _snt, address _contribution) {
     owner = _owner;
-    token = MiniMeToken(_snt);
-    ico = ICO(_ico);
+    snt = MiniMeToken(_snt);
+    contribution = StatusContribution(_contribution);
   }
 
   function changeController(address _newController) {
     if (msg.sender != owner) throw;
-    token.changeController(_newController);
+    snt.changeController(_newController);
     suicide(owner);
   }
 
@@ -54,7 +51,7 @@ contract SNTPlaceHolder is Controller {
 
   function transferable() internal returns (bool) {
     if (activationTime == 0) {
-      uint f = ico.finalized();
+      uint f = contribution.finalized();
       if (f>0) {
         activationTime = f + 2 weeks;
         return (now > activationTime);

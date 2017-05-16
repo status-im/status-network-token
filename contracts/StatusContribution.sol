@@ -2,28 +2,25 @@ pragma solidity ^0.4.11;
 
 import "./Owned.sol";
 import "./MiniMeToken.sol";
+import "./DynamicHiddenCap.sol";
 
-contract StatusICO is Owned {
+contract StatusContribution is Owned {
 
-    uint constant maxSGTSupply = 50000000 * (10**18);
-    uint constant price = 10**18 / 100;
+    uint constant public hardLimit = 250000 ether;
+    uint constant public maxSGTSupply = 50000000 * (10**18);
+    uint constant public price = 10**18 / 1000;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
     uint public startBlock;
     uint public stopBlock;
-    uint public hardLimit;
-
-    uint public startRaiseBlock;
-    uint public startLimit;
-    uint public stopRaiseBlock;
-    uint public stopLimit;
 
     address public destEthDevs;
 
     address public destTokensDevs;
     address public destTokensSecundarySale;
     address public destTokensSgt;
+    DynamicHiddenCap public dynamicHiddenCap;
 
     address public sntController;
 
@@ -40,7 +37,7 @@ contract StatusICO is Owned {
         _;
     }
 
-    modifier selling() {
+    modifier contributionOpen() {
         if ((block.number<startBlock) ||
             (block.number>=stopBlock) ||
             (finalized > 0) ||
@@ -49,7 +46,7 @@ contract StatusICO is Owned {
         _;
     }
 
-    function StatusICO() {
+    function StatusContribution() {
 
     }
 
@@ -57,7 +54,7 @@ contract StatusICO is Owned {
         address _sntAddress,
         uint _startBlock,
         uint _stopBlock,
-        uint _hardLimit,
+        address _dynamicHiddenCap,
 
         address _destEthDevs,
 
@@ -79,8 +76,8 @@ contract StatusICO is Owned {
         startBlock = _startBlock;
         stopBlock = _stopBlock;
 
-        if (_hardLimit > 1000000 ether ) throw;
-        hardLimit = _hardLimit;
+        if (_dynamicHiddenCap != 0x0 ) throw;
+        dynamicHiddenCap = DynamicHiddenCap(_dynamicHiddenCap);
 
         if (_destEthDevs == 0x0) throw;
         destEthDevs = _destEthDevs;
@@ -106,36 +103,21 @@ contract StatusICO is Owned {
         GuaranteedAddress(th, limit);
     }
 
-    function currentCap() constant returns (uint) {
-        if (block.number < startBlock) return 0;
-        if (block.number < startRaiseBlock) return startLimit;
-        if (block.number >= stopRaiseBlock) return stopLimit;
-
-        return (block.number - startRaiseBlock) *
-                    (stopLimit - startLimit) /
-                    (stopBlock - startBlock);
-    }
-
-    function setSoftCap(uint _startRaiseBlock, uint _startLimit, uint _stopRaiseBlock, uint _stopLimit) onlyOwner {
-        if (_stopLimit > hardLimit) throw;
-        if (_stopLimit < _startLimit) throw;
-        if (_stopRaiseBlock < _startRaiseBlock) throw;
-
-        startRaiseBlock = _startRaiseBlock;
-        startLimit = _startLimit;
-        stopRaiseBlock = _stopRaiseBlock;
-        stopLimit = _stopLimit;
-
-        SoftCapSet(_startRaiseBlock, _startLimit, _stopRaiseBlock, _stopLimit);
-    }
-
     function () payable {
         proxyPayment(msg.sender);
     }
 
-    function proxyPayment(address _th) payable initialized selling {
+    function proxyPayment(address _th) payable initialized contributionOpen {
+        if (guaranteedBuyersLimit[_th] > 0) {
+            buyGuaranteed(_th);
+        } else {
+            buyNormal(_th);
+        }
+    }
+
+    function buyNormal(address _th) internal {
         uint toFund;
-        uint cap = currentCap();
+        uint cap = dynamicHiddenCap.cap(block.number);
 
         // Not strictly necessary because we check it also in setSoftCap,
         // but we double protect here.
@@ -152,23 +134,23 @@ contract StatusICO is Owned {
         doBuy(_th, toFund, false);
     }
 
-    function buyGuaranteed() payable selling {
+    function buyGuaranteed(address _th) internal {
 
         uint toFund;
-        uint cap = guaranteedBuyersLimit[msg.sender];
+        uint cap = guaranteedBuyersLimit[_th];
 
-        if (guaranteedBuyersBuyed[msg.sender] + msg.value > cap) {
-            toFund = cap - guaranteedBuyersBuyed[msg.sender];
+        if (guaranteedBuyersBuyed[_th] + msg.value > cap) {
+            toFund = cap - guaranteedBuyersBuyed[_th];
         } else {
             toFund = msg.value;
         }
 
         if (toFund == 0) throw;
 
-        guaranteedBuyersBuyed[msg.sender] += toFund;
+        guaranteedBuyersBuyed[_th] += toFund;
         totalGuaranteedCollected += toFund;
 
-        doBuy(msg.sender, toFund, true);
+        doBuy(_th, toFund, true);
     }
 
     function doBuy(address _th, uint _toFund, bool _guaranteed) internal {
@@ -193,10 +175,13 @@ contract StatusICO is Owned {
         NewSale(_th, _toFund, tokensGenerated, _guaranteed);
     }
 
-    function finalize() initialized {
+    function finalize() initialized onlyOwner {
         if (block.number < startBlock) throw;
 
         if (finalized>0) throw;
+
+        // Do not allow terminate until all revealed.
+        if (!dynamicHiddenCap.allRevealed()) throw;
 
         finalized = now;
 

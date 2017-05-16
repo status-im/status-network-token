@@ -1,6 +1,6 @@
 pragma solidity ^0.4.8;
 
-import "./MiniMeIrrevocableVestedToken.sol";
+import "./MiniMeToken.sol";
 
 /*
     Copyright 2017, Jarrad Hope (Status Research & Development GmbH)
@@ -8,7 +8,7 @@ import "./MiniMeIrrevocableVestedToken.sol";
     // TODO Issuance & Deploy
 */
 
-contract SNT is MiniMeIrrevocableVestedToken {
+contract SNT is MiniMeToken {
   // @dev SNT constructor just parametrizes the MiniMeIrrevocableVestedToken constructor
   function SNT(
     address _tokenFactory

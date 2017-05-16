@@ -1,16 +1,16 @@
 pragma solidity ^0.4.6;
 
 import "./MiniMeToken.sol";
-import "./StatusICO.sol";
+import "./StatusContribution.sol";
 
 contract DevTokensHolder is Owned {
 
     uint collectedTokens;
-    StatusICO ico;
+    StatusContribution contribution;
     MiniMeToken snt;
 
-    function DevTokensHolder( address _ico, address _snt) {
-        ico = StatusICO(_ico);
+    function DevTokensHolder( address _contribution, address _snt) {
+        contribution = StatusContribution(_contribution);
         snt = MiniMeToken(_snt);
     }
 
@@ -18,7 +18,7 @@ contract DevTokensHolder is Owned {
         uint balance = snt.balanceOf(address(this));
         uint total = collectedTokens + snt.balanceOf(address(this));
 
-        uint finalized = ico.finalized();
+        uint finalized = contribution.finalized();
 
         if (finalized == 0) throw;
         if (now - finalized <= 6*30 days) return;
