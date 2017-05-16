@@ -101,6 +101,7 @@ contract StatusICO is Owned {
 
     function setGuaranteedAddress(address th, uint limit) initialized onlyOwner {
         if (block.number >= startBlock) throw;
+        if (limit > hardLimit) throw;
         guaranteedBuyersLimit[th] = limit;
         GuaranteedAddress(th, limit);
     }
@@ -117,7 +118,7 @@ contract StatusICO is Owned {
 
     function setSoftCap(uint _startRaiseBlock, uint _startLimit, uint _stopRaiseBlock, uint _stopLimit) onlyOwner {
         if (_stopLimit > hardLimit) throw;
-        if (_stopLimit > _startLimit) throw;
+        if (_stopLimit < _startLimit) throw;
         if (_stopRaiseBlock < _startRaiseBlock) throw;
 
         startRaiseBlock = _startRaiseBlock;
@@ -136,6 +137,8 @@ contract StatusICO is Owned {
         uint toFund;
         uint cap = currentCap();
 
+        // Not strictly necessary because we check it also in setSoftCap,
+        // but we double protect here.
         if (cap>hardLimit) cap = hardLimit;
 
         if (totalNormalCollected + msg.value > cap) {
@@ -162,8 +165,8 @@ contract StatusICO is Owned {
 
         if (toFund == 0) throw;
 
-        guaranteedBuyersBuyed[msg.sender] += msg.value;
-        totalGuaranteedCollected += msg.value;
+        guaranteedBuyersBuyed[msg.sender] += toFund;
+        totalGuaranteedCollected += toFund;
 
         doBuy(msg.sender, toFund, true);
     }
@@ -173,9 +176,9 @@ contract StatusICO is Owned {
         uint toFund;
 
         if (toFund == 0) throw;
-        if (msg.value < _toFund) throw;
+        if (msg.value < _toFund) throw;  // Not needed, but double check.
 
-        uint tokensGenerated = _toFund * price / (10**18);
+        uint tokensGenerated = _toFund *  (10**18) / price;
         uint toReturn = msg.value - _toFund;
 
         if (!SNT.generateTokens(_th, tokensGenerated))
