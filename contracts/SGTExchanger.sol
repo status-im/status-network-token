@@ -2,6 +2,9 @@ pragma solidity ^0.4.11;
 
 import "./MiniMeToken.sol";
 
+// The controllerShip of SGT should be transfered to this contract before the
+// sal starts.
+
 contract SGTExchanger is TokenController {
 
     uint totalCollected;

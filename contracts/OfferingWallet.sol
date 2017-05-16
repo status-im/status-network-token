@@ -1,30 +1,40 @@
 pragma solidity ^0.4.8;
 
-// @dev Contract to hold raised funds during the offering period.
-// Prevents attack in which the Status Multisig sends raised ether
-// to the offering contract to mint tokens to itself, and getting the
+// @dev Contract to hold sale raised funds during the sale period.
+// Prevents attack in which the Aragon Multisig sends raised ether
+// to the sale contract to mint tokens to itself, and getting the
 // funds back immediately.
 
-contract OfferingWallet {
+contract ICO {
+  function finalized() constant returns (uint);
+}
+
+contract SaleWallet {
   // Public variables
   address public multisig;
   uint public finalBlock;
+  ICO public tokenSale;
 
   // @dev Constructor initializes public variables
   // @param _multisig The address of the multisig that will receive the funds
   // @param _finalBlock Block after which the multisig can request the funds
-  function OfferingWallet(address _multisig, uint _finalBlock) {
+  function SaleWallet(address _multisig, uint _finalBlock, address _tokenSale) {
     multisig = _multisig;
     finalBlock = _finalBlock;
+    tokenSale = ICO(_tokenSale);
   }
 
   // @dev Receive all sent funds without any further logic
-  function () payable {}
+  function () public payable {}
 
   // @dev Withdraw function sends all the funds to the wallet if conditions are correct
-  function withdraw() {
-    if (msg.sender != multisig) throw;        // Only the multisig can request it
-    if (block.number < finalBlock) throw;     // Only on or after the final block
-    suicide(multisig);                        // Suicide the contract sending all funds to multisig
+  function withdraw() public {
+    if (msg.sender != multisig) throw;                       // Only the multisig can request it
+    if (block.number > finalBlock) return doWithdraw();      // Allow after the final block
+    if (tokenSale.finalized() != 0) return doWithdraw();      // Allow when sale is finalized
+  }
+
+  function doWithdraw() internal {
+    if (!multisig.send(this.balance)) throw;
   }
 }
