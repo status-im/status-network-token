@@ -3,23 +3,31 @@ pragma solidity ^0.4.11;
 contract DynamicHiddenCap {
 
     struct CurvePoint {
-        bool revealed;
         bytes32 hash;
         uint block;
         uint limit;
+        bool revealed;
     }
 
+    address creator;
     uint public revealedPoints;
     bool public allRevealed;
     CurvePoint[] public points;
 
-    function DynamicHiddenCap(bytes32[] _pointHashes) {
+    function DynamicHiddenCap() {
+        creator = msg.sender;
+    }
+
+    function setHiddenPoints(bytes32[] _pointHashes) {
+        if (msg.sender != creator) throw;
+        if (points.length > 0) throw;
         uint i;
         points.length = _pointHashes.length;
         for (i=0; i< _pointHashes.length; i++) {
             points[i].hash = _pointHashes[i];
         }
     }
+
 
     function revealPoint(uint _block, uint _limit, bool _last, uint _salt) {
         if (allRevealed) throw;
@@ -61,7 +69,11 @@ contract DynamicHiddenCap {
                 ( points[max].block - points[min].block );
     }
 
-    function calculateHash(uint _block, uint _limit, bool _last, uint _salt) returns (bytes32) {
+    function calculateHash(uint _block, uint _limit, bool _last, uint _salt) constant returns (bytes32) {
         return sha3(_block, _limit, _last, _salt);
+    }
+
+    function nPoints() constant returns(uint) {
+        return points.length;
     }
 }

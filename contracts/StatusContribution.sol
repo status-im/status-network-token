@@ -76,7 +76,7 @@ contract StatusContribution is Owned {
         startBlock = _startBlock;
         stopBlock = _stopBlock;
 
-        if (_dynamicHiddenCap != 0x0 ) throw;
+        if (_dynamicHiddenCap == 0x0 ) throw;
         dynamicHiddenCap = DynamicHiddenCap(_dynamicHiddenCap);
 
         if (_destEthDevs == 0x0) throw;

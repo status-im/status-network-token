@@ -39,5 +39,11 @@
         "react/prefer-es6-class": 0,
         "react/jsx-filename-extension": 0,
         "react/jsx-indent": [ 2, 4 ]
+    },
+    "globals": {
+        "artifacts": true,
+        "web3": true,
+        "contract": true,
+        "assert": true
     }
 }
