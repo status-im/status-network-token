@@ -9,7 +9,7 @@ import "./MiniMeToken.sol";
 */
 
 contract SGT is MiniMeToken {
-  uint constant D160 = 0x10000000000000000000000000000000000000000;
+  uint constant D160 = 0x0010000000000000000000000000000000000000000;
 
   function SGT(
     address _tokenFactory

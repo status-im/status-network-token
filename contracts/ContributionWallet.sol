@@ -1,6 +1,6 @@
 pragma solidity ^0.4.8;
 
-import "./StatusContribution.sol"
+import "./StatusContribution.sol";
 
 // @dev Contract to hold sale raised funds during the sale period.
 // Prevents attack in which the Aragon Multisig sends raised ether

@@ -12,7 +12,7 @@ contract SNT is MiniMeToken {
   // @dev SNT constructor just parametrizes the MiniMeIrrevocableVestedToken constructor
   function SNT(
     address _tokenFactory
-  ) MiniMeIrrevocableVestedToken(
+  ) MiniMeToken(
     _tokenFactory,
     0x0,                    // no parent token
     0,                      // no snapshot block number from parent

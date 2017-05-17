@@ -16,8 +16,6 @@
     "babel-preset-stage-2": "^6.18.0",
     "babel-preset-stage-3": "^6.17.0",
     "babel-register": "^6.23.0",
-    "ethereumjs-testrpc": "^3.0.2",
-    "truffle": "git+https://github.com/ConsenSys/truffle.git#3.1.9"
   },
   "dependencies": {
     "async": "^2.4.0",

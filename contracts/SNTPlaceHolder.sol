@@ -1,8 +1,7 @@
 pragma solidity ^0.4.8;
 
 import "./MiniMeToken.sol";
-import "./Controller.sol";
-import "./StatusContribution";
+import "./StatusContribution.sol";
 
 
 /*
@@ -18,7 +17,7 @@ import "./StatusContribution";
         asks it to do so.
 */
 
-contract SNTPlaceHolder is Controller {
+contract SNTPlaceHolder is TokenController {
   address public owner;
   MiniMeToken public snt;
   StatusContribution public contribution;
