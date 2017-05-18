@@ -39,6 +39,8 @@ contract("StatusContribution", (accounts) => {
         multisigSecundarySell = await MultisigWallet.new([ accounts[ 2 ] ], 1);
         miniMeFactory = await MiniMeTokenFactory.new();
         sgt = await SGT.new(miniMeFactory.address);
+        await sgt.generateTokens(accounts[ 0 ], 158854038);
+
         snt = await SNT.new(miniMeFactory.address);
         statusContribution = await StatusContribution.new();
         contributionWallet = await ContributionWallet.new(
@@ -59,6 +61,7 @@ contract("StatusContribution", (accounts) => {
             statusContribution.address);
 
         await snt.changeController(statusContribution.address);
+        await sgt.changeController(sgtExchanger.address);
 
         await statusContribution.initialize(
           snt.address,
@@ -71,11 +74,11 @@ contract("StatusContribution", (accounts) => {
           devTokensHolder.address,
 
           multisigSecundarySell.address,
+          sgt.address,
           sgtExchanger.address,
+          200000000,
 
           sntPlaceHolder.address);
-        await sgt.generateTokens(accounts[ 0 ], web3.toWei(25000000));
-        await sgt.changeController(sgtExchanger.address);
     });
 
     it("Check initial parameters", async () => {

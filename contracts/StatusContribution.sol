@@ -7,7 +7,6 @@ import "./DynamicHiddenCap.sol";
 contract StatusContribution is Owned {
 
     uint constant public hardLimit = 250000 ether;
-    uint constant public maxSGTSupply = 50000000 * (10**18);
     uint constant public price = 10**18 / 1000;
 
     MiniMeToken public SGT;
@@ -19,6 +18,7 @@ contract StatusContribution is Owned {
 
     address public destTokensDevs;
     address public destTokensSecundarySale;
+    uint public maxSGTSupply;
     address public destTokensSgt;
     DynamicHiddenCap public dynamicHiddenCap;
 
@@ -38,8 +38,8 @@ contract StatusContribution is Owned {
     }
 
     modifier contributionOpen() {
-        if ((block.number<startBlock) ||
-            (block.number>=stopBlock) ||
+        if ((getBlockNumber()<startBlock) ||
+            (getBlockNumber()>=stopBlock) ||
             (finalized > 0) ||
             (address(SNT) == 0x0 ))
             throw;
@@ -60,7 +60,9 @@ contract StatusContribution is Owned {
 
         address _destTokensDevs,
         address _destTokensSecundarySale,
+        address _sgt,
         address _destTokensSgt,
+        uint _maxSGTSupply,
         address _sntController
     ) {
         // Initialize only once
@@ -88,16 +90,22 @@ contract StatusContribution is Owned {
         if (_destTokensSecundarySale == 0x0) throw;
         destTokensSecundarySale = _destTokensSecundarySale;
 
+        if (_sgt == 0x0) throw;
+        if (MiniMeToken(_sgt).controller() != _destTokensSgt) throw;
+        SGT = MiniMeToken(_sgt);
+
         if (_destTokensSgt == 0x0) throw;
         destTokensSgt = _destTokensSgt;
 
+        if (_maxSGTSupply < MiniMeToken(SGT).totalSupply()) throw;
+        maxSGTSupply = _maxSGTSupply;
+
         if (_sntController == 0x0) throw;
         sntController = _sntController;
-
     }
 
     function setGuaranteedAddress(address th, uint limit) initialized onlyOwner {
-        if (block.number >= startBlock) throw;
+        if (getBlockNumber() >= startBlock) throw;
         if (limit > hardLimit) throw;
         guaranteedBuyersLimit[th] = limit;
         GuaranteedAddress(th, limit);
@@ -117,7 +125,7 @@ contract StatusContribution is Owned {
 
     function buyNormal(address _th) internal {
         uint toFund;
-        uint cap = dynamicHiddenCap.cap(block.number);
+        uint cap = dynamicHiddenCap.cap(getBlockNumber());
 
         // Not strictly necessary because we check it also in setSoftCap,
         // but we double protect here.
@@ -176,7 +184,7 @@ contract StatusContribution is Owned {
     }
 
     function finalize() initialized onlyOwner {
-        if (block.number < startBlock) throw;
+        if (getBlockNumber() < startBlock) throw;
 
         if (finalized>0) throw;
 
@@ -236,6 +244,10 @@ contract StatusContribution is Owned {
 
     function totalCollected()  constant returns (uint) {
         return totalNormalCollected + totalGuaranteedCollected;
+    }
+
+    function getBlockNumber() internal constant returns (uint) {
+        return block.number;
     }
 
     event SoftCapSet(uint startRaiseBlock, uint startLimit, uint stopRaiseBlock, uint stopLimit);
