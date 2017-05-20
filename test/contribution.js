@@ -8,7 +8,7 @@ const ContributionWallet = artifacts.require("ContributionWallet");
 const StatusContribution = artifacts.require("StatusContribution");
 const DevTokensHolder = artifacts.require("DevTokensHolder");
 const SGTExchanger = artifacts.require("SGTExchanger");
-const DynamicHiddenCap = artifacts.require("DynamicHiddenCap");
+const DynamicCeiling = artifacts.require("DynamicCeiling");
 const SNTPlaceHolder = artifacts.require("SNTPlaceHolder");
 
 const setHiddenPoints = require("./helpers/hiddenPoints.js").setHiddenPoints;
@@ -16,7 +16,7 @@ const setHiddenPoints = require("./helpers/hiddenPoints.js").setHiddenPoints;
 contract("StatusContribution", (accounts) => {
     let multisigStatus;
     let multisigComunity;
-    let multisigSecundarySell;
+    let multisigSecondarySell;
     let miniMeFactory;
     let sgt;
     let snt;
@@ -24,7 +24,7 @@ contract("StatusContribution", (accounts) => {
     let contributionWallet;
     let devTokensHolder;
     let sgtExchanger;
-    let dynamicHiddenCap;
+    let dynamicCeiling;
     let sntPlaceHolder;
 
     const points = [ [ 1000000, web3.toWei(1000) ],
@@ -36,7 +36,7 @@ contract("StatusContribution", (accounts) => {
     beforeEach(async () => {
         multisigStatus = await MultisigWallet.new([ accounts[ 0 ] ], 1);
         multisigComunity = await MultisigWallet.new([ accounts[ 1 ] ], 1);
-        multisigSecundarySell = await MultisigWallet.new([ accounts[ 2 ] ], 1);
+        multisigSecondarySell = await MultisigWallet.new([ accounts[ 2 ] ], 1);
         miniMeFactory = await MiniMeTokenFactory.new();
         sgt = await SGT.new(miniMeFactory.address);
         snt = await SNT.new(miniMeFactory.address);
@@ -49,9 +49,9 @@ contract("StatusContribution", (accounts) => {
             statusContribution.address,
             snt.address);
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
-        dynamicHiddenCap = await DynamicHiddenCap.new();
+        dynamicCeiling = await DynamicCeiling.new();
 
-        await setHiddenPoints(dynamicHiddenCap, points);
+        await setHiddenPoints(dynamicCeiling, points);
 
         sntPlaceHolder = await SNTPlaceHolder.new(
             multisigComunity.adress,
@@ -64,13 +64,13 @@ contract("StatusContribution", (accounts) => {
           snt.address,
           startBlock,
           stopBlock,
-          dynamicHiddenCap.address,
+          dynamicCeiling.address,
 
           contributionWallet.address,
 
           devTokensHolder.address,
 
-          multisigSecundarySell.address,
+          multisigSecondarySell.address,
           sgtExchanger.address,
 
           sntPlaceHolder.address);
