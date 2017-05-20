@@ -30,7 +30,7 @@ contract("StatusContribution", (accounts) => {
 
     const points = [ [ 1000000, web3.toWei(3) ],
                      [ 1001000, web3.toWei(13) ],
-                     [ 1002000, web3.toWei(61000) ] ];
+                     [ 1002000, web3.toWei(15) ] ];
     const startBlock = 1000000;
     const stopBlock = 1003000;
 
@@ -96,7 +96,7 @@ contract("StatusContribution", (accounts) => {
         }
     });
 
-    it("Reveal a cap, move time to start of the ICO, and do the first buy", async () => {
+    it("Reveal a point, move time to start of the ICO, and do the first buy", async () => {
         await dynamicCeiling.revealPoint(
                 points[ 0 ][ 0 ],
                 points[ 0 ][ 1 ],
@@ -128,7 +128,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balanceContributionWallet), 3);
     });
 
-    it("Should reveal second cap and check that every that the limit is right", async () => {
+    it("Should reveal second point and check that every that the limit is right", async () => {
         await dynamicCeiling.revealPoint(
                 points[ 1 ][ 0 ],
                 points[ 1 ][ 1 ],
@@ -150,5 +150,53 @@ contract("StatusContribution", (accounts) => {
 
         const balanceContributionWallet = await web3.eth.getBalance(contributionWallet.address);
         assert.equal(web3.fromWei(balanceContributionWallet), 8);
+    });
+
+    it("Should reveal last point, fill the collaboration", async () => {
+        await dynamicCeiling.revealPoint(
+                points[ 2 ][ 0 ],
+                points[ 2 ][ 1 ],
+                true,
+                web3.sha3("pwd2"));
+
+        await statusContribution.setMockedBlockNumber(1002500);
+
+        const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
+        await statusContribution.proxyPayment(
+            accounts[ 1 ],
+            { value: web3.toWei(15), gas: 300000, from: accounts[ 0 ] });
+
+        const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
+
+        const balance1 = await snt.balanceOf(accounts[ 1 ]);
+
+        assert.equal(web3.fromWei(balance1), 7000);
+
+        const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
+        assert.isAbove(spended, 7);
+        assert.isBelow(spended, 7.1);
+
+        const totalCollected = await statusContribution.totalCollected();
+        assert.equal(web3.fromWei(totalCollected), 15);
+
+        const balanceContributionWallet = await web3.eth.getBalance(contributionWallet.address);
+        assert.equal(web3.fromWei(balanceContributionWallet), 15);
+    });
+
+    it("Should finalize", async () => {
+        await statusContribution.finalize();
+
+        const totalSupply = await snt.totalSupply();
+
+        assert.equal(web3.fromWei(totalSupply).toNumber(), 15000 / 0.46);
+
+        const balanceSGT = await snt.balanceOf(sgtExchanger.address);
+        assert.equal(balanceSGT.toNumber(), totalSupply.mul(0.05).toNumber());
+
+        const balanceDevs = await snt.balanceOf(devTokensHolder.address);
+        assert.equal(balanceDevs.toNumber(), totalSupply.mul(0.20).toNumber());
+
+        const balanceSecondary = await snt.balanceOf(multisigSecondarySell.address);
+        assert.equal(balanceSecondary.toNumber(), totalSupply.mul(0.29).toNumber());
     });
 });
