@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-contract DynamicHiddenCap {
+contract DynamicCeiling {
 
     struct CurvePoint {
         bytes32 hash;
@@ -14,7 +14,7 @@ contract DynamicHiddenCap {
     bool public allRevealed;
     CurvePoint[] public points;
 
-    function DynamicHiddenCap() {
+    function DynamicCeiling() {
         creator = msg.sender;
     }
 

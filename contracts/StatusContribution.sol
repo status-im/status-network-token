@@ -2,11 +2,11 @@ pragma solidity ^0.4.11;
 
 import "./Owned.sol";
 import "./MiniMeToken.sol";
-import "./DynamicHiddenCap.sol";
+import "./DynamicCeiling.sol";
 
 contract StatusContribution is Owned {
 
-    uint constant public hardLimit = 250000 ether;
+    uint constant public failSafe = 250000 ether;
     uint constant public price = 10**18 / 1000;
 
     MiniMeToken public SGT;
@@ -17,15 +17,15 @@ contract StatusContribution is Owned {
     address public destEthDevs;
 
     address public destTokensDevs;
-    address public destTokensSecundarySale;
+    address public destTokensSecondarySale;
     uint public maxSGTSupply;
     address public destTokensSgt;
-    DynamicHiddenCap public dynamicHiddenCap;
+    DynamicCeiling public dynamicCeiling;
 
     address public sntController;
 
     mapping (address => uint) public guaranteedBuyersLimit;
-    mapping (address => uint) public guaranteedBuyersBuyed;
+    mapping (address => uint) public guaranteedBuyersBought;
 
     uint public totalGuaranteedCollected;
     uint public totalNormalCollected;
@@ -54,13 +54,14 @@ contract StatusContribution is Owned {
         address _sntAddress,
         uint _startBlock,
         uint _stopBlock,
-        address _dynamicHiddenCap,
+        address _dynamicCeiling,
 
         address _destEthDevs,
 
         address _destTokensDevs,
-        address _destTokensSecundarySale,
+        address _destTokensSecondarySale,
         address _sgt,
+
         address _destTokensSgt,
         uint _maxSGTSupply,
         address _sntController
@@ -78,8 +79,8 @@ contract StatusContribution is Owned {
         startBlock = _startBlock;
         stopBlock = _stopBlock;
 
-        if (_dynamicHiddenCap == 0x0 ) throw;
-        dynamicHiddenCap = DynamicHiddenCap(_dynamicHiddenCap);
+        if (_dynamicCeiling == 0x0 ) throw;
+        dynamicCeiling = DynamicCeiling(_dynamicCeiling);
 
         if (_destEthDevs == 0x0) throw;
         destEthDevs = _destEthDevs;
@@ -87,8 +88,8 @@ contract StatusContribution is Owned {
         if (_destTokensDevs == 0x0) throw;
         destTokensDevs = _destTokensDevs;
 
-        if (_destTokensSecundarySale == 0x0) throw;
-        destTokensSecundarySale = _destTokensSecundarySale;
+        if (_destTokensSecondarySale == 0x0) throw;
+        destTokensSecondarySale = _destTokensSecondarySale;
 
         if (_sgt == 0x0) throw;
         if (MiniMeToken(_sgt).controller() != _destTokensSgt) throw;
@@ -106,7 +107,7 @@ contract StatusContribution is Owned {
 
     function setGuaranteedAddress(address th, uint limit) initialized onlyOwner {
         if (getBlockNumber() >= startBlock) throw;
-        if (limit > hardLimit) throw;
+        if (limit > failSafe) throw;
         guaranteedBuyersLimit[th] = limit;
         GuaranteedAddress(th, limit);
     }
@@ -126,11 +127,9 @@ contract StatusContribution is Owned {
 
     function buyNormal(address _th) internal {
         uint toFund;
-        uint cap = dynamicHiddenCap.cap(getBlockNumber());
+        uint cap = dynamicCeiling.cap(getBlockNumber());
 
-        // Not strictly necessary because we check it also in setSoftCap,
-        // but we double protect here.
-        if (cap>hardLimit) cap = hardLimit;
+        if (cap>failSafe) cap = failSafe;
 
         if (totalNormalCollected + msg.value > cap) {
             toFund = cap - totalNormalCollected;
@@ -147,15 +146,15 @@ contract StatusContribution is Owned {
         uint toFund;
         uint cap = guaranteedBuyersLimit[_th];
 
-        if (guaranteedBuyersBuyed[_th] + msg.value > cap) {
-            toFund = cap - guaranteedBuyersBuyed[_th];
+        if (guaranteedBuyersBought[_th] + msg.value > cap) {
+            toFund = cap - guaranteedBuyersBought[_th];
         } else {
             toFund = msg.value;
         }
 
         if (toFund == 0) throw;
 
-        guaranteedBuyersBuyed[_th] += toFund;
+        guaranteedBuyersBought[_th] += toFund;
         totalGuaranteedCollected += toFund;
 
         doBuy(_th, toFund, true);
@@ -193,7 +192,7 @@ contract StatusContribution is Owned {
         if (finalized>0) throw;
 
         // Do not allow terminate until all revealed.
-        if (!dynamicHiddenCap.allRevealed()) throw;
+        if (!dynamicCeiling.allRevealed()) throw;
 
 
         // Allow premature finalization if final limit is reached
@@ -214,18 +213,18 @@ contract StatusContribution is Owned {
 
         uint percentageToDevs = 20 * (10**16); // 20%
 
-        uint percenageToContributors = 41*(10**16) + ( 10*(10**16) -  percentageToSgt );
+        uint percentageToContributors = 41*(10**16) + ( 10*(10**16) -  percentageToSgt );
 
-        uint percentageToSecundary = 29*(10**16);
+        uint percentageToSecondary = 29*(10**16);
 
-        uint totalTokens = SNT.totalSupply() * (10**18) / percenageToContributors;
+        uint totalTokens = SNT.totalSupply() * (10**18) / percentageToContributors;
 
 
         // Generate tokens for SGT Holders.
 
         if (!SNT.generateTokens(
-            destTokensSecundarySale,
-            totalTokens * percentageToSecundary / (10**18))) throw;
+            destTokensSecondarySale,
+            totalTokens * percentageToSecondary / (10**18))) throw;
 
         if (!SNT.generateTokens(
             destTokensSgt,
@@ -261,7 +260,6 @@ contract StatusContribution is Owned {
         return block.number;
     }
 
-    event SoftCapSet(uint startRaiseBlock, uint startLimit, uint stopRaiseBlock, uint stopLimit);
     event NewSale(address indexed th, uint amount, uint tokens, bool guaranteed);
     event GuaranteedAddress(address indexed th, uint limiy);
     event Finalized();
