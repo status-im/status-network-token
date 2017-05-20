@@ -9,7 +9,7 @@ import "./StatusContribution.sol";
 */
 /*
 
-@notice The SNPlaceholder contract will take control over the SNT after the offering
+@notice The SNTPlaceholder contract will take control over the SNT after the offering
         is finalized and before the Status Network is deployed.
 
         The contract allows for SNT transfers and transferFrom and implements the
