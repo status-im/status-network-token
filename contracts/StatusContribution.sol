@@ -115,12 +115,13 @@ contract StatusContribution is Owned {
         proxyPayment(msg.sender);
     }
 
-    function proxyPayment(address _th) payable initialized contributionOpen {
+    function proxyPayment(address _th) payable initialized contributionOpen returns (bool) {
         if (guaranteedBuyersLimit[_th] > 0) {
             buyGuaranteed(_th);
         } else {
             buyNormal(_th);
         }
+        return true;
     }
 
     function buyNormal(address _th) internal {
@@ -138,7 +139,6 @@ contract StatusContribution is Owned {
         }
 
         totalNormalCollected += toFund;
-
         doBuy(_th, toFund, false);
     }
 
@@ -162,10 +162,7 @@ contract StatusContribution is Owned {
     }
 
     function doBuy(address _th, uint _toFund, bool _guaranteed) internal {
-
-        uint toFund;
-
-        if (toFund == 0) throw;
+        if (_toFund == 0) throw;
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
         uint tokensGenerated = _toFund *  (10**18) / price;
@@ -177,13 +174,20 @@ contract StatusContribution is Owned {
         if (!destEthDevs.send(_toFund)) throw;
 
         if (toReturn>0) {
-            if (!msg.sender.send(toReturn)) throw;
+            // If the call comes from the Token controller,
+            // then we return it to the token Holder that.
+            // Otherwise we return to the sender.
+            if (msg.sender == address(SNT)) {
+                _th.transfer(toReturn);
+            } else {
+                msg.sender.transfer(toReturn);
+            }
         }
 
         NewSale(_th, _toFund, tokensGenerated, _guaranteed);
     }
 
-    function finalize() initialized onlyOwner {
+    function finalize() initialized {
         if (getBlockNumber() < startBlock) throw;
 
         if (finalized>0) throw;
@@ -191,8 +195,15 @@ contract StatusContribution is Owned {
         // Do not allow terminate until all revealed.
         if (!dynamicHiddenCap.allRevealed()) throw;
 
-        finalized = now;
 
+        // Allow premature finalization if final limit is reached
+        if (getBlockNumber () <= endBlock) {
+            var (,,lastLimit,) = dynamicHiddenCap.points( dynamicHiddenCap.revealedPoints() - 1);
+
+            if (totalCollected < lastLimit) throw;
+        }
+
+        finalized = now;
 
         uint percentageToSgt;
         if ( SGT.totalSupply() > maxSGTSupply) {

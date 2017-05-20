@@ -5,13 +5,14 @@ const SGT = artifacts.require("SGT");
 const SNT = artifacts.require("SNT");
 const MultisigWallet = artifacts.require("MultisigWallet");
 const ContributionWallet = artifacts.require("ContributionWallet");
-const StatusContribution = artifacts.require("StatusContribution");
+const StatusContributionMock = artifacts.require("StatusContributionMock");
 const DevTokensHolder = artifacts.require("DevTokensHolder");
 const SGTExchanger = artifacts.require("SGTExchanger");
 const DynamicHiddenCap = artifacts.require("DynamicHiddenCap");
 const SNTPlaceHolder = artifacts.require("SNTPlaceHolder");
 
 const setHiddenPoints = require("./helpers/hiddenPoints.js").setHiddenPoints;
+const assertFail = require("./helpers/assertFail");
 
 contract("StatusContribution", (accounts) => {
     let multisigStatus;
@@ -27,13 +28,13 @@ contract("StatusContribution", (accounts) => {
     let dynamicHiddenCap;
     let sntPlaceHolder;
 
-    const points = [ [ 1000000, web3.toWei(1000) ],
-        [ 1001000, web3.toWei(21000) ],
-        [ 1002000, web3.toWei(61000) ] ];
+    const points = [ [ 1000000, web3.toWei(3) ],
+                     [ 1001000, web3.toWei(13) ],
+                     [ 1002000, web3.toWei(61000) ] ];
     const startBlock = 1000000;
     const stopBlock = 1003000;
 
-    beforeEach(async () => {
+    it("Should deploy Contribution contracts", async () => {
         multisigStatus = await MultisigWallet.new([ accounts[ 0 ] ], 1);
         multisigComunity = await MultisigWallet.new([ accounts[ 1 ] ], 1);
         multisigSecundarySell = await MultisigWallet.new([ accounts[ 2 ] ], 1);
@@ -42,7 +43,7 @@ contract("StatusContribution", (accounts) => {
         await sgt.generateTokens(accounts[ 0 ], 158854038);
 
         snt = await SNT.new(miniMeFactory.address);
-        statusContribution = await StatusContribution.new();
+        statusContribution = await StatusContributionMock.new();
         contributionWallet = await ContributionWallet.new(
             multisigStatus.address,
             stopBlock,
@@ -76,7 +77,7 @@ contract("StatusContribution", (accounts) => {
           multisigSecundarySell.address,
           sgt.address,
           sgtExchanger.address,
-          200000000,
+          158854038 * 2,
 
           sntPlaceHolder.address);
     });
@@ -84,5 +85,69 @@ contract("StatusContribution", (accounts) => {
     it("Check initial parameters", async () => {
         assert.equal(await snt.controller(), statusContribution.address);
         assert.equal(await sgt.controller(), sgtExchanger.address);
+    });
+
+    it("Checks that no body can buy before the sale starts", async () => {
+        try {
+            await snt.send(web3.toWei(1));
+        } catch (error) {
+            assertFail(error);
+        }
+    });
+
+    it("Reveal a cap, move time to start of the ICO, and do the first buy", async () => {
+        await dynamicHiddenCap.revealPoint(
+                points[ 0 ][ 0 ],
+                points[ 0 ][ 1 ],
+                false,
+                web3.sha3("pwd0"));
+
+        await statusContribution.setMockedBlockNumber(1000000);
+
+        await snt.sendTransaction({ value: web3.toWei(1), gas: 300000 });
+
+        const balance = await snt.balanceOf(accounts[ 0 ]);
+
+        assert.equal(web3.fromWei(balance), 1000);
+    });
+
+    it("Should return the remaining in the last transaction ", async () => {
+        const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
+        await snt.sendTransaction({ value: web3.toWei(5), gas: 300000 });
+        const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
+
+        const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
+        assert.isAbove(spended, 2);
+        assert.isBelow(spended, 2.1);
+
+        const totalCollected = await statusContribution.totalCollected();
+        assert.equal(web3.fromWei(totalCollected), 3);
+
+        const balanceContributionWallet = await web3.eth.getBalance(contributionWallet.address);
+        assert.equal(web3.fromWei(balanceContributionWallet), 3);
+    });
+
+    it("Should reveal second cap and check that every that the limit is right", async () => {
+        await dynamicHiddenCap.revealPoint(
+                points[ 1 ][ 0 ],
+                points[ 1 ][ 1 ],
+                false,
+                web3.sha3("pwd1"));
+
+        await statusContribution.setMockedBlockNumber(1000500);
+
+        const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
+        await snt.sendTransaction({ value: web3.toWei(10), gas: 300000 });
+        const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
+
+        const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
+        assert.isAbove(spended, 5);
+        assert.isBelow(spended, 5.1);
+
+        const totalCollected = await statusContribution.totalCollected();
+        assert.equal(web3.fromWei(totalCollected), 8);
+
+        const balanceContributionWallet = await web3.eth.getBalance(contributionWallet.address);
+        assert.equal(web3.fromWei(balanceContributionWallet), 8);
     });
 });
