@@ -196,10 +196,10 @@ contract StatusContribution is Owned {
 
 
         // Allow premature finalization if final limit is reached
-        if (getBlockNumber () <= endBlock) {
-            var (,,lastLimit,) = dynamicHiddenCap.points( dynamicHiddenCap.revealedPoints() - 1);
+        if (getBlockNumber () <= stopBlock) {
+            var (,,lastLimit,) = dynamicCeiling.points( dynamicCeiling.revealedPoints() - 1);
 
-            if (totalCollected < lastLimit) throw;
+            if (totalCollected()< lastLimit) throw;
         }
 
         finalized = now;
