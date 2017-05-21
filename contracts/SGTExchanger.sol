@@ -1,11 +1,12 @@
 pragma solidity ^0.4.11;
 
 import "./MiniMeToken.sol";
+import "./SafeMath.sol";
 
 // The controllerShip of SGT should be transfered to this contract before the
 // sal starts.
 
-contract SGTExchanger is TokenController {
+contract SGTExchanger is TokenController, SafeMath {
 
     uint totalCollected;
     MiniMeToken sgt;
@@ -19,17 +20,21 @@ contract SGTExchanger is TokenController {
     }
 
     function collect() {
-        uint total = totalCollected + snt.balanceOf(address(this));
+        uint total = safeAdd(totalCollected, snt.balanceOf(address(this)));
 
         uint balance = sgt.balanceOf(msg.sender);
 
-        totalCollected += balance;
+        totalCollected = safeAdd(totalCollected, balance);
 
         allowTransfers = true;
         if (!sgt.transferFrom(msg.sender, address(this), balance)) throw;
         allowTransfers = false;
 
-        if (!snt.transfer(msg.sender, total * balance / sgt.totalSupply())) throw;
+        uint amount = safeDiv(
+                        safeMul(total , balance),
+                        sgt.totalSupply());
+
+        if (!snt.transfer(msg.sender, amount)) throw;
     }
 
     function proxyPayment(address) payable returns(bool) {

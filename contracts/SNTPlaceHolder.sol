@@ -2,6 +2,7 @@ pragma solidity ^0.4.8;
 
 import "./MiniMeToken.sol";
 import "./StatusContribution.sol";
+import "./SafeMath.sol";
 
 
 /*
@@ -17,7 +18,7 @@ import "./StatusContribution.sol";
         asks it to do so.
 */
 
-contract SNTPlaceHolder is TokenController {
+contract SNTPlaceHolder is TokenController, SafeMath {
   address public owner;
   MiniMeToken public snt;
   StatusContribution public contribution;
@@ -54,7 +55,7 @@ contract SNTPlaceHolder is TokenController {
     if (activationTime == 0) {
       uint f = contribution.finalized();
       if (f>0) {
-        activationTime = f + 2 weeks;
+        activationTime = safeAdd(f, 2 weeks);
       } else {
         return false;
       }
