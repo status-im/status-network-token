@@ -6,10 +6,10 @@ const SNT = artifacts.require("SNT");
 const MultisigWallet = artifacts.require("MultisigWallet");
 const ContributionWallet = artifacts.require("ContributionWallet");
 const StatusContributionMock = artifacts.require("StatusContributionMock");
-const DevTokensHolder = artifacts.require("DevTokensHolder");
+const DevTokensHolder = artifacts.require("DevTokensHolderMock");
 const SGTExchanger = artifacts.require("SGTExchanger");
 const DynamicCeiling = artifacts.require("DynamicCeiling");
-const SNTPlaceHolder = artifacts.require("SNTPlaceHolder");
+const SNTPlaceHolderMock = artifacts.require("SNTPlaceHolderMock");
 
 const setHiddenPoints = require("./helpers/hiddenPoints.js").setHiddenPoints;
 const assertFail = require("./helpers/assertFail");
@@ -18,6 +18,7 @@ contract("StatusContribution", (accounts) => {
     let multisigStatus;
     let multisigComunity;
     let multisigSecondarySell;
+    let multisigDevs;
     let miniMeFactory;
     let sgt;
     let snt;
@@ -38,9 +39,10 @@ contract("StatusContribution", (accounts) => {
         multisigStatus = await MultisigWallet.new([ accounts[ 0 ] ], 1);
         multisigComunity = await MultisigWallet.new([ accounts[ 1 ] ], 1);
         multisigSecondarySell = await MultisigWallet.new([ accounts[ 2 ] ], 1);
+        multisigDevs = await MultisigWallet.new([ accounts[ 3 ] ], 1);
         miniMeFactory = await MiniMeTokenFactory.new();
         sgt = await SGT.new(miniMeFactory.address);
-        await sgt.generateTokens(accounts[ 0 ], 158854038);
+        await sgt.generateTokens(accounts[ 4 ], 5000);
 
         snt = await SNT.new(miniMeFactory.address);
         statusContribution = await StatusContributionMock.new();
@@ -49,6 +51,7 @@ contract("StatusContribution", (accounts) => {
             stopBlock,
             statusContribution.address);
         devTokensHolder = await DevTokensHolder.new(
+            multisigDevs.address,
             statusContribution.address,
             snt.address);
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
@@ -56,10 +59,11 @@ contract("StatusContribution", (accounts) => {
 
         await setHiddenPoints(dynamicCeiling, points);
 
-        sntPlaceHolder = await SNTPlaceHolder.new(
-            multisigComunity.adress,
+        sntPlaceHolder = await SNTPlaceHolderMock.new(
+            multisigComunity.address,
             snt.address,
-            statusContribution.address);
+            statusContribution.address,
+            sgtExchanger.address);
 
         await snt.changeController(statusContribution.address);
         await sgt.changeController(sgtExchanger.address);
@@ -78,7 +82,7 @@ contract("StatusContribution", (accounts) => {
           sgt.address,
 
           sgtExchanger.address,
-          158854038 * 2,
+          5000 * 2,
 
           sntPlaceHolder.address);
     });
@@ -183,6 +187,14 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balanceContributionWallet), 15);
     });
 
+    it("Should not allow transfers in contribution period", async () => {
+        try {
+            await snt.transfer(accounts[ 4 ], web3.toWei(1000));
+        } catch (error) {
+            assertFail(error);
+        }
+    });
+
     it("Should finalize", async () => {
         await statusContribution.finalize();
 
@@ -198,5 +210,111 @@ contract("StatusContribution", (accounts) => {
 
         const balanceSecondary = await snt.balanceOf(multisigSecondarySell.address);
         assert.equal(balanceSecondary.toNumber(), totalSupply.mul(0.29).toNumber());
+    });
+
+    it("Should move the Ether to the final multisig", async () => {
+        await multisigStatus.submitTransaction(
+            contributionWallet.address,
+            0,
+            contributionWallet.contract.withdraw.getData());
+
+        const balance = await web3.eth.getBalance(multisigStatus.address);
+
+        assert.equal(balance, web3.toWei(15));
+    });
+
+    it("Should be able to exchange sgt by snt", async () => {
+        await sgtExchanger.collect({ from: accounts[ 4 ] });
+
+        const balance = await snt.balanceOf(accounts[ 4 ]);
+        const totalSupply = await snt.totalSupply();
+
+        assert.equal(totalSupply.mul(0.05).toNumber(), balance.toNumber());
+    });
+
+    it("Should not allow transfers in the 2 weeks period", async () => {
+        try {
+            await snt.transfer(accounts[ 4 ], web3.toWei(1000));
+        } catch (error) {
+            assertFail(error);
+        }
+    });
+
+    it("Should allow transfers after 2 weeks period", async () => {
+        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 14) + 1000;
+        await sntPlaceHolder.setMockedTime(t);
+
+        await snt.transfer(accounts[ 5 ], web3.toWei(1000));
+
+        const balance2 = await snt.balanceOf(accounts[ 5 ]);
+
+        assert.equal(web3.fromWei(balance2).toNumber(), 1000);
+    });
+
+    it("Devs should not allow transfers before 6 months", async () => {
+        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 14) + 1000;
+        await devTokensHolder.setMockedTime(t);
+
+        try {
+            await multisigDevs.submitTransaction(
+                devTokensHolder.address,
+                0,
+                devTokensHolder.contract.collectTokens.getData(),
+                { from: accounts[ 3 ] });
+        } catch (error) {
+            assertFail(error);
+        }
+    });
+
+    it("Devs Should be able to extract 1/2 after a year", async () => {
+        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 360);
+        await devTokensHolder.setMockedTime(t);
+
+        const totalSupply = await snt.totalSupply();
+
+        await multisigDevs.submitTransaction(
+            devTokensHolder.address,
+            0,
+            devTokensHolder.contract.collectTokens.getData(),
+            { from: accounts[ 3 ] });
+
+        const balance = await snt.balanceOf(multisigDevs.address);
+
+        const calcTokens = web3.fromWei(totalSupply.mul(0.20).mul(0.5)).toNumber();
+        const realTokens = web3.fromWei(balance).toNumber();
+
+        assert.isBelow(realTokens - calcTokens, 0.1);
+    });
+
+    it("Devs Should be able to extract every thing after 2 year", async () => {
+        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 360 * 2);
+        await devTokensHolder.setMockedTime(t);
+
+        const totalSupply = await snt.totalSupply();
+
+        await multisigDevs.submitTransaction(
+            devTokensHolder.address,
+            0,
+            devTokensHolder.contract.collectTokens.getData(),
+            { from: accounts[ 3 ] });
+
+        const balance = await snt.balanceOf(multisigDevs.address);
+
+        const calcTokens = web3.fromWei(totalSupply.mul(0.20)).toNumber();
+        const realTokens = web3.fromWei(balance).toNumber();
+
+        assert.equal(calcTokens, realTokens);
+    });
+
+    it("SNT's Controller should be upgradeable", async () => {
+        await multisigComunity.submitTransaction(
+            sntPlaceHolder.address,
+            0,
+            sntPlaceHolder.contract.changeController.getData(accounts[ 6 ]),
+            { from: accounts[ 1 ] });
+
+        const controller = await snt.controller();
+
+        assert.equal(controller, accounts[ 6 ]);
     });
 });

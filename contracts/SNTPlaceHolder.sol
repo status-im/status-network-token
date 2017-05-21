@@ -22,11 +22,13 @@ contract SNTPlaceHolder is TokenController {
   MiniMeToken public snt;
   StatusContribution public contribution;
   uint public activationTime;
+  address public sgtExchanger;
 
-  function SNPlaceholder(address _owner, address _snt, address _contribution) {
+  function SNTPlaceHolder(address _owner, address _snt, address _contribution, address _sgtExchanger) {
     owner = _owner;
     snt = MiniMeToken(_snt);
     contribution = StatusContribution(_contribution);
+    sgtExchanger = _sgtExchanger;
   }
 
   function changeController(address _newController) {
@@ -40,25 +42,28 @@ contract SNTPlaceHolder is TokenController {
     return false;
   }
 
-  function onTransfer(address , address , uint ) returns (bool) {
-    return transferable();
+  function onTransfer(address _from, address , uint ) returns (bool) {
+    return transferable(_from);
   }
 
-  function onApprove(address , address , uint ) returns (bool) {
-    return transferable();
+  function onApprove(address _from, address , uint ) returns (bool) {
+    return transferable(_from);
   }
 
-  function transferable() internal returns (bool) {
+  function transferable(address _from) internal returns (bool) {
+    // Allow the exchanger to work from the begining
     if (activationTime == 0) {
       uint f = contribution.finalized();
       if (f>0) {
         activationTime = f + 2 weeks;
-        return (now > activationTime);
       } else {
         return false;
       }
-    } else {
-      return (now > activationTime);
     }
+    return (getTime() > activationTime) || (_from == sgtExchanger);
+  }
+
+  function getTime() internal returns(uint) {
+    return now;
   }
 }

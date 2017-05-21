@@ -9,7 +9,8 @@ contract DevTokensHolder is Owned {
     StatusContribution contribution;
     MiniMeToken snt;
 
-    function DevTokensHolder( address _contribution, address _snt) {
+    function DevTokensHolder( address _owner, address _contribution, address _snt) {
+        owner = _owner;
         contribution = StatusContribution(_contribution);
         snt = MiniMeToken(_snt);
     }
@@ -21,9 +22,9 @@ contract DevTokensHolder is Owned {
         uint finalized = contribution.finalized();
 
         if (finalized == 0) throw;
-        if (now - finalized <= 6*30 days) return;
+        if (getTime() - finalized <= 6*30 days) throw;
 
-        uint canExtract = total * ( now - (finalized + 6 * 30 days)) / (18 * 30 days);
+        uint canExtract = total * ( getTime() - finalized) / (24 * 30 days);
 
         canExtract = canExtract - collectedTokens;
 
@@ -33,5 +34,9 @@ contract DevTokensHolder is Owned {
 
         collectedTokens += canExtract;
         if (!snt.transfer(owner, canExtract)) throw;
+    }
+
+    function getTime() internal returns(uint) {
+        return now;
     }
 }

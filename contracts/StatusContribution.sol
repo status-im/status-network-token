@@ -152,8 +152,6 @@ contract StatusContribution is Owned {
             toFund = msg.value;
         }
 
-        if (toFund == 0) throw;
-
         guaranteedBuyersBought[_th] += toFund;
         totalGuaranteedCollected += toFund;
 
@@ -161,7 +159,7 @@ contract StatusContribution is Owned {
     }
 
     function doBuy(address _th, uint _toFund, bool _guaranteed) internal {
-        if (_toFund == 0) throw;
+        if (_toFund == 0) throw; // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
         uint tokensGenerated = _toFund *  (10**18) / price;
