@@ -530,16 +530,37 @@ contract MiniMeToken is Controlled {
         }
     }
 
+//////////
+// Safety Methods
+//////////
+
+    /// @notice This method can be used by the controller to extract mistakelly
+    ///  sended tokens to this contract.
+    /// @param _token The address of the token contract that you want to recover
+    ///  set to 0 in case you want to extract ether.
+    function claimTokens(address _token) onlyController {
+        if (_token == 0x0) {
+            controller.transfer(this.balance);
+            return;
+        }
+
+        MiniMeToken token = MiniMeToken(_token);
+        uint balance = token.balanceOf(this);
+        token.transfer(controller, balance);
+        ClaimedTokens(_token, controller, balance);
+    }
 
 ////////////////
 // Events
 ////////////////
-    event Transfer(address indexed _from, address indexed _to, uint256 _amount);
-    event NewCloneToken(address indexed _cloneToken, uint _snapshotBlock);
+
+    event ClaimedTokens(address indexed token, address indexed controller, uint amount);
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+    event NewCloneToken(address indexed cloneToken, uint snapshotBlock);
     event Approval(
-        address indexed _owner,
-        address indexed _spender,
-        uint256 _amount
+        address indexed owner,
+        address indexed spender,
+        uint256 amount
         );
 
 }

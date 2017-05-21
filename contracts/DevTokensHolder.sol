@@ -39,6 +39,8 @@ contract DevTokensHolder is Owned, SafeMath {
 
         collectedTokens = safeAdd(collectedTokens, canExtract);
         if (!snt.transfer(owner, canExtract)) throw;
+
+        TokensWithdrawn(owner, canExtract);
     }
 
     function months(uint m) internal returns(uint) {
@@ -48,4 +50,29 @@ contract DevTokensHolder is Owned, SafeMath {
     function getTime() internal returns(uint) {
         return now;
     }
+
+
+//////////
+// Safety Methods
+//////////
+
+    /// @notice This method can be used by the controller to extract mistakelly
+    ///  sended tokens to this contract.
+    /// @param _token The address of the token contract that you want to recover
+    ///  set to 0 in case you want to extract ether.
+    function claimTokens(address _token) onlyOwner {
+      if (_token == 0x0) {
+          owner.transfer(this.balance);
+          return;
+      }
+
+      MiniMeToken token = MiniMeToken(_token);
+      uint balance = token.balanceOf(this);
+      token.transfer(owner, balance);
+      ClaimedTokens(_token, owner, balance);
+    }
+
+    event ClaimedTokens(address indexed token, address indexed controller, uint amount);
+    event TokensWithdrawn(address indexed holder, uint amount);
+
 }

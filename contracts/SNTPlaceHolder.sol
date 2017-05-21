@@ -3,6 +3,7 @@ pragma solidity ^0.4.8;
 import "./MiniMeToken.sol";
 import "./StatusContribution.sol";
 import "./SafeMath.sol";
+import "./Owned.sol";
 
 
 /*
@@ -18,8 +19,7 @@ import "./SafeMath.sol";
         asks it to do so.
 */
 
-contract SNTPlaceHolder is TokenController, SafeMath {
-  address public owner;
+contract SNTPlaceHolder is TokenController, SafeMath, Owned {
   MiniMeToken public snt;
   StatusContribution public contribution;
   uint public activationTime;
@@ -32,9 +32,9 @@ contract SNTPlaceHolder is TokenController, SafeMath {
     sgtExchanger = _sgtExchanger;
   }
 
-  function changeController(address _newController) {
-    if (msg.sender != owner) throw;
+  function changeController(address _newController) onlyOwner {
     snt.changeController(_newController);
+    ControllerChanged(_newController);
   }
 
   // In between the offering and the network. Default settings for allowing token transfers.
@@ -66,4 +66,30 @@ contract SNTPlaceHolder is TokenController, SafeMath {
   function getTime() internal returns(uint) {
     return now;
   }
+
+//////////
+// Safety Methods
+//////////
+
+  /// @notice This method can be used by the controller to extract mistakelly
+  ///  sended tokens to this contract.
+  /// @param _token The address of the token contract that you want to recover
+  ///  set to 0 in case you want to extract ether.
+  function claimTokens(address _token) onlyOwner {
+      if (snt.controller() == address(this)) {
+          snt.claimTokens(_token);
+      }
+      if (_token == 0x0) {
+          owner.transfer(this.balance);
+          return;
+      }
+
+      MiniMeToken token = MiniMeToken(_token);
+      uint balance = token.balanceOf(this);
+      token.transfer(owner, balance);
+      ClaimedTokens(_token, owner, balance);
+  }
+
+  event ClaimedTokens(address indexed token, address indexed controller, uint amount);
+  event ControllerChanged(address indexed newController);
 }

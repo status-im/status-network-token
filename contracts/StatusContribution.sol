@@ -277,6 +277,31 @@ contract StatusContribution is Owned, SafeMath {
         return block.number;
     }
 
+
+//////////
+// Safety Methods
+//////////
+
+    /// @notice This method can be used by the controller to extract mistakelly
+    ///  sended tokens to this contract.
+    /// @param _token The address of the token contract that you want to recover
+    ///  set to 0 in case you want to extract ether.
+    function claimTokens(address _token) onlyOwner {
+        if (SNT.controller() == address(this)) {
+            SNT.claimTokens(_token);
+        }
+        if (_token == 0x0) {
+            owner.transfer(this.balance);
+            return;
+        }
+
+        MiniMeToken token = MiniMeToken(_token);
+        uint balance = token.balanceOf(this);
+        token.transfer(owner, balance);
+        ClaimedTokens(_token, owner, balance);
+    }
+
+    event ClaimedTokens(address indexed token, address indexed controller, uint amount);
     event NewSale(address indexed th, uint amount, uint tokens, bool guaranteed);
     event GuaranteedAddress(address indexed th, uint limiy);
     event Finalized();
