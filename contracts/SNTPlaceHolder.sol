@@ -34,7 +34,6 @@ contract SNTPlaceHolder is TokenController {
   function changeController(address _newController) {
     if (msg.sender != owner) throw;
     snt.changeController(_newController);
-    suicide(owner);
   }
 
   // In between the offering and the network. Default settings for allowing token transfers.
