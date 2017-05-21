@@ -100,6 +100,17 @@ contract("StatusContribution", (accounts) => {
         }
     });
 
+    it("Add 2 guaranteed addresses ", async () => {
+        await statusContribution.setGuaranteedAddress(accounts[ 7 ], web3.toWei(1));
+        await statusContribution.setGuaranteedAddress(accounts[ 8 ], web3.toWei(2));
+
+        const permited7 = await statusContribution.guaranteedBuyersLimit(accounts[ 7 ]);
+        const permited8 = await statusContribution.guaranteedBuyersLimit(accounts[ 8 ]);
+
+        assert.equal(web3.fromWei(permited7).toNumber(), 1);
+        assert.equal(web3.fromWei(permited8).toNumber(), 2);
+    });
+
     it("Reveal a point, move time to start of the ICO, and do the first buy", async () => {
         await dynamicCeiling.revealPoint(
                 points[ 0 ][ 0 ],
@@ -113,7 +124,7 @@ contract("StatusContribution", (accounts) => {
 
         const balance = await snt.balanceOf(accounts[ 0 ]);
 
-        assert.equal(web3.fromWei(balance), 1000);
+        assert.equal(web3.fromWei(balance).toNumber(), 1000);
     });
 
     it("Should return the remaining in the last transaction ", async () => {
@@ -195,12 +206,23 @@ contract("StatusContribution", (accounts) => {
         }
     });
 
+    it("Guaranteed address should still be able to buy", async () => {
+        await snt.sendTransaction({ value: web3.toWei(3), gas: 300000, from: accounts[ 7 ] });
+        await snt.sendTransaction({ value: web3.toWei(3), gas: 300000, from: accounts[ 8 ] });
+
+        const balance7 = await snt.balanceOf(accounts[ 7 ]);
+        const balance8 = await snt.balanceOf(accounts[ 8 ]);
+
+        assert.equal(web3.fromWei(balance7).toNumber(), 1000);
+        assert.equal(web3.fromWei(balance8).toNumber(), 2000);
+    });
+
     it("Should finalize", async () => {
         await statusContribution.finalize();
 
         const totalSupply = await snt.totalSupply();
 
-        assert.equal(web3.fromWei(totalSupply).toNumber(), 15000 / 0.46);
+        assert.equal(web3.fromWei(totalSupply).toNumber(), 18000 / 0.46);
 
         const balanceSGT = await snt.balanceOf(sgtExchanger.address);
         assert.equal(balanceSGT.toNumber(), totalSupply.mul(0.05).toNumber());
@@ -220,7 +242,7 @@ contract("StatusContribution", (accounts) => {
 
         const balance = await web3.eth.getBalance(multisigStatus.address);
 
-        assert.equal(balance, web3.toWei(15));
+        assert.equal(web3.fromWei(balance).toNumber(), 18);
     });
 
     it("Should be able to exchange sgt by snt", async () => {

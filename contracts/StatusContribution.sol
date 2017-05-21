@@ -3,8 +3,9 @@ pragma solidity ^0.4.11;
 import "./Owned.sol";
 import "./MiniMeToken.sol";
 import "./DynamicCeiling.sol";
+import "./SafeMath.sol";
 
-contract StatusContribution is Owned {
+contract StatusContribution is Owned, SafeMath {
 
     uint constant public failSafe = 250000 ether;
     uint constant public price = 10**18 / 1000;
@@ -131,13 +132,13 @@ contract StatusContribution is Owned {
 
         if (cap>failSafe) cap = failSafe;
 
-        if (totalNormalCollected + msg.value > cap) {
-            toFund = cap - totalNormalCollected;
+        if (safeAdd(totalNormalCollected, msg.value) > cap) {
+            toFund = safeSub(cap, totalNormalCollected);
         } else {
             toFund = msg.value;
         }
 
-        totalNormalCollected += toFund;
+        totalNormalCollected = safeAdd(totalNormalCollected, toFund);
         doBuy(_th, toFund, false);
     }
 
@@ -146,14 +147,14 @@ contract StatusContribution is Owned {
         uint toFund;
         uint cap = guaranteedBuyersLimit[_th];
 
-        if (guaranteedBuyersBought[_th] + msg.value > cap) {
-            toFund = cap - guaranteedBuyersBought[_th];
+        if (safeAdd(guaranteedBuyersBought[_th], msg.value) > cap) {
+            toFund = safeSub(cap, guaranteedBuyersBought[_th]);
         } else {
             toFund = msg.value;
         }
 
-        guaranteedBuyersBought[_th] += toFund;
-        totalGuaranteedCollected += toFund;
+        guaranteedBuyersBought[_th] = safeAdd(guaranteedBuyersBought[_th], toFund);
+        totalGuaranteedCollected = safeAdd(totalGuaranteedCollected, toFund);
 
         doBuy(_th, toFund, true);
     }
@@ -162,8 +163,10 @@ contract StatusContribution is Owned {
         if (_toFund == 0) throw; // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
-        uint tokensGenerated = _toFund *  (10**18) / price;
-        uint toReturn = msg.value - _toFund;
+        uint tokensGenerated = safeDiv(
+                                    safeMul(_toFund, 10** uint(SNT.decimals()) ),
+                                    price);
+        uint toReturn = safeSub(msg.value, _toFund);
 
         if (!SNT.generateTokens(_th, tokensGenerated))
             throw;
@@ -184,7 +187,7 @@ contract StatusContribution is Owned {
         NewSale(_th, _toFund, tokensGenerated, _guaranteed);
     }
 
-    function finalize() initialized {
+    function finalize() initialized onlyOwner {
         if (getBlockNumber() < startBlock) throw;
 
         if (finalized>0) throw;
@@ -195,7 +198,7 @@ contract StatusContribution is Owned {
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber () <= stopBlock) {
-            var (,,lastLimit,) = dynamicCeiling.points( dynamicCeiling.revealedPoints() - 1);
+            var (,,lastLimit,) = dynamicCeiling.points( safeSub(dynamicCeiling.revealedPoints(), 1));
 
             if (totalCollected()< lastLimit) throw;
         }
@@ -204,38 +207,54 @@ contract StatusContribution is Owned {
 
         uint percentageToSgt;
         if ( SGT.totalSupply() > maxSGTSupply) {
-            percentageToSgt =  10 * (10**16);  // 10%
+            percentageToSgt =  percent(10);  // 10%
         } else {
-            percentageToSgt =  ( 10 * (10**16)) * SGT.totalSupply() / maxSGTSupply;
+            percentageToSgt =  safeDiv(
+                                    safeMul(percent(10), SGT.totalSupply()),
+                                    maxSGTSupply);
         }
 
-        uint percentageToDevs = 20 * (10**16); // 20%
+        uint percentageToDevs = percent(20); // 20%
 
-        uint percentageToContributors = 41*(10**16) + ( 10*(10**16) -  percentageToSgt );
+        uint percentageToContributors = safeSub(
+                                            safeAdd(percent(41), percent(10)),
+                                            percentageToSgt);
 
-        uint percentageToSecondary = 29*(10**16);
+        uint percentageToSecondary = percent(29);
 
-        uint totalTokens = SNT.totalSupply() * (10**18) / percentageToContributors;
+        uint totalTokens = safeDiv(
+                                safeMul(SNT.totalSupply(), percent(100)),
+                                percentageToContributors);
 
 
         // Generate tokens for SGT Holders.
 
         if (!SNT.generateTokens(
             destTokensSecondarySale,
-            totalTokens * percentageToSecondary / (10**18))) throw;
+            safeDiv(
+                safeMul(totalTokens, percentageToSecondary),
+                percent(100)))) throw;
 
         if (!SNT.generateTokens(
             destTokensSgt,
-            totalTokens * percentageToSgt / (10**18))) throw;
+            safeDiv(
+                safeMul(totalTokens, percentageToSgt),
+                percent(100)))) throw;
 
         if (!SNT.generateTokens(
             destTokensDevs,
-            totalTokens * percentageToDevs / (10**18))) throw;
+            safeDiv(
+                safeMul(totalTokens, percentageToDevs),
+                percent(100)))) throw;
 
         SNT.changeController(sntController);
 
         Finalized();
 
+    }
+
+    function percent(uint p) internal returns(uint) {
+        return safeMul(p, 10**16);
     }
 
     function onTransfer(address , address , uint ) returns(bool) {
@@ -251,7 +270,7 @@ contract StatusContribution is Owned {
     }
 
     function totalCollected()  constant returns (uint) {
-        return totalNormalCollected + totalGuaranteedCollected;
+        return safeAdd(totalNormalCollected, totalGuaranteedCollected);
     }
 
     function getBlockNumber() internal constant returns (uint) {
