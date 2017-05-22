@@ -1,5 +1,31 @@
 pragma solidity ^0.4.11;
 
+/*
+    Copyright 2017, Jordi Baylina
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// @title StatusContribution Contract
+/// @author Jordi Baylina
+/// @dev This contract will be the SNT controller during the contribution period.
+///  This contract will determine the rules during this period.
+///  Final users, will generally not interact directly with this contract. ETH will
+///  be sent to the SNT token contract. The ETH is sent to this contract and from here,
+///  ETH is sent to the contribution walled and SNTs are mined according to the defined
+///  rules.
+
 import "./Owned.sol";
 import "./MiniMeToken.sol";
 import "./DynamicCeiling.sol";
@@ -51,6 +77,23 @@ contract StatusContribution is Owned, SafeMath {
 
     }
 
+
+    /// @notice This method should be called by the owner before the contribution
+    ///  period starts This initializes most of the parameters
+    /// @param _sntAddress Address of the SNT token contract
+    /// @param _startBlock Block when the contribution period starts
+    /// @param _stopBlock Maximum block that the contribution period can be longed
+    /// @param _dynamicCeiling Address of the contract that controls the ceiling
+    /// @param _destEthDevs Destination address where the contribution ether is sent
+    /// @param _destTokensDevs Address where the tokens for the dev are sent
+    /// @param _destTokensSecondarySale Address where the tokens for the secondary sell
+    ///  are going to be sent
+    /// @param _sgt Address of the SGT token contract
+    /// @param _destTokensSgt Address of the exchanger SGT-SNT where the SNT are sent
+    ///  to be distributed to the SGT holders.
+    /// @param _maxSGTSupply Quantity of SGT tokens that would represent 10% of status.
+    /// @param _sntController Token controller for the SNT that will be transfered after
+    ///  the contribution finalizes.
     function initialize(
         address _sntAddress,
         uint _startBlock,
@@ -66,7 +109,7 @@ contract StatusContribution is Owned, SafeMath {
         address _destTokensSgt,
         uint _maxSGTSupply,
         address _sntController
-    ) {
+    ) onlyOwner {
         // Initialize only once
         if (address(SNT) != 0x0 ) throw;
 
@@ -106,17 +149,31 @@ contract StatusContribution is Owned, SafeMath {
         sntController = _sntController;
     }
 
-    function setGuaranteedAddress(address th, uint limit) initialized onlyOwner {
+    /// @notice Sets the limit for a guaranteed address. All the guaranteed addresses
+    ///  will be able to get SNTs during the contribution period with his own
+    ///  specific limit.
+    ///  This method should be called by the owner after the initialization
+    ///  and before the contribution starts.
+    /// @param _th Guaranteed address
+    /// @param _limit Particular limit for the guaranteed address. Set to 0 to remove
+    ///   the guaranteed address
+    function setGuaranteedAddress(address _th, uint _limit) initialized onlyOwner {
         if (getBlockNumber() >= startBlock) throw;
-        if (limit > failSafe) throw;
-        guaranteedBuyersLimit[th] = limit;
-        GuaranteedAddress(th, limit);
+        if (_limit > failSafe) throw;
+        guaranteedBuyersLimit[_th] = _limit;
+        GuaranteedAddress(_th, _limit);
     }
 
+    /// @notice If any body sends Ether directly to this contract, cosidere he is
+    ///  getting SNTs.
     function () payable {
         proxyPayment(msg.sender);
     }
 
+    /// @notice This method will generally be called by the SNT token contract to
+    ///  adquire SNTs.  Or directly from third parties that want po adquire SNTs in
+    ///  behalf of a token holder.
+    /// @param _th SNT holder where the SNTs will be minted.
     function proxyPayment(address _th) payable initialized contributionOpen returns (bool) {
         if (guaranteedBuyersLimit[_th] > 0) {
             buyGuaranteed(_th);
@@ -187,8 +244,14 @@ contract StatusContribution is Owned, SafeMath {
         NewSale(_th, _toFund, tokensGenerated, _guaranteed);
     }
 
-    function finalize() initialized onlyOwner {
+    /// @notice This method will can be called by the owner before the contribution period
+    ///  end or by any body after the `endBlock`. This method finalizes the contribution period
+    ///  by creating the remaining tokens and transferin the controller to the configured
+    ///  controller.
+    function finalize() initialized {
         if (getBlockNumber() < startBlock) throw;
+
+        if ((msg.sender != owner)&&(getBlockNumber() < stopBlock )) throw;
 
         if (finalized>0) throw;
 
@@ -257,6 +320,11 @@ contract StatusContribution is Owned, SafeMath {
         return safeMul(p, 10**16);
     }
 
+
+//////////
+// MiniMe Controller functions
+//////////
+
     function onTransfer(address , address , uint ) returns(bool) {
         return false;
     }
@@ -265,14 +333,26 @@ contract StatusContribution is Owned, SafeMath {
         return false;
     }
 
+
+//////////
+// Constant functions
+//////////
+
+    /// @return Total tokens issued in weis.
     function tokensIssued() constant returns (uint) {
         return SNT.totalSupply();
     }
 
+    /// @return Total Ether collected.
     function totalCollected()  constant returns (uint) {
         return safeAdd(totalNormalCollected, totalGuaranteedCollected);
     }
 
+//////////
+// Testing specific methods
+//////////
+
+    /// @notice This function is overrided by the test Mocks.
     function getBlockNumber() internal constant returns (uint) {
         return block.number;
     }
