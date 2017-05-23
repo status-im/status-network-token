@@ -34,7 +34,7 @@ import "./SafeMath.sol";
 contract StatusContribution is Owned, SafeMath {
 
     uint constant public failSafe = 250000 ether;
-    uint constant public price = 10**18 / 1000;
+    uint constant public price = 10**18 / 10000;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
