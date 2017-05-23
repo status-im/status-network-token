@@ -1,5 +1,31 @@
 pragma solidity ^0.4.11;
 
+/*
+    Copyright 2017, Jordi Baylina
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// @title DynamicCeiling Contract
+/// @author Jordi Baylina
+/// @dev This contract calculates the A cailing from a series of points.
+///  This points are commited firs and revealed later.
+///  All the points must be in increasing order and the last point is marked
+///  as the last one.
+///  This contract allows to hide and reveal the ceiling at will of the owner.
+
+
 import "./SafeMath.sol";
 
 contract DynamicCeiling is SafeMath {
@@ -20,6 +46,12 @@ contract DynamicCeiling is SafeMath {
         creator = msg.sender;
     }
 
+    /// @notice This should be called by the creator of the contract to commit
+    ///  all the points of the curve.
+    /// @param _pointHashes Array of hashes of each point. Each hash is callculated
+    ///  by the `calculateHash` method. More hashes that the actual points of the curve
+    ///  can be commited in order to hide also the number of points of the curve.
+    ///  The remaining hashes can be just random numbers.
     function setHiddenPoints(bytes32[] _pointHashes) {
         if (msg.sender != creator) throw;
         if (points.length > 0) throw;
@@ -31,7 +63,13 @@ contract DynamicCeiling is SafeMath {
     }
 
 
-    function revealPoint(uint _block, uint _limit, bool _last, uint _salt) {
+    /// @notice Any body can revel the next point of the curve if he knows it.
+    /// @param _block Block number where this point of the curve is defined.
+    ///  (Must be greater than the previous one)
+    /// @param _limit Ceiling cat at that block.
+    /// @param _last `true` if it's the last point of the curve.
+    /// @param _salt Random number used to commit the point
+    function revealPoint(uint _block, uint _limit, bool _last, bytes32 _salt) {
         if (allRevealed) throw;
         if (points[revealedPoints].hash != sha3(_block, _limit, _last, _salt)) throw;
         if (revealedPoints > 0) {
@@ -45,6 +83,7 @@ contract DynamicCeiling is SafeMath {
         if (_last) allRevealed = true;
     }
 
+    /// @return Return the limit at specific block number
     function cap(uint _block) constant returns (uint) {
         if (revealedPoints == 0) return 0;
 
@@ -75,10 +114,19 @@ contract DynamicCeiling is SafeMath {
 
     }
 
-    function calculateHash(uint _block, uint _limit, bool _last, uint _salt) constant returns (bytes32) {
+    /// @notice Calculates the hash of a point.
+    /// @param _block Block number where this point of the curve is defined.
+    ///  (Must be greater than the previous one)
+    /// @param _limit Ceiling cat at that block.
+    /// @param _last `true` if it's the last point of the curve.
+    /// @param _salt Random number that will be needed to reveal this point.
+    /// @return The calculated hash of this point to be used in the
+    ///  `setHiddenPoints` method
+    function calculateHash(uint _block, uint _limit, bool _last, bytes32 _salt) constant returns (bytes32) {
         return sha3(_block, _limit, _last, _salt);
     }
 
+    /// @return Return the total number of points commited
     function nPoints() constant returns(uint) {
         return points.length;
     }

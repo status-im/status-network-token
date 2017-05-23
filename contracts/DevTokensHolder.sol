@@ -1,4 +1,45 @@
-pragma solidity ^0.4.6;
+pragma solidity ^0.4.11;
+
+/*
+    Copyright 2017, Jordi Baylina
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// @title DevTokensHolder Contract
+/// @author Jordi Baylina
+/// @dev This contract will be hold tokens of the developers.
+///  Tokens will not be able to be collected until 6 months after the contribution
+///  period ends. And it will be increasing linearly until 2 years.
+
+
+//  collectable tokens
+//   |                         _/--------   vestedTokens rect
+//   |                       _/
+//   |                     _/
+//   |                   _/
+//   |                 _/
+//   |               _/
+//   |             _/
+//   |           _/
+//   |          |
+//   |        . |
+//   |      .   |
+//   |    .     |
+//   +===+======+--------------+----------> time
+//     Contrib   6 Months       24 Months
+//       End
 
 import "./MiniMeToken.sol";
 import "./StatusContribution.sol";
@@ -16,6 +57,8 @@ contract DevTokensHolder is Owned, SafeMath {
         snt = MiniMeToken(_snt);
     }
 
+
+    /// @notice The Dev (Owner) will call this method to extract the tokens
     function collectTokens() onlyOwner {
         uint balance = snt.balanceOf(address(this));
         uint total = safeAdd(collectedTokens, snt.balanceOf(address(this)));
