@@ -1,39 +1,65 @@
 pragma solidity ^0.4.11;
 
+/*
+    Copyright 2017, Jordi Baylina
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// @title SGTExchanger Contract
+/// @author Jordi Baylina
+/// @dev This contract will be used to distribute SNT between SGT holders.
+///  SGT token is not transferable, and we just keep an accounting between all tokens
+///  deposited and the tokens collected.
+///  The controllerShip of SGT should be transfered to this contract before the
+///  contribution period starts.
+
+
 import "./MiniMeToken.sol";
 import "./SafeMath.sol";
 import "./Owned.sol";
 
-// The controllerShip of SGT should be transfered to this contract before the
-// sal starts.
 
 contract SGTExchanger is TokenController, SafeMath, Owned {
 
-    uint totalCollected;
-    MiniMeToken sgt;
-    MiniMeToken snt;
-
-    bool allowTransfers;
+    mapping (address => uint) public collected;
+    uint public totalCollected;
+    MiniMeToken public sgt;
+    MiniMeToken public snt;
 
     function SGTExchanger(address _sgt, address _snt) {
         sgt = MiniMeToken(_sgt);
         snt = MiniMeToken(_snt);
     }
 
+    /// @notice This method should be called by the SGT holders to collect their
+    ///  corresponding SNTs
     function collect() {
         uint total = safeAdd(totalCollected, snt.balanceOf(address(this)));
 
         uint balance = sgt.balanceOf(msg.sender);
 
-        totalCollected = safeAdd(totalCollected, balance);
-
-        allowTransfers = true;
-        if (!sgt.transferFrom(msg.sender, address(this), balance)) throw;
-        allowTransfers = false;
-
+        // First calculate how much correspond to him
         uint amount = safeDiv(
                         safeMul(total , balance),
                         sgt.totalSupply());
+
+        // And then substract the ammount already collected
+        amount = safeSub(amount, collected[msg.sender]);
+
+        totalCollected = safeAdd(totalCollected, amount);
+        collected[msg.sender] = safeAdd(collected[msg.sender], amount);
 
         if (!snt.transfer(msg.sender, amount)) throw;
 
@@ -45,7 +71,7 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
     }
 
     function onTransfer(address , address , uint ) returns(bool) {
-        return allowTransfers;
+        return false;
     }
 
     function onApprove(address , address , uint ) returns(bool) {
