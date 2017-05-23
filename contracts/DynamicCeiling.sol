@@ -37,7 +37,7 @@ contract DynamicCeiling is SafeMath {
         bool revealed;
     }
 
-    address creator;
+    address public creator;
     uint public revealedPoints;
     bool public allRevealed;
     CurvePoint[] public points;
@@ -55,9 +55,8 @@ contract DynamicCeiling is SafeMath {
     function setHiddenPoints(bytes32[] _pointHashes) {
         if (msg.sender != creator) throw;
         if (points.length > 0) throw;
-        uint i;
         points.length = _pointHashes.length;
-        for (i=0; i< _pointHashes.length; i = safeAdd(i,1)) {
+        for (uint i=0; i< _pointHashes.length; i = safeAdd(i,1)) {
             points[i].hash = _pointHashes[i];
         }
     }

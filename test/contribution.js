@@ -124,7 +124,7 @@ contract("StatusContribution", (accounts) => {
 
         const balance = await snt.balanceOf(accounts[ 0 ]);
 
-        assert.equal(web3.fromWei(balance).toNumber(), 1000);
+        assert.equal(web3.fromWei(balance).toNumber(), 10000);
     });
 
     it("Should return the remaining in the last transaction ", async () => {
@@ -185,7 +185,7 @@ contract("StatusContribution", (accounts) => {
 
         const balance1 = await snt.balanceOf(accounts[ 1 ]);
 
-        assert.equal(web3.fromWei(balance1), 7000);
+        assert.equal(web3.fromWei(balance1).toNumber(), 70000);
 
         const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
         assert.isAbove(spended, 7);
@@ -213,8 +213,8 @@ contract("StatusContribution", (accounts) => {
         const balance7 = await snt.balanceOf(accounts[ 7 ]);
         const balance8 = await snt.balanceOf(accounts[ 8 ]);
 
-        assert.equal(web3.fromWei(balance7).toNumber(), 1000);
-        assert.equal(web3.fromWei(balance8).toNumber(), 2000);
+        assert.equal(web3.fromWei(balance7).toNumber(), 10000);
+        assert.equal(web3.fromWei(balance8).toNumber(), 20000);
     });
 
     it("Should finalize", async () => {
@@ -222,7 +222,7 @@ contract("StatusContribution", (accounts) => {
 
         const totalSupply = await snt.totalSupply();
 
-        assert.equal(web3.fromWei(totalSupply).toNumber(), 18000 / 0.46);
+        assert.isBelow(web3.fromWei(totalSupply).toNumber() - (180000 / 0.46), 0.01);
 
         const balanceSGT = await snt.balanceOf(sgtExchanger.address);
         assert.equal(balanceSGT.toNumber(), totalSupply.mul(0.05).toNumber());
