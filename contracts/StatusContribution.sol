@@ -244,6 +244,25 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         NewSale(_th, _toFund, tokensGenerated, _guaranteed);
     }
 
+    // NOTE on Percentage format
+    // Right now, Solidity does not support decimal numbers. (This will change very soon)
+    //  So in this contract we use a representation of a percentage that consist in
+    //  expressing the percentage in "x per 10**18"
+    // That is 1 Ether == 100%
+    // This format has a precission of 16 digits for a percent.
+    // Examples:
+    //  3%   =   3*(10**16)
+    //  100% = 100*(10**16) = 10**18 = 1 Ether
+    //
+    // To get a percentage of a value we do it by first multiplying it by the percentage in  (x per 10^18)
+    //  and then divide it by 10**8
+    //
+    //              Y * X(in x per 10**18)
+    //  X% of Y = -------------------------
+    //               100(in x per 10**18)
+    //
+
+
     /// @notice This method will can be called by the owner before the contribution period
     ///  end or by any body after the `endBlock`. This method finalizes the contribution period
     ///  by creating the remaining tokens and transferin the controller to the configured
@@ -272,6 +291,12 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         if ( SGT.totalSupply() > maxSGTSupply) {
             percentageToSgt =  percent(10);  // 10%
         } else {
+
+            //
+            //                           SGT.totalSupply()
+            //  percentageToSgt = 10% * -------------------
+            //                             maxSGTSupply
+            //
             percentageToSgt =  safeDiv(
                                     safeMul(percent(10), SGT.totalSupply()),
                                     maxSGTSupply);
@@ -279,12 +304,34 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
         uint percentageToDevs = percent(20); // 20%
 
-        uint percentageToContributors = safeSub(
-                                            safeAdd(percent(41), percent(10)),
-                                            percentageToSgt);
+
+        //
+        //  % To Contributors = 41% - (10% - % to SGT holders)
+        //
+        uint percentageToContributors = safeAdd(
+                                            percent(41),
+                                            safeSub(percent(10), percentageToSgt));
 
         uint percentageToSecondary = percent(29);
 
+
+        // SNT.totalSupply() -> Tokens minted during the contribution
+        //  totalTokens  -> Total tokens that should be after the allocation
+        //                   of devTokens, sgtTokens and secondary
+        //  percentageToContributors -> Which percentage should go to the
+        //                               contribution participants
+        //                               (x per 10**18 format)
+        //  percent(100) -> 100% in (x per 10**18 format)
+        //
+        //                       percentageToContributors
+        //  SNT.totalSupply() = -------------------------- * totalTokens  =>
+        //                             percent(100)
+        //
+        //
+        //                            percent(100)
+        //  =>  totalTokens = ---------------------------- * SNT.totalSupply()
+        //                      percentageToContributors
+        //
         uint totalTokens = safeDiv(
                                 safeMul(SNT.totalSupply(), percent(100)),
                                 percentageToContributors);
@@ -292,18 +339,34 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
         // Generate tokens for SGT Holders.
 
+        //
+        //                         percentageToSecondary
+        //  secondContribTokens = ----------------------- * totalTokens
+        //                            percentage(100)
+        //
         if (!SNT.generateTokens(
             destTokensSecondarySale,
             safeDiv(
                 safeMul(totalTokens, percentageToSecondary),
                 percent(100)))) throw;
 
+        //
+        //                  percentageToSgt
+        //  sgtTokens = ----------------------- * totalTokens
+        //                   percentage(100)
+        //
         if (!SNT.generateTokens(
             destTokensSgt,
             safeDiv(
                 safeMul(totalTokens, percentageToSgt),
                 percent(100)))) throw;
 
+
+        //
+        //                   percentageToDevs
+        //  devTokens = ----------------------- * totalTokens
+        //                   percentage(100)
+        //
         if (!SNT.generateTokens(
             destTokensDevs,
             safeDiv(
