@@ -170,6 +170,9 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         proxyPayment(msg.sender);
     }
 
+//////////
+// MiniMe Controller functions
+//////////
     /// @notice This method will generally be called by the SNT token contract to
     ///  adquire SNTs.  Or directly from third parties that want po adquire SNTs in
     ///  behalf of a token holder.
@@ -181,6 +184,14 @@ contract StatusContribution is Owned, SafeMath, TokenController {
             buyNormal(_th);
         }
         return true;
+    }
+
+    function onTransfer(address , address , uint ) returns(bool) {
+        return false;
+    }
+
+    function onApprove(address , address , uint ) returns(bool) {
+        return false;
     }
 
     function buyNormal(address _th) internal {
@@ -248,11 +259,10 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     // Right now, Solidity does not support decimal numbers. (This will change very soon)
     //  So in this contract we use a representation of a percentage that consist in
     //  expressing the percentage in "x per 10**18"
-    // That is 1 Ether == 100%
     // This format has a precission of 16 digits for a percent.
     // Examples:
     //  3%   =   3*(10**16)
-    //  100% = 100*(10**16) = 10**18 = 1 Ether
+    //  100% = 100*(10**16) = 10**18
     //
     // To get a percentage of a value we do it by first multiplying it by the percentage in  (x per 10^18)
     //  and then divide it by 10**8
@@ -306,7 +316,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
 
         //
-        //  % To Contributors = 41% - (10% - % to SGT holders)
+        //  % To Contributors = 41% + (10% - % to SGT holders)
         //
         uint percentageToContributors = safeAdd(
                                             percent(41),
@@ -381,19 +391,6 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     function percent(uint p) internal returns(uint) {
         return safeMul(p, 10**16);
-    }
-
-
-//////////
-// MiniMe Controller functions
-//////////
-
-    function onTransfer(address , address , uint ) returns(bool) {
-        return false;
-    }
-
-    function onApprove(address , address , uint ) returns(bool) {
-        return false;
     }
 
 
