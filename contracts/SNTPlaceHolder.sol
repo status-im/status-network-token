@@ -81,7 +81,7 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
     if (activationTime == 0) {
       uint f = contribution.finalized();
       if (f>0) {
-        activationTime = safeAdd(f, 2 weeks);
+        activationTime = safeAdd(f, 1 weeks);
       } else {
         return false;
       }

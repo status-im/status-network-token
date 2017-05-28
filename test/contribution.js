@@ -254,7 +254,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(totalSupply.mul(0.05).toNumber(), balance.toNumber());
     });
 
-    it("Should not allow transfers in the 2 weeks period", async () => {
+    it("Should not allow transfers in the 1 week period", async () => {
         try {
             await snt.transfer(accounts[ 4 ], web3.toWei(1000));
         } catch (error) {
@@ -262,8 +262,8 @@ contract("StatusContribution", (accounts) => {
         }
     });
 
-    it("Should allow transfers after 2 weeks period", async () => {
-        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 14) + 1000;
+    it("Should allow transfers after 1 week period", async () => {
+        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await sntPlaceHolder.setMockedTime(t);
 
         await snt.transfer(accounts[ 5 ], web3.toWei(1000));
@@ -274,7 +274,7 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Devs should not allow transfers before 6 months", async () => {
-        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 14) + 1000;
+        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await devTokensHolder.setMockedTime(t);
 
         try {

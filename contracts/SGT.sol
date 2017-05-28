@@ -4,8 +4,6 @@ import "./MiniMeToken.sol";
 
 /*
     Copyright 2017, Jarrad Hope (Status Research & Development GmbH)
-
-    // TODO Issuance & Deploy
 */
 
 contract SGT is MiniMeToken {
