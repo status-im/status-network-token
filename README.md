@@ -38,25 +38,23 @@ SNT is slightly diverges with the ERC20 standard, on invalid token transactions 
 
 ## Contracts
 
-Token:
-
 - [SNT.sol](/contracts/SNT.sol): Main contract for the token. Derives MiniMeIrrevocableVestedToken.
-- [MiniMeIrrevocableVestedToken.sol](/contracts/MiniMeIrrevocableVestedToken.sol): Adds vesting to MiniMeToken. Derives MiniMeToken.
+- [SGT.sol](/contracts/SGT.sol): Token contract for early adopters.
 - [MiniMeToken.sol](/contracts/MiniMeToken.sol): Token implementation.
-
-Offering:
-
-- [StatusContributionPeriod.sol](/contracts/StatusContributionPeriod.sol): Implementation of the initial distribution of SNT.
-- [SNPlaceholder.sol](/contracts/SNPlaceholder.sol): Placeholder for the Status Network before its deployment.
-- [OfferingWallet.sol](/contracts/OfferingWallet.sol): Simple contract that will hold all funds until final block of the offering.
+- [StatusContribution.sol](/contracts/StatusContribution.sol): Implementation of the initial distribution of SNT.
+- [SynamicCeiling.sol](/contracts/SynamicCeiling.sol): Auxiliary contract to manage the dynamic ceiling during the contribution period.
+- [SNTPlaceholder.sol](/contracts/SNPlaceholder.sol): Placeholder for the Status Network before its deployment.
+- [ContributionWallet.sol](/contracts/ContributionWallet.sol): Simple contract that will hold all funds until final block of the contribution period.
 - [MultiSigWallet.sol](/contracts/MultiSigWallet.sol): Gnosis multisig used for Status and community multisigs.
+- [DevTokensHolder.sol](/contracts/DevTokensHolder.sol): Contract where tokens belonging to developers will be holed. This contract will release this tokens in a vested timing.
+- [SGTExchanger.sol](/contracts/MultiSigWallet.sol): Contract resposable for crediting SNTs to the SGT holders after the contribution period ends.
 
-## Reviewers and audits
+## Reviewers and audits.
 
 Code for the SNT token and the offering has been reviewed by:
 
-- Jorge Izquierdo, Aragon Network author.
-- Jordi Baylina, MiniMe author. [Pending audit results](/)
-- Piper Merriam, MiniMe author. [Pending audit results](/)
+- Jordi Baylina, Author.
+- XXXXXX. [Pending audit results](/)
+- YYYYYY. [Pending audit results](/)
 
 A bug bounty for the SNT token and offering started on [pending date]. More details.

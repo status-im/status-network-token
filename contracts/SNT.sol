@@ -1,17 +1,18 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.11;
 
-import "./MiniMeIrrevocableVestedToken.sol";
+import "./MiniMeToken.sol";
 
 /*
-    Copyright 2017, Jorge Izquierdo (Aragon Foundation)
+    Copyright 2017, Jarrad Hope (Status Research & Development GmbH)
 
+    // TODO Issuance & Deploy
 */
 
-contract SNT is MiniMeIrrevocableVestedToken {
+contract SNT is MiniMeToken {
   // @dev SNT constructor just parametrizes the MiniMeIrrevocableVestedToken constructor
   function SNT(
     address _tokenFactory
-  ) MiniMeIrrevocableVestedToken(
+  ) MiniMeToken(
     _tokenFactory,
     0x0,                    // no parent token
     0,                      // no snapshot block number from parent

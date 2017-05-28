@@ -33,14 +33,17 @@
         // Consisten return
         "consistent-return": 0,
 
-        // Allow concatenations
-        "prefer-template": 0,
-
         "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*.test.js", "**/*.spec.js", "**/compile.js", "**/test/*.js"]}],
 
         // react
         "react/prefer-es6-class": 0,
         "react/jsx-filename-extension": 0,
         "react/jsx-indent": [ 2, 4 ]
+    },
+    "globals": {
+        "artifacts": true,
+        "web3": true,
+        "contract": true,
+        "assert": true
     }
 }
