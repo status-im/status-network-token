@@ -13,7 +13,7 @@ Also built in the token is a vesting schedule for limiting SNT transferability o
 
 ## Contracts
 
-- [SNT.sol](/contracts/SNT.sol): Main contract for the token. Derives MiniMeIrrevocableVestedToken.
+- [SNT.sol](/contracts/SNT.sol): Main contract for the token.
 - [SGT.sol](/contracts/SGT.sol): Token contract for early adopters.
 - [MiniMeToken.sol](/contracts/MiniMeToken.sol): Token implementation.
 - [StatusContribution.sol](/contracts/StatusContribution.sol): Implementation of the initial distribution of SNT.
