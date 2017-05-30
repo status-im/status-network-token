@@ -1,6 +1,6 @@
 # Status Network Token
 
-- [Whitepaper](/TODO)
+- [Whitepaper](https://status.im/whitepaper.pdf)
 - [Contribution Period Specification](/SPEC.md)
 - [The Importance of Distribution](https://blog.status.im/TODO) blogpost.
 - [Encoding the Status ‘Genesis Block’](https://blog.status.im/encoding-the-status-genesis-block-d73d287a750) blogpost.
