@@ -22,7 +22,7 @@ Also built in the token is a vesting schedule for limiting SNT transferability o
 - [ContributionWallet.sol](/contracts/ContributionWallet.sol): Simple contract that will hold all funds until final block of the contribution period.
 - [MultiSigWallet.sol](/contracts/MultiSigWallet.sol): Gnosis multisig used for Status and community multisigs.
 - [DevTokensHolder.sol](/contracts/DevTokensHolder.sol): Contract where tokens belonging to developers will be held. This contract will release this tokens in a vested timing.
-- [SGTExchanger.sol](/contracts/MultiSigWallet.sol): Contract resposable for crediting SNTs to the SGT holders after the contribution period ends.
+- [SGTExchanger.sol](/contracts/MultiSigWallet.sol): Contract responsible for crediting SNTs to the SGT holders after the contribution period ends.
 
 ## Reviewers and audits.
 
