@@ -14,7 +14,7 @@ Also built in the token is a vesting schedule for limiting SNT transferability o
 ## Contracts
 
 - [SNT.sol](/contracts/SNT.sol): Main contract for the token.
-- [SGT.sol](/contracts/SGT.sol): Token contract for early adopters.
+- [SGT.sol](/contracts/SGT.sol): Token contract for early adopters. Deployed to [0xd248B0D48E44aaF9c49aea0312be7E13a6dc1468](https://etherscan.io/address/0xd248B0D48E44aaF9c49aea0312be7E13a6dc1468#readContract)
 - [MiniMeToken.sol](/contracts/MiniMeToken.sol): Token implementation.
 - [StatusContribution.sol](/contracts/StatusContribution.sol): Implementation of the initial distribution of SNT.
 - [DynamicCeiling.sol](/contracts/DynamicCeiling.sol): Auxiliary contract to manage the dynamic ceiling during the contribution period.
@@ -29,7 +29,7 @@ Also built in the token is a vesting schedule for limiting SNT transferability o
 Code for the SNT token and the offering has been reviewed by:
 
 - Jordi Baylina, Author.
-- XXXXXX. [Pending audit results](/)
+- Smart Contract Solutions (OpenZeppelin). [Pending audit results](/)
 - YYYYYY. [Pending audit results](/)
 
 A bug bounty for the SNT token and offering started on [pending date]. More details.
