@@ -198,7 +198,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         uint toFund;
         uint cap = dynamicCeiling.cap(getBlockNumber());
 
-        cap = safeDiv(safeAdd(cap, totalNormalCollected), 2);
+        cap = safeAdd(totalNormalCollected,
+                      safeDiv(safeSub(cap, totalNormalCollected), 30));
 
         if (cap>failSafe) cap = failSafe;
 
