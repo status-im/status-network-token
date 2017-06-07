@@ -30,10 +30,10 @@ contract("StatusContribution", (accounts) => {
     let sntPlaceHolder;
 
     const points = [ [ 1000000, web3.toWei(3) ],
-                     [ 1001000, web3.toWei(13) ],
-                     [ 1002000, web3.toWei(15) ] ];
+                     [ 1010000, web3.toWei(13) ],
+                     [ 1020000, web3.toWei(15) ] ];
     const startBlock = 1000000;
-    const stopBlock = 1003000;
+    const stopBlock = 1030000;
 
     it("Should deploy Contribution contracts", async () => {
         multisigStatus = await MultisigWallet.new([ accounts[ 0 ] ], 1);
@@ -42,7 +42,8 @@ contract("StatusContribution", (accounts) => {
         multisigDevs = await MultisigWallet.new([ accounts[ 3 ] ], 1);
         miniMeFactory = await MiniMeTokenFactory.new();
         sgt = await SGT.new(miniMeFactory.address);
-        await sgt.generateTokens(accounts[ 4 ], 5000);
+        await sgt.generateTokens(accounts[ 4 ], 2500);
+        await sgt.generateTokens(accounts[ 0 ], 2500);
 
         snt = await SNT.new(miniMeFactory.address);
         statusContribution = await StatusContributionMock.new();
@@ -120,14 +121,30 @@ contract("StatusContribution", (accounts) => {
 
         await statusContribution.setMockedBlockNumber(1000000);
 
-        await snt.sendTransaction({ value: web3.toWei(1), gas: 300000 });
+        await snt.sendTransaction({ value: web3.toWei(1), gas: 300000, from: accounts[ 0 ] });
 
         const balance = await snt.balanceOf(accounts[ 0 ]);
 
         assert.equal(web3.fromWei(balance).toNumber(), 10000);
     });
 
+    it("Should not allow transfers of no SGT holders in the SGT preference period", async () => {
+        try {
+            await snt.transfer(accounts[ 1 ], web3.toWei(1000));
+        } catch (error) {
+            assertFail(error);
+        }
+    });
+    it("Should not allow repeated transfers of SGT holders in the SGT preference period", async () => {
+        try {
+            await snt.transfer(accounts[ 0 ], web3.toWei(1000));
+        } catch (error) {
+            assertFail(error);
+        }
+    });
+
     it("Should return the remaining in the last transaction ", async () => {
+        await statusContribution.setMockedBlockNumber(1005000);
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
         await snt.sendTransaction({ value: web3.toWei(5), gas: 300000 });
         const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
@@ -150,7 +167,7 @@ contract("StatusContribution", (accounts) => {
                 false,
                 web3.sha3("pwd1"));
 
-        await statusContribution.setMockedBlockNumber(1000500);
+        await statusContribution.setMockedBlockNumber(1005000);
 
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
         await snt.sendTransaction({ value: web3.toWei(10), gas: 300000 });
@@ -174,7 +191,7 @@ contract("StatusContribution", (accounts) => {
                 true,
                 web3.sha3("pwd2"));
 
-        await statusContribution.setMockedBlockNumber(1002500);
+        await statusContribution.setMockedBlockNumber(1025000);
 
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
         await statusContribution.proxyPayment(
@@ -251,7 +268,7 @@ contract("StatusContribution", (accounts) => {
         const balance = await snt.balanceOf(accounts[ 4 ]);
         const totalSupply = await snt.totalSupply();
 
-        assert.equal(totalSupply.mul(0.05).toNumber(), balance.toNumber());
+        assert.equal(totalSupply.mul(0.025).toNumber(), balance.toNumber());
     });
 
     it("Should not allow transfers in the 1 week period", async () => {
