@@ -35,6 +35,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     uint constant public failSafe = 300000 ether;
     uint constant public price = 10**18 / 10000;
+    uint constant public SGTPreferenceBlocks = 2000;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
@@ -53,6 +54,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     mapping (address => uint) public guaranteedBuyersLimit;
     mapping (address => uint) public guaranteedBuyersBought;
+    mapping (address => bool) public usedAddress;
 
     uint public totalGuaranteedCollected;
     uint public totalNormalCollected;
@@ -195,6 +197,12 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     }
 
     function buyNormal(address _th) internal {
+
+        if (getBlockNumber() < startBlock + SGTPreferenceBlocks) {
+           if (SGT.balanceOf(_th) == 0) throw;
+           if (usedAddress[_th]) throw;
+           usedAddress[_th] = true;
+        }
         uint toFund;
         uint cap = dynamicCeiling.cap(getBlockNumber());
 
