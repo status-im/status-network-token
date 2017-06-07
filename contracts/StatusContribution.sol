@@ -35,7 +35,6 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     uint constant public failSafe = 300000 ether;
     uint constant public price = 10**18 / 10000;
-    uint constant public maxGasPrice = 50000000000;  // 50gwei gas price
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
@@ -196,8 +195,6 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     }
 
     function buyNormal(address _th) internal {
-
-        if (tx.gasprice > maxGasPrice) throw;
         uint toFund;
         uint cap = dynamicCeiling.cap(getBlockNumber());
 
