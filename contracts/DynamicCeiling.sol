@@ -34,7 +34,6 @@ contract DynamicCeiling is SafeMath {
         bytes32 hash;
         uint block;
         uint limit;
-        bool revealed;
     }
 
     address public creator;
@@ -77,7 +76,6 @@ contract DynamicCeiling is SafeMath {
         }
         points[revealedPoints].block = _block;
         points[revealedPoints].limit = _limit;
-        points[revealedPoints].revealed = true;
         revealedPoints = safeAdd(revealedPoints, 1);
         if (_last) allRevealed = true;
     }
