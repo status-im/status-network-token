@@ -138,7 +138,7 @@ contract("StatusContribution", (accounts) => {
 
     it("Should return the remaining in the last transaction ", async () => {
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
-        await snt.sendTransaction({ value: web3.toWei(5), gas: 300000, gasPrice: "20000000000" });
+        await snt.sendTransaction({ value: web3.toWei(5), gas: 300000 });
         const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
 
         const b = Math.min(5, ((lim - cur) / divs));
@@ -165,7 +165,7 @@ contract("StatusContribution", (accounts) => {
         await statusContribution.setMockedBlockNumber(1000500);
 
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
-        await snt.sendTransaction({ value: web3.toWei(10), gas: 300000, gasPrice: "20000000000" });
+        await snt.sendTransaction({ value: web3.toWei(10), gas: 300000 });
         const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
 
         lim = 8;
@@ -195,7 +195,7 @@ contract("StatusContribution", (accounts) => {
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
         await statusContribution.proxyPayment(
             accounts[ 1 ],
-            { value: web3.toWei(15), gas: 300000, from: accounts[ 0 ], gasPrice: "20000000000" });
+            { value: web3.toWei(15), gas: 300000, from: accounts[ 0 ] });
 
         lim = 15;
         const b = Math.min(5, ((lim - cur) / divs));
@@ -240,8 +240,8 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Guaranteed address should still be able to buy", async () => {
-        await snt.sendTransaction({ value: web3.toWei(3), gas: 300000, from: accounts[ 7 ], gasPrice: "20000000000" });
-        await snt.sendTransaction({ value: web3.toWei(3), gas: 300000, from: accounts[ 8 ], gasPrice: "20000000000" });
+        await snt.sendTransaction({ value: web3.toWei(3), gas: 300000, from: accounts[ 7 ] });
+        await snt.sendTransaction({ value: web3.toWei(3), gas: 300000, from: accounts[ 8 ] });
 
         const balance7 = await snt.balanceOf(accounts[ 7 ]);
         const balance8 = await snt.balanceOf(accounts[ 8 ]);
