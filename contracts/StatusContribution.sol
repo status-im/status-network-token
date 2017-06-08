@@ -120,8 +120,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         if (SNT.totalSupply() != 0) throw;
         if (SNT.controller() != address(this)) throw;
 
+        if (_startBlock < getBlockNumber()) throw;
         if (_stopBlock < _startBlock) throw;
-
         startBlock = _startBlock;
         stopBlock = _stopBlock;
 
