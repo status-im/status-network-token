@@ -206,6 +206,9 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         uint toFund;
         uint cap = dynamicCeiling.cap(getBlockNumber());
 
+        cap = safeAdd(totalNormalCollected,
+                      safeDiv(safeSub(cap, totalNormalCollected), 30));
+
         if (cap>failSafe) cap = failSafe;
 
         if (safeAdd(totalNormalCollected, msg.value) > cap) {
@@ -300,7 +303,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         if (getBlockNumber () <= stopBlock) {
             var (,,lastLimit,) = dynamicCeiling.points( safeSub(dynamicCeiling.revealedPoints(), 1));
 
-            if (totalCollected()< lastLimit) throw;
+            if (totalCollected()< lastLimit - 1 ether) throw;
         }
 
         finalized = now;

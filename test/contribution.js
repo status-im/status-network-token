@@ -28,6 +28,9 @@ contract("StatusContribution", (accounts) => {
     let sgtExchanger;
     let dynamicCeiling;
     let sntPlaceHolder;
+    let lim;
+    let cur;
+    const divs = 30;
 
     const points = [ [ 1000000, web3.toWei(3) ],
                      [ 1010000, web3.toWei(13) ],
@@ -121,11 +124,17 @@ contract("StatusContribution", (accounts) => {
 
         await statusContribution.setMockedBlockNumber(1000000);
 
-        await snt.sendTransaction({ value: web3.toWei(1), gas: 300000, from: accounts[ 0 ] });
+        lim = 3;
+        cur = 0;
+
+        await snt.sendTransaction({ value: web3.toWei(1), gas: 300000, gasPrice: "20000000000", from: accounts[ 0 ] });
+
+        const b = Math.min(1, ((lim - cur) / divs));
+        cur += b;
 
         const balance = await snt.balanceOf(accounts[ 0 ]);
 
-        assert.equal(web3.fromWei(balance).toNumber(), 10000);
+        assert.equal(web3.fromWei(balance).toNumber(), b * 10000);
     });
 
     it("Should not allow transfers of no SGT holders in the SGT preference period", async () => {
@@ -149,15 +158,18 @@ contract("StatusContribution", (accounts) => {
         await snt.sendTransaction({ value: web3.toWei(5), gas: 300000 });
         const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
 
+        const b = Math.min(5, ((lim - cur) / divs));
+        cur += b;
+
         const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
-        assert.isAbove(spended, 2);
-        assert.isBelow(spended, 2.1);
+        assert.isAbove(spended, b);
+        assert.isBelow(spended, b + 0.02);
 
         const totalCollected = await statusContribution.totalCollected();
-        assert.equal(web3.fromWei(totalCollected), 3);
+        assert.equal(web3.fromWei(totalCollected), cur);
 
         const balanceContributionWallet = await web3.eth.getBalance(contributionWallet.address);
-        assert.equal(web3.fromWei(balanceContributionWallet), 3);
+        assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
     it("Should reveal second point and check that every that the limit is right", async () => {
@@ -173,15 +185,19 @@ contract("StatusContribution", (accounts) => {
         await snt.sendTransaction({ value: web3.toWei(10), gas: 300000 });
         const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
 
+        lim = 8;
+        const b = Math.min(5, ((lim - cur) / divs));
+        cur += b;
+
         const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
-        assert.isAbove(spended, 5);
-        assert.isBelow(spended, 5.1);
+        assert.isAbove(spended, b);
+        assert.isBelow(spended, b + 0.02);
 
         const totalCollected = await statusContribution.totalCollected();
-        assert.equal(web3.fromWei(totalCollected), 8);
+        assert.equal(web3.fromWei(totalCollected), cur);
 
         const balanceContributionWallet = await web3.eth.getBalance(contributionWallet.address);
-        assert.equal(web3.fromWei(balanceContributionWallet), 8);
+        assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
     it("Should reveal last point, fill the collaboration", async () => {
@@ -198,21 +214,38 @@ contract("StatusContribution", (accounts) => {
             accounts[ 1 ],
             { value: web3.toWei(15), gas: 300000, from: accounts[ 0 ] });
 
+        lim = 15;
+        const b = Math.min(5, ((lim - cur) / divs));
+        cur += b;
+
         const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
 
         const balance1 = await snt.balanceOf(accounts[ 1 ]);
 
-        assert.equal(web3.fromWei(balance1).toNumber(), 70000);
+        assert.equal(web3.fromWei(balance1).toNumber(), b * 10000);
 
         const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
-        assert.isAbove(spended, 7);
-        assert.isBelow(spended, 7.1);
+        assert.isAbove(spended, b);
+        assert.isBelow(spended, b + 0.02);
 
         const totalCollected = await statusContribution.totalCollected();
-        assert.equal(web3.fromWei(totalCollected), 15);
+        assert.equal(web3.fromWei(totalCollected), cur);
 
         const balanceContributionWallet = await web3.eth.getBalance(contributionWallet.address);
-        assert.equal(web3.fromWei(balanceContributionWallet), 15);
+        assert.equal(web3.fromWei(balanceContributionWallet), cur);
+
+        while (cur < 14) {
+            await statusContribution.proxyPayment(
+                accounts[ 1 ],
+                { value: web3.toWei(15), gas: 300000, from: accounts[ 0 ], gasPrice: "20000000000" });
+
+            const b2 = Math.min(5, ((lim - cur) / divs));
+            cur += b2;
+
+            const balanceContributionWallet2 =
+                await web3.eth.getBalance(contributionWallet.address);
+            assert.isBelow(Math.abs(web3.fromWei(balanceContributionWallet2).toNumber() - cur), 0.0001);
+        }
     });
 
     it("Should not allow transfers in contribution period", async () => {
@@ -259,7 +292,7 @@ contract("StatusContribution", (accounts) => {
 
         const balance = await web3.eth.getBalance(multisigStatus.address);
 
-        assert.equal(web3.fromWei(balance).toNumber(), 18);
+        assert.isBelow(Math.abs(web3.fromWei(balance).toNumber() - (cur+3)), 0.00001);
     });
 
     it("Should be able to exchange sgt by snt", async () => {
