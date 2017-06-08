@@ -48,7 +48,6 @@ contract("DynamicCeiling", () => {
         await dynamicCeiling.revealPoint(
                 points[ 0 ][ 0 ],
                 points[ 0 ][ 1 ],
-                false,
                 web3.sha3("pwd0"));
 
         assert.equal(await dynamicCeiling.revealedPoints(), 1);
@@ -73,7 +72,6 @@ contract("DynamicCeiling", () => {
         await dynamicCeiling.revealPoint(
                 points[ 1 ][ 0 ],
                 points[ 1 ][ 1 ],
-                false,
                 web3.sha3("pwd1"));
 
         assert.equal(await dynamicCeiling.revealedPoints(), 2);
@@ -98,7 +96,6 @@ contract("DynamicCeiling", () => {
         await dynamicCeiling.revealPoint(
                 points[ 2 ][ 0 ],
                 points[ 2 ][ 1 ],
-                true,
                 web3.sha3("pwd2"));
 
         assert.equal(await dynamicCeiling.revealedPoints(), 3);
