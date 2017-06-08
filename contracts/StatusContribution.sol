@@ -198,6 +198,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     function buyNormal(address _th) internal {
 
+        if (tx.gasprice > maxGasPrice) throw;
+
         if (getBlockNumber() < startBlock + SGTPreferenceBlocks) {
            if (SGT.balanceOf(_th) == 0) throw;
            if (usedAddress[_th]) throw;
