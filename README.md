@@ -1,4 +1,5 @@
 # Status Network Token
+[![Build Status](https://travis-ci.org/aragon/aragon-network-token.svg?branch=master)](https://travis-ci.org/aragon/aragon-network-token)
 
 - [Whitepaper](https://status.im/whitepaper.pdf)
 - [Contribution Period Specification](/SPEC.md)
