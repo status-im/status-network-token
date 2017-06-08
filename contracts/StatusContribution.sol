@@ -36,6 +36,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     uint constant public failSafe = 300000 ether;
     uint constant public price = 10**18 / 10000;
     uint constant public SGTPreferenceBlocks = 2000;
+    uint constant public maxGasPrice = 50000000000;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;

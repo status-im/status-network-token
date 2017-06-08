@@ -155,7 +155,7 @@ contract("StatusContribution", (accounts) => {
     it("Should return the remaining in the last transaction ", async () => {
         await statusContribution.setMockedBlockNumber(1005000);
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
-        await snt.sendTransaction({ value: web3.toWei(5), gas: 300000 });
+        await snt.sendTransaction({ value: web3.toWei(5), gas: 300000, gasPrice: "20000000000" });
         const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
 
         const b = Math.min(5, ((lim - cur) / divs));
@@ -182,7 +182,7 @@ contract("StatusContribution", (accounts) => {
         await statusContribution.setMockedBlockNumber(1005000);
 
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
-        await snt.sendTransaction({ value: web3.toWei(10), gas: 300000 });
+        await snt.sendTransaction({ value: web3.toWei(10), gas: 300000, gasPrice: "20000000000" });
         const finalBalance = await web3.eth.getBalance(accounts[ 0 ]);
 
         lim = 8;
@@ -212,7 +212,7 @@ contract("StatusContribution", (accounts) => {
         const initailBalance = await web3.eth.getBalance(accounts[ 0 ]);
         await statusContribution.proxyPayment(
             accounts[ 1 ],
-            { value: web3.toWei(15), gas: 300000, from: accounts[ 0 ] });
+            { value: web3.toWei(15), gas: 300000, from: accounts[ 0 ], gasPrice: "20000000000" });
 
         lim = 15;
         const b = Math.min(5, ((lim - cur) / divs));
