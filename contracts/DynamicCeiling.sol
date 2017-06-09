@@ -75,8 +75,7 @@ contract DynamicCeiling is SafeMath {
             if (_block <= points[safeSub(revealedPoints, 1)].block) throw;
             if (_limit < points[safeSub(revealedPoints, 1)].limit) throw;
         }
-        points[revealedPoints].block = _block;
-        points[revealedPoints].limit = _limit;
+
         points[revealedPoints].revealed = true;
         revealedPoints = safeAdd(revealedPoints, 1);
         if (_last) allRevealed = true;
