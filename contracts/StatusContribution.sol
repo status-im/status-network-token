@@ -34,7 +34,7 @@ import "./SafeMath.sol";
 contract StatusContribution is Owned, SafeMath, TokenController {
 
     uint constant public failSafe = 300000 ether;
-    uint constant public price = 10**18 / 10000;
+    uint constant public exchangeRate = 10000;
     uint constant public SGTPreferenceBlocks = 2000;
     uint constant public maxGasPrice = 50000000000;
 
@@ -120,6 +120,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
         if (SNT.totalSupply() != 0) throw;
         if (SNT.controller() != address(this)) throw;
+        if (SNT.decimals() != 18) throw;  // Same amount of decimals as ETH
 
         if (_stopBlock < _startBlock) throw;
 
@@ -245,9 +246,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         if (_toFund == 0) throw; // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
-        uint tokensGenerated = safeDiv(
-                                    safeMul(_toFund, 10** uint(SNT.decimals()) ),
-                                    price);
+        uint tokensGenerated = safeMul(_toFund, exchangeRate);
         uint toReturn = safeSub(msg.value, _toFund);
 
         if (!SNT.generateTokens(_th, tokensGenerated))
@@ -460,4 +459,3 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     event GuaranteedAddress(address indexed th, uint limiy);
     event Finalized();
 }
-
