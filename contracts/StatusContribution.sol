@@ -302,7 +302,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
 
         // Allow premature finalization if final limit is reached
-        if (getBlockNumber () <= stopBlock) {
+        if (getBlockNumber () < stopBlock) {
             var (,,lastLimit,) = dynamicCeiling.points( safeSub(dynamicCeiling.revealedPoints(), 1));
 
             if (totalCollected()< lastLimit - 1 ether) throw;
