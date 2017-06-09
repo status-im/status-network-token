@@ -308,8 +308,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         finalized = now;
 
         uint percentageToSgt;
-        if ( SGT.totalSupply() > maxSGTSupply) {
-            percentageToSgt =  percent(10);  // 10%
+        if (SGT.totalSupply() >= maxSGTSupply) {
+            percentageToSgt = percent(10);  // 10%
         } else {
 
             //
