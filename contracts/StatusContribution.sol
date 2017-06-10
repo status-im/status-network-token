@@ -301,17 +301,14 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     ///  controller.
     function finalize() initialized {
         if (getBlockNumber() < startBlock) throw;
-
-        if ((msg.sender != owner)&&(getBlockNumber() < stopBlock )) throw;
-
-        if (finalized>0) throw;
+        if (msg.sender != owner && getBlockNumber() < stopBlock) throw;
+        if (finalized > 0) throw;
 
         // Do not allow terminate until all revealed.
         if (!dynamicCeiling.allRevealed()) throw;
 
-
         // Allow premature finalization if final limit is reached
-        if (getBlockNumber () <= stopBlock) {
+        if (getBlockNumber () < stopBlock) {
             var (,,lastLimit,) = dynamicCeiling.points( safeSub(dynamicCeiling.revealedPoints(), 1));
 
             if (totalCollected()< lastLimit - 1 ether) throw;
@@ -320,8 +317,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         finalized = now;
 
         uint percentageToSgt;
-        if ( SGT.totalSupply() > maxSGTSupply) {
-            percentageToSgt =  percent(10);  // 10%
+        if (SGT.totalSupply() >= maxSGTSupply) {
+            percentageToSgt = percent(10);  // 10%
         } else {
 
             //
