@@ -10,5 +10,5 @@ cache:
     yarn: true
 
 script:
-  - 'testrpc -l 100000000 -i 15 > /dev/null &'
+  - 'testrpc > /dev/null &'
   - 'truffle test'
