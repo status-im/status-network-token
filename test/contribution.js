@@ -36,7 +36,9 @@ contract("StatusContribution", (accounts) => {
                      [ 1010000, web3.toWei(13) ],
                      [ 1020000, web3.toWei(15) ] ];
     const startBlock = 1000000;
+    const sgtPreferenceBlocks = 2000;
     const stopBlock = 1030000;
+    const sgtLimit = web3.toWei(0.1);
 
     it("Should deploy Contribution contracts", async () => {
         multisigStatus = await MultisigWallet.new([ accounts[ 0 ] ], 1);
@@ -76,6 +78,8 @@ contract("StatusContribution", (accounts) => {
           snt.address,
           startBlock,
           stopBlock,
+          sgtPreferenceBlocks,
+          sgtLimit,
           dynamicCeiling.address,
 
           contributionWallet.address,
@@ -139,14 +143,17 @@ contract("StatusContribution", (accounts) => {
 
     it("Should not allow transfers of no SGT holders in the SGT preference period", async () => {
         try {
-            await snt.transfer(accounts[ 1 ], web3.toWei(1000));
+            await snt.sendTransaction({ value: web3.toWei(1), gas: 300000, gasPrice: "20000000000", from: accounts[ 1 ] });
+            throw new Error("Not throwed");
         } catch (error) {
             assertFail(error);
         }
     });
-    it("Should not allow repeated transfers of SGT holders in the SGT preference period", async () => {
+
+    it("Should not allow exceed sgtLimit", async () => {
         try {
-            await snt.transfer(accounts[ 0 ], web3.toWei(1000));
+            await snt.sendTransaction({ value: web3.toWei(1), gas: 300000, gasPrice: "20000000000", from: accounts[ 0 ] });
+            throw new Error("Not throwed");
         } catch (error) {
             assertFail(error);
         }

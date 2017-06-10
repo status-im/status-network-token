@@ -35,13 +35,14 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     uint constant public failSafe = 300000 ether;
     uint constant public exchangeRate = 10000;
-    uint constant public SGTPreferenceBlocks = 2000;
     uint constant public maxGasPrice = 50000000000;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
     uint public startBlock;
     uint public stopBlock;
+    uint public sgtPreferenceBlocks;
+    uint public sgtLimit;
 
     address public destEthDevs;
 
@@ -55,7 +56,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     mapping (address => uint) public guaranteedBuyersLimit;
     mapping (address => uint) public guaranteedBuyersBought;
-    mapping (address => bool) public usedAddress;
+    mapping (address => uint) public sgtContributed;
 
     uint public totalGuaranteedCollected;
     uint public totalNormalCollected;
@@ -101,6 +102,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         address _sntAddress,
         uint _startBlock,
         uint _stopBlock,
+        uint _sgtPreferenceBlocks,
+        uint _sgtLimit,
         address _dynamicCeiling,
 
         address _destEthDevs,
@@ -126,6 +129,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
         startBlock = _startBlock;
         stopBlock = _stopBlock;
+        sgtLimit = _sgtLimit;
+        sgtPreferenceBlocks = _sgtPreferenceBlocks;
 
         if (_dynamicCeiling == 0x0 ) throw;
         dynamicCeiling = DynamicCeiling(_dynamicCeiling);
@@ -202,11 +207,6 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
         if (tx.gasprice > maxGasPrice) throw;
 
-        if (getBlockNumber() < startBlock + SGTPreferenceBlocks) {
-           if (SGT.balanceOf(_th) == 0) throw;
-           if (usedAddress[_th]) throw;
-           usedAddress[_th] = true;
-        }
         uint toFund;
         uint cap = dynamicCeiling.cap(getBlockNumber());
 
@@ -220,6 +220,15 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         } else {
             toFund = msg.value;
         }
+
+        if (getBlockNumber() < startBlock + sgtPreferenceBlocks) {
+           if (SGT.balanceOf(_th) == 0) throw;
+           if ( safeAdd(sgtContributed[_th], toFund) > sgtLimit ) {
+               toFund = safeSub(sgtLimit, sgtContributed[_th]);
+           }
+           sgtContributed[_th] = safeAdd(sgtContributed[_th], toFund);
+        }
+
 
         totalNormalCollected = safeAdd(totalNormalCollected, toFund);
         doBuy(_th, toFund, false);
