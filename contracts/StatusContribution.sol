@@ -21,7 +21,7 @@ pragma solidity ^0.4.11;
 /// @author Jordi Baylina
 /// @dev This contract will be the SNT controller during the contribution period.
 ///  This contract will determine the rules during this period.
-///  Final users, will generally not interact directly with this contract. ETH will
+///  Final users will generally not interact directly with this contract. ETH will
 ///  be sent to the SNT token contract. The ETH is sent to this contract and from here,
 ///  ETH is sent to the contribution walled and SNTs are mined according to the defined
 ///  rules.
@@ -96,7 +96,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     /// @param _destTokensSgt Address of the exchanger SGT-SNT where the SNT are sent
     ///  to be distributed to the SGT holders.
     /// @param _maxSGTSupply Quantity of SGT tokens that would represent 10% of status.
-    /// @param _sntController Token controller for the SNT that will be transfered after
+    /// @param _sntController Token controller for the SNT that will be transferred after
     ///  the contribution finalizes.
     function initialize(
         address _sntAddress,
@@ -173,7 +173,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         GuaranteedAddress(_th, _limit);
     }
 
-    /// @notice If any body sends Ether directly to this contract, cosidere he is
+    /// @notice If anybody sends Ether directly to this contract, consider he is
     ///  getting SNTs.
     function () payable {
         proxyPayment(msg.sender);
@@ -183,7 +183,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 // MiniMe Controller functions
 //////////
     /// @notice This method will generally be called by the SNT token contract to
-    ///  adquire SNTs.  Or directly from third parties that want po adquire SNTs in
+    ///  acquire SNTs. Or directly from third parties that want po acquire SNTs in
     ///  behalf of a token holder.
     /// @param _th SNT holder where the SNTs will be minted.
     function proxyPayment(address _th) payable initialized contributionOpen returns (bool) {
@@ -281,7 +281,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     // Right now, Solidity does not support decimal numbers. (This will change very soon)
     //  So in this contract we use a representation of a percentage that consist in
     //  expressing the percentage in "x per 10**18"
-    // This format has a precission of 16 digits for a percent.
+    // This format has a precision of 16 digits for a percent.
     // Examples:
     //  3%   =   3*(10**16)
     //  100% = 100*(10**16) = 10**18
@@ -296,8 +296,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
 
     /// @notice This method will can be called by the owner before the contribution period
-    ///  end or by any body after the `endBlock`. This method finalizes the contribution period
-    ///  by creating the remaining tokens and transferin the controller to the configured
+    ///  end or by anybody after the `endBlock`. This method finalizes the contribution period
+    ///  by creating the remaining tokens and transferring the controller to the configured
     ///  controller.
     function finalize() initialized {
         if (getBlockNumber() < startBlock) throw;
@@ -431,7 +431,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 // Testing specific methods
 //////////
 
-    /// @notice This function is overrided by the test Mocks.
+    /// @notice This function is overridden by the test Mocks.
     function getBlockNumber() internal constant returns (uint) {
         return block.number;
     }
@@ -441,8 +441,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 // Safety Methods
 //////////
 
-    /// @notice This method can be used by the controller to extract mistakelly
-    ///  sended tokens to this contract.
+    /// @notice This method can be used by the controller to extract mistakenly
+    ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
     function claimTokens(address _token) onlyOwner {
