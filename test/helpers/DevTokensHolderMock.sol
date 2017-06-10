@@ -6,18 +6,18 @@ import '../../contracts/DevTokensHolder.sol';
 
 contract DevTokensHolderMock is DevTokensHolder {
 
-  uint mock_time;
+    uint mock_time;
 
-  function DevTokensHolderMock(address _owner, address _contribution, address _snt)
+    function DevTokensHolderMock(address _owner, address _contribution, address _snt)
     DevTokensHolder(_owner, _contribution, _snt) {
         mock_time = now;
-  }
+    }
 
-  function getTime() internal returns (uint) {
-    return mock_time;
-  }
+    function getTime() internal returns (uint) {
+        return mock_time;
+    }
 
-  function setMockedTime(uint _t) {
-    mock_time = _t;
-  }
+    function setMockedTime(uint _t) {
+        mock_time = _t;
+    }
 }
