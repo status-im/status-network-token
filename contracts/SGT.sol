@@ -22,7 +22,7 @@ contract SGT is MiniMeToken {
     ) {}
 
     // data is an array of uints. Each uint represents a transfer.
-    // The 160 LSB is the destination of the addess that wants to be sent
+    // The 160 LSB is the destination of the address that wants to be sent
     // The 96 MSB is the amount of tokens that wants to be sent.
     function multiMint(uint[] data) onlyController {
         for (uint i = 0; i < data.length; i++ ) {

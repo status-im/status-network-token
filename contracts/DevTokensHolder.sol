@@ -19,7 +19,7 @@ pragma solidity ^0.4.11;
 
 /// @title DevTokensHolder Contract
 /// @author Jordi Baylina
-/// @dev This contract will be hold tokens of the developers.
+/// @dev This contract will hold the tokens of the developers.
 ///  Tokens will not be able to be collected until 6 months after the contribution
 ///  period ends. And it will be increasing linearly until 2 years.
 
@@ -51,7 +51,7 @@ contract DevTokensHolder is Owned, SafeMath {
     StatusContribution contribution;
     MiniMeToken snt;
 
-    function DevTokensHolder( address _owner, address _contribution, address _snt) {
+    function DevTokensHolder(address _owner, address _contribution, address _snt) {
         owner = _owner;
         contribution = StatusContribution(_contribution);
         snt = MiniMeToken(_snt);
@@ -99,8 +99,8 @@ contract DevTokensHolder is Owned, SafeMath {
 // Safety Methods
 //////////
 
-    /// @notice This method can be used by the controller to extract mistakelly
-    ///  sended tokens to this contract.
+    /// @notice This method can be used by the controller to extract mistakenly
+    ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
     function claimTokens(address _token) onlyOwner {

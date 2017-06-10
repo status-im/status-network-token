@@ -22,7 +22,7 @@ pragma solidity ^0.4.11;
 /// @dev This contract will be used to distribute SNT between SGT holders.
 ///  SGT token is not transferable, and we just keep an accounting between all tokens
 ///  deposited and the tokens collected.
-///  The controllerShip of SGT should be transfered to this contract before the
+///  The controllerShip of SGT should be transferred to this contract before the
 ///  contribution period starts.
 
 
@@ -55,7 +55,7 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
                         safeMul(total , balance),
                         sgt.totalSupply());
 
-        // And then substract the ammount already collected
+        // And then subtract the amount already collected
         amount = safeSub(amount, collected[msg.sender]);
 
         totalCollected = safeAdd(totalCollected, amount);
@@ -82,8 +82,8 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
 // Safety Method
 //////////
 
-    /// @notice This method can be used by the controller to extract mistakelly
-    ///  sended tokens to this contract.
+    /// @notice This method can be used by the controller to extract mistakenly
+    ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
     function claimTokens(address _token) onlyOwner {

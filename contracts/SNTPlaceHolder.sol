@@ -27,7 +27,7 @@ import "./Owned.sol";
 /// @dev The SNTPlaceholder contract will take control over the SNT after the contribution
 ///  is finalized and before the Status Network is deployed.
 ///  The contract allows for SNT transfers and transferFrom and implements the
-///  logic for transfering control of the token to the network when the offering
+///  logic for transferring control of the token to the network when the offering
 ///  asks it to do so.
 
 contract SNTPlaceHolder is TokenController, SafeMath, Owned {
@@ -40,8 +40,8 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
   /// @param _owner Trusted owner for this contract.
   /// @param _snt SNT token contract address
   /// @param _contribution StatusContribution contract address
-  /// @param _sgtExchanger SGT-SNT Exchange address. (During the first two weeks,
-  ///  only this exchanger will be able to move tokens from)
+  /// @param _sgtExchanger SGT-SNT Exchange address. (During the first week
+  ///  only this exchanger will be able to move tokens)
   function SNTPlaceHolder(address _owner, address _snt, address _contribution, address _sgtExchanger) {
     owner = _owner;
     snt = MiniMeToken(_snt);
@@ -49,7 +49,7 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
     sgtExchanger = _sgtExchanger;
   }
 
-  /// @notice The owner of this contract can cheche the controller of the SNT token
+  /// @notice The owner of this contract can change the controller of the SNT token
   ///  Please, be sure that the owner is a trusted agent or 0x0 address.
   /// @param _newController The address of the new controller
 
@@ -77,7 +77,7 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
   }
 
   function transferable(address _from) internal returns (bool) {
-    // Allow the exchanger to work from the begining
+    // Allow the exchanger to work from the beginning
     if (activationTime == 0) {
       uint f = contribution.finalized();
       if (f>0) {
@@ -102,8 +102,8 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
 // Safety Methods
 //////////
 
-  /// @notice This method can be used by the controller to extract mistakelly
-  ///  sended tokens to this contract.
+  /// @notice This method can be used by the controller to extract mistakenly
+  ///  sent tokens to this contract.
   /// @param _token The address of the token contract that you want to recover
   ///  set to 0 in case you want to extract ether.
   function claimTokens(address _token) onlyOwner {

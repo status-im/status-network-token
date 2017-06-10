@@ -19,8 +19,8 @@ pragma solidity ^0.4.11;
 
 /// @title DynamicCeiling Contract
 /// @author Jordi Baylina
-/// @dev This contract calculates the A cailing from a series of points.
-///  This points are commited firs and revealed later.
+/// @dev This contract calculates the ceiling from a series of points.
+///  These points are committed first and revealed later.
 ///  All the points must be in increasing order and the last point is marked
 ///  as the last one.
 ///  This contract allows to hide and reveal the ceiling at will of the owner.
@@ -48,9 +48,9 @@ contract DynamicCeiling is SafeMath {
 
     /// @notice This should be called by the creator of the contract to commit
     ///  all the points of the curve.
-    /// @param _pointHashes Array of hashes of each point. Each hash is callculated
-    ///  by the `calculateHash` method. More hashes that the actual points of the curve
-    ///  can be commited in order to hide also the number of points of the curve.
+    /// @param _pointHashes Array of hashes of each point. Each hash is calculated
+    ///  by the `calculateHash` method. More hashes than actual points of the curve
+    ///  can be committed in order to hide also the number of points of the curve.
     ///  The remaining hashes can be just random numbers.
     function setHiddenPoints(bytes32[] _pointHashes) {
         if (msg.sender != creator) throw;
@@ -62,10 +62,11 @@ contract DynamicCeiling is SafeMath {
     }
 
 
-    /// @notice Any body can revel the next point of the curve if he knows it.
+    /// @notice Anybody can reveal the next point of the curve if he knows it.
     /// @param _block Block number where this point of the curve is defined.
     ///  (Must be greater than the previous one)
-    /// @param _limit Ceiling cat at that block.
+    /// @param _limit Ceiling cap at that block.
+    ///  (must be greater or equal than the previous one).
     /// @param _last `true` if it's the last point of the curve.
     /// @param _salt Random number used to commit the point
     function revealPoint(uint _block, uint _limit, bool _last, bytes32 _salt) {
@@ -83,10 +84,11 @@ contract DynamicCeiling is SafeMath {
     }
 
     /// @return Return the limit at specific block number
+    ///  (or 0 if no points revealed yet or block before first point)
     function cap(uint _block) constant returns (uint) {
         if (revealedPoints == 0) return 0;
 
-        // Shortcut for the actual value
+        // Shortcut if _block is after most recently revealed point
         if (_block >= points[safeSub(revealedPoints,1)].block)
             return points[safeSub(revealedPoints,1)].limit;
         if (_block < points[0].block) return 0;
@@ -116,7 +118,7 @@ contract DynamicCeiling is SafeMath {
     /// @notice Calculates the hash of a point.
     /// @param _block Block number where this point of the curve is defined.
     ///  (Must be greater than the previous one)
-    /// @param _limit Ceiling cat at that block.
+    /// @param _limit Ceiling cap at that block.
     /// @param _last `true` if it's the last point of the curve.
     /// @param _salt Random number that will be needed to reveal this point.
     /// @return The calculated hash of this point to be used in the
@@ -125,7 +127,9 @@ contract DynamicCeiling is SafeMath {
         return sha3(_block, _limit, _last, _salt);
     }
 
-    /// @return Return the total number of points commited
+    /// @return Return the total number of points committed
+    ///  (can be larger than the number of actual points on the curve to hide
+    ///  the real number of points)
     function nPoints() constant returns(uint) {
         return points.length;
     }
