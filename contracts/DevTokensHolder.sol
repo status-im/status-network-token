@@ -61,7 +61,7 @@ contract DevTokensHolder is Owned, SafeMath {
 
 
     /// @notice The Dev (Owner) will call this method to extract the tokens
-    function collectTokens() onlyOwner {
+    function collectTokens() public onlyOwner {
         uint balance = snt.balanceOf(address(this));
         uint total = safeAdd(collectedTokens, snt.balanceOf(address(this)));
 
@@ -101,7 +101,7 @@ contract DevTokensHolder is Owned, SafeMath {
     ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
-    function claimTokens(address _token) onlyOwner {
+    function claimTokens(address _token) public onlyOwner {
         if (_token == address(snt)) throw;
         if (_token == 0x0) {
             owner.transfer(this.balance);

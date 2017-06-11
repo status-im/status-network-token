@@ -17,7 +17,7 @@ contract SNTPlaceHolderMock is SNTPlaceHolder {
         return mock_time;
     }
 
-    function setMockedTime(uint _t) {
+    function setMockedTime(uint _t) public {
         mock_time = _t;
     }
 }

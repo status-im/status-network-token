@@ -115,7 +115,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         address _destTokensSgt,
         uint _maxSGTSupply,
         address _sntController
-    ) onlyOwner {
+    ) public onlyOwner {
         // Initialize only once
         if (address(SNT) != 0x0) throw;
 
@@ -166,7 +166,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     /// @param _th Guaranteed address
     /// @param _limit Particular limit for the guaranteed address. Set to 0 to remove
     ///   the guaranteed address
-    function setGuaranteedAddress(address _th, uint _limit) initialized onlyOwner {
+    function setGuaranteedAddress(address _th, uint _limit) public initialized onlyOwner {
         if (getBlockNumber() >= startBlock) throw;
         if (_limit > failSafe) throw;
         guaranteedBuyersLimit[_th] = _limit;
@@ -175,7 +175,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     /// @notice If anybody sends Ether directly to this contract, consider he is
     ///  getting SNTs.
-    function () payable {
+    function () public payable {
         proxyPayment(msg.sender);
     }
 
@@ -188,7 +188,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     ///  acquire SNTs. Or directly from third parties that want po acquire SNTs in
     ///  behalf of a token holder.
     /// @param _th SNT holder where the SNTs will be minted.
-    function proxyPayment(address _th) payable initialized contributionOpen returns (bool) {
+    function proxyPayment(address _th) public payable initialized contributionOpen returns (bool) {
         if (guaranteedBuyersLimit[_th] > 0) {
             buyGuaranteed(_th);
         } else {
@@ -197,11 +197,11 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         return true;
     }
 
-    function onTransfer(address, address, uint) returns(bool) {
+    function onTransfer(address, address, uint) public returns(bool) {
         return false;
     }
 
-    function onApprove(address, address, uint) returns(bool) {
+    function onApprove(address, address, uint) public returns(bool) {
         return false;
     }
 
@@ -297,7 +297,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     ///  end or by anybody after the `endBlock`. This method finalizes the contribution period
     ///  by creating the remaining tokens and transferring the controller to the configured
     ///  controller.
-    function finalize() initialized {
+    function finalize() public initialized {
         if (getBlockNumber() < startBlock) throw;
         if (msg.sender != owner && getBlockNumber() < stopBlock) throw;
         if (finalized > 0) throw;
@@ -410,12 +410,12 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     //////////
 
     /// @return Total tokens issued in weis.
-    function tokensIssued() constant returns (uint) {
+    function tokensIssued() public constant returns (uint) {
         return SNT.totalSupply();
     }
 
     /// @return Total Ether collected.
-    function totalCollected()  constant returns (uint) {
+    function totalCollected() public constant returns (uint) {
         return safeAdd(totalNormalCollected, totalGuaranteedCollected);
     }
 
@@ -438,7 +438,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
-    function claimTokens(address _token) onlyOwner {
+    function claimTokens(address _token) public onlyOwner {
         if (SNT.controller() == address(this)) {
             SNT.claimTokens(_token);
         }

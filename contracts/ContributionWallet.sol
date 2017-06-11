@@ -60,7 +60,7 @@ contract ContributionWallet {
         if (contribution.finalized() != 0) return doWithdraw();  // Allow when sale is finalized
     }
 
-    function doWithdraw() internal {
+    function doWithdraw() private {
         if (!multisig.send(this.balance)) throw;
     }
 
