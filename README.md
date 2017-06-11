@@ -21,7 +21,7 @@ Also built in the token is a vesting schedule for limiting SNT transferability o
 - [DynamicCeiling.sol](/contracts/DynamicCeiling.sol): Auxiliary contract to manage the dynamic ceiling during the contribution period.
 - [SNTPlaceHolder.sol](/contracts/SNTPlaceHolder.sol): Placeholder for the Status Network before its deployment.
 - [ContributionWallet.sol](/contracts/ContributionWallet.sol): Simple contract that will hold all funds until final block of the contribution period.
-- [MultisigWallet.sol](/contracts/MultisigWallet.sol): Gnosis multisig used for Status and community multisigs.
+- [MultiSigWallet.sol](/contracts/MultiSigWallet.sol): ConsenSys multisig used for Status and community multisigs.
 - [DevTokensHolder.sol](/contracts/DevTokensHolder.sol): Contract where tokens belonging to developers will be held. This contract will release this tokens in a vested timing.
 - [SGTExchanger.sol](/contracts/SGTExchanger.sol): Contract responsible for crediting SNTs to the SGT holders after the contribution period ends.
 
