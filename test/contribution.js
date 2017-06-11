@@ -39,7 +39,7 @@ contract("StatusContribution", (accounts) => {
     ];
     const startBlock = 1000000;
     const sgtPreferenceBlocks = 2000;
-    const stopBlock = 1030000;
+    const endBlock = 1030000;
     const sgtLimit = web3.toWei(0.1);
 
     it("Should deploy Contribution contracts", async () => {
@@ -56,7 +56,7 @@ contract("StatusContribution", (accounts) => {
         statusContribution = await StatusContributionMock.new();
         contributionWallet = await ContributionWallet.new(
             multisigStatus.address,
-            stopBlock,
+            endBlock,
             statusContribution.address);
         devTokensHolder = await DevTokensHolder.new(
             multisigDevs.address,
@@ -79,7 +79,7 @@ contract("StatusContribution", (accounts) => {
         await statusContribution.initialize(
             snt.address,
             startBlock,
-            stopBlock,
+            endBlock,
             sgtPreferenceBlocks,
             sgtLimit,
             dynamicCeiling.address,
