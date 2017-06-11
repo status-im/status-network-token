@@ -61,7 +61,7 @@ contract ContributionWallet {
     }
 
     function doWithdraw() private {
-        if (!multisig.send(this.balance)) throw;
+        multisig.transfer(this.balance);
     }
 
 }
