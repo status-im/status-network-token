@@ -1,16 +1,23 @@
 pragma solidity ^0.4.11;
 
+
 /// @dev `Owned` is a base level contract that assigns an `owner` that can be
 ///  later changed
 contract Owned {
+
     /// @dev `owner` is the only address that can call a function with this
     /// modifier
-    modifier onlyOwner { if (msg.sender != owner) throw; _; }
+    modifier onlyOwner {
+        if (msg.sender != owner) throw;
+        _;
+    }
 
     address public owner;
 
     /// @notice The Constructor assigns the message sender to be `owner`
-    function Owned() { owner = msg.sender;}
+    function Owned() {
+        owner = msg.sender;
+    }
 
     /// @notice `owner` can step down and assign some other address to this role
     /// @param _newOwner The address of the new owner. 0x0 can be used to create
@@ -18,4 +25,5 @@ contract Owned {
     function changeOwner(address _newOwner) onlyOwner {
         owner = _newOwner;
     }
+
 }

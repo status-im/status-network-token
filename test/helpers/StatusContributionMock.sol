@@ -6,16 +6,15 @@ import '../../contracts/StatusContribution.sol';
 
 contract StatusContributionMock is StatusContribution {
 
-  function StatusContributionMock () StatusContribution() {
-  }
+    function StatusContributionMock() StatusContribution() {}
 
-  function getBlockNumber() internal constant returns (uint) {
-    return mock_blockNumber;
-  }
+    function getBlockNumber() internal constant returns (uint) {
+        return mock_blockNumber;
+    }
 
-  function setMockedBlockNumber(uint _b) {
-    mock_blockNumber = _b;
-  }
+    function setMockedBlockNumber(uint _b) {
+        mock_blockNumber = _b;
+    }
 
-  uint mock_blockNumber = 1;
+    uint mock_blockNumber = 1;
 }

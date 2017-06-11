@@ -41,9 +41,11 @@ pragma solidity ^0.4.11;
 //     Contrib   6 Months       24 Months
 //       End
 
+
 import "./MiniMeToken.sol";
 import "./StatusContribution.sol";
 import "./SafeMath.sol";
+
 
 contract DevTokensHolder is Owned, SafeMath {
 
@@ -68,11 +70,7 @@ contract DevTokensHolder is Owned, SafeMath {
         if (finalized == 0) throw;
         if (safeSub(getTime(), finalized) <= months(6)) throw;
 
-        uint canExtract = safeMul(
-                                total,
-                                safeDiv(
-                                    safeSub( getTime(), finalized),
-                                    months(24)));
+        uint canExtract = safeMul(total, safeDiv(safeSub(getTime(), finalized), months(24)));
 
         canExtract = safeSub(canExtract, collectedTokens);
 
@@ -95,25 +93,25 @@ contract DevTokensHolder is Owned, SafeMath {
     }
 
 
-//////////
-// Safety Methods
-//////////
+    //////////
+    // Safety Methods
+    //////////
 
     /// @notice This method can be used by the controller to extract mistakenly
     ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
     function claimTokens(address _token) onlyOwner {
-      if (_token == address(snt)) throw;
-      if (_token == 0x0) {
-          owner.transfer(this.balance);
-          return;
-      }
+        if (_token == address(snt)) throw;
+        if (_token == 0x0) {
+            owner.transfer(this.balance);
+            return;
+        }
 
-      MiniMeToken token = MiniMeToken(_token);
-      uint balance = token.balanceOf(this);
-      token.transfer(owner, balance);
-      ClaimedTokens(_token, owner, balance);
+        MiniMeToken token = MiniMeToken(_token);
+        uint balance = token.balanceOf(this);
+        token.transfer(owner, balance);
+        ClaimedTokens(_token, owner, balance);
     }
 
     event ClaimedTokens(address indexed token, address indexed controller, uint amount);

@@ -26,10 +26,12 @@ pragma solidity ^0.4.11;
 ///  ETH is sent to the contribution walled and SNTs are mined according to the defined
 ///  rules.
 
+
 import "./Owned.sol";
 import "./MiniMeToken.sol";
 import "./DynamicCeiling.sol";
 import "./SafeMath.sol";
+
 
 contract StatusContribution is Owned, SafeMath, TokenController {
 
@@ -69,17 +71,15 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     }
 
     modifier contributionOpen() {
-        if ((getBlockNumber()<startBlock) ||
-            (getBlockNumber()>=stopBlock) ||
+        if ((getBlockNumber() < startBlock) ||
+            (getBlockNumber() >= stopBlock) ||
             (finalized > 0) ||
             (address(SNT) == 0x0 ))
             throw;
         _;
     }
 
-    function StatusContribution() {
-
-    }
+    function StatusContribution() {}
 
 
     /// @notice This method should be called by the owner before the contribution
@@ -117,7 +117,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         address _sntController
     ) onlyOwner {
         // Initialize only once
-        if (address(SNT) != 0x0 ) throw;
+        if (address(SNT) != 0x0) throw;
 
         SNT = MiniMeToken(_sntAddress);
 
@@ -132,7 +132,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         sgtLimit = _sgtLimit;
         sgtPreferenceBlocks = _sgtPreferenceBlocks;
 
-        if (_dynamicCeiling == 0x0 ) throw;
+        if (_dynamicCeiling == 0x0) throw;
         dynamicCeiling = DynamicCeiling(_dynamicCeiling);
 
         if (_destEthDevs == 0x0) throw;
@@ -179,9 +179,11 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         proxyPayment(msg.sender);
     }
 
-//////////
-// MiniMe Controller functions
-//////////
+
+    //////////
+    // MiniMe Controller functions
+    //////////
+
     /// @notice This method will generally be called by the SNT token contract to
     ///  acquire SNTs. Or directly from third parties that want po acquire SNTs in
     ///  behalf of a token holder.
@@ -195,25 +197,23 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         return true;
     }
 
-    function onTransfer(address , address , uint ) returns(bool) {
+    function onTransfer(address, address, uint) returns(bool) {
         return false;
     }
 
-    function onApprove(address , address , uint ) returns(bool) {
+    function onApprove(address, address, uint) returns(bool) {
         return false;
     }
 
     function buyNormal(address _th) internal {
-
         if (tx.gasprice > maxGasPrice) throw;
 
         uint toFund;
         uint cap = dynamicCeiling.cap(getBlockNumber());
 
-        cap = safeAdd(totalNormalCollected,
-                      safeDiv(safeSub(cap, totalNormalCollected), 30));
+        cap = safeAdd(totalNormalCollected, safeDiv(safeSub(cap, totalNormalCollected), 30));
 
-        if (cap>failSafe) cap = failSafe;
+        if (cap > failSafe) cap = failSafe;
 
         if (safeAdd(totalNormalCollected, msg.value) > cap) {
             toFund = safeSub(cap, totalNormalCollected);
@@ -235,7 +235,6 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     }
 
     function buyGuaranteed(address _th) internal {
-
         uint toFund;
         uint cap = guaranteedBuyersLimit[_th];
 
@@ -252,18 +251,17 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     }
 
     function doBuy(address _th, uint _toFund, bool _guaranteed) internal {
-        if (_toFund == 0) throw; // Do not spend gas for
+        if (_toFund == 0) throw;  // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
         uint tokensGenerated = safeMul(_toFund, exchangeRate);
         uint toReturn = safeSub(msg.value, _toFund);
 
-        if (!SNT.generateTokens(_th, tokensGenerated))
-            throw;
+        if (!SNT.generateTokens(_th, tokensGenerated)) throw;
 
         if (!destEthDevs.send(_toFund)) throw;
 
-        if (toReturn>0) {
+        if (toReturn > 0) {
             // If the call comes from the Token controller,
             // then we return it to the token Holder that.
             // Otherwise we return to the sender.
@@ -311,7 +309,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         if (getBlockNumber () < stopBlock) {
             var (,,lastLimit,) = dynamicCeiling.points( safeSub(dynamicCeiling.revealedPoints(), 1));
 
-            if (totalCollected()< lastLimit - 1 ether) throw;
+            if (totalCollected() < lastLimit - 1 ether) throw;
         }
 
         finalized = now;
@@ -326,20 +324,18 @@ contract StatusContribution is Owned, SafeMath, TokenController {
             //  percentageToSgt = 10% * -------------------
             //                             maxSGTSupply
             //
-            percentageToSgt =  safeDiv(
-                                    safeMul(percent(10), SGT.totalSupply()),
-                                    maxSGTSupply);
+            percentageToSgt = safeDiv(safeMul(percent(10), SGT.totalSupply()),
+                                      maxSGTSupply);
         }
 
-        uint percentageToDevs = percent(20); // 20%
+        uint percentageToDevs = percent(20);  // 20%
 
 
         //
         //  % To Contributors = 41% + (10% - % to SGT holders)
         //
-        uint percentageToContributors = safeAdd(
-                                            percent(41),
-                                            safeSub(percent(10), percentageToSgt));
+        uint percentageToContributors = safeAdd(percent(41),
+                                                safeSub(percent(10), percentageToSgt));
 
         uint percentageToSecondary = percent(29);
 
@@ -361,9 +357,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //  =>  totalTokens = ---------------------------- * SNT.totalSupply()
         //                      percentageToContributors
         //
-        uint totalTokens = safeDiv(
-                                safeMul(SNT.totalSupply(), percent(100)),
-                                percentageToContributors);
+        uint totalTokens = safeDiv(safeMul(SNT.totalSupply(), percent(100)),
+                                   percentageToContributors);
 
 
         // Generate tokens for SGT Holders.
@@ -375,9 +370,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //
         if (!SNT.generateTokens(
             destTokensSecondarySale,
-            safeDiv(
-                safeMul(totalTokens, percentageToSecondary),
-                percent(100)))) throw;
+            safeDiv(safeMul(totalTokens, percentageToSecondary),
+                    percent(100)))) throw;
 
         //
         //                  percentageToSgt
@@ -386,9 +380,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //
         if (!SNT.generateTokens(
             destTokensSgt,
-            safeDiv(
-                safeMul(totalTokens, percentageToSgt),
-                percent(100)))) throw;
+            safeDiv(safeMul(totalTokens, percentageToSgt),
+                    percent(100)))) throw;
 
 
         //
@@ -398,9 +391,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //
         if (!SNT.generateTokens(
             destTokensDevs,
-            safeDiv(
-                safeMul(totalTokens, percentageToDevs),
-                percent(100)))) throw;
+            safeDiv(safeMul(totalTokens, percentageToDevs),
+                    percent(100)))) throw;
 
         SNT.changeController(sntController);
 
@@ -413,9 +405,9 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     }
 
 
-//////////
-// Constant functions
-//////////
+    //////////
+    // Constant functions
+    //////////
 
     /// @return Total tokens issued in weis.
     function tokensIssued() constant returns (uint) {
@@ -427,9 +419,10 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         return safeAdd(totalNormalCollected, totalGuaranteedCollected);
     }
 
-//////////
-// Testing specific methods
-//////////
+
+    //////////
+    // Testing specific methods
+    //////////
 
     /// @notice This function is overridden by the test Mocks.
     function getBlockNumber() internal constant returns (uint) {
@@ -437,9 +430,9 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     }
 
 
-//////////
-// Safety Methods
-//////////
+    //////////
+    // Safety Methods
+    //////////
 
     /// @notice This method can be used by the controller to extract mistakenly
     ///  sent tokens to this contract.

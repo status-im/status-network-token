@@ -51,9 +51,7 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
         uint balance = sgt.balanceOf(msg.sender);
 
         // First calculate how much correspond to him
-        uint amount = safeDiv(
-                        safeMul(total , balance),
-                        sgt.totalSupply());
+        uint amount = safeDiv(safeMul(total, balance), sgt.totalSupply());
 
         // And then subtract the amount already collected
         amount = safeSub(amount, collected[msg.sender]);
@@ -70,35 +68,37 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
         throw;
     }
 
-    function onTransfer(address , address , uint ) returns(bool) {
+    function onTransfer(address, address, uint) returns(bool) {
         return false;
     }
 
-    function onApprove(address , address , uint ) returns(bool) {
+    function onApprove(address, address, uint) returns(bool) {
         return false;
     }
 
-//////////
-// Safety Method
-//////////
+
+    //////////
+    // Safety Method
+    //////////
 
     /// @notice This method can be used by the controller to extract mistakenly
     ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
     function claimTokens(address _token) onlyOwner {
-      if (_token == address(snt)) throw;
-      if (_token == 0x0) {
-          owner.transfer(this.balance);
-          return;
-      }
+        if (_token == address(snt)) throw;
+        if (_token == 0x0) {
+            owner.transfer(this.balance);
+            return;
+        }
 
-      MiniMeToken token = MiniMeToken(_token);
-      uint balance = token.balanceOf(this);
-      token.transfer(owner, balance);
-      ClaimedTokens(_token, owner, balance);
+        MiniMeToken token = MiniMeToken(_token);
+        uint balance = token.balanceOf(this);
+        token.transfer(owner, balance);
+        ClaimedTokens(_token, owner, balance);
     }
 
     event ClaimedTokens(address indexed token, address indexed controller, uint amount);
     event TokensCollected(address indexed holder, uint amount);
+
 }

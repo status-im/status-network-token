@@ -28,6 +28,7 @@ pragma solidity ^0.4.11;
 
 import "./SafeMath.sol";
 
+
 contract DynamicCeiling is SafeMath {
 
     struct CurvePoint {
@@ -55,8 +56,9 @@ contract DynamicCeiling is SafeMath {
     function setHiddenPoints(bytes32[] _pointHashes) {
         if (msg.sender != creator) throw;
         if (points.length > 0) throw;
+
         points.length = _pointHashes.length;
-        for (uint i=0; i< _pointHashes.length; i = safeAdd(i,1)) {
+        for (uint i = 0; i < _pointHashes.length; i = safeAdd(i, 1)) {
             points[i].hash = _pointHashes[i];
         }
     }
@@ -89,13 +91,13 @@ contract DynamicCeiling is SafeMath {
         if (revealedPoints == 0) return 0;
 
         // Shortcut if _block is after most recently revealed point
-        if (_block >= points[safeSub(revealedPoints,1)].block)
-            return points[safeSub(revealedPoints,1)].limit;
+        if (_block >= points[safeSub(revealedPoints, 1)].block)
+            return points[safeSub(revealedPoints, 1)].limit;
         if (_block < points[0].block) return 0;
 
         // Binary search of the value in the array
         uint min = 0;
-        uint max = safeSub(revealedPoints,1);
+        uint max = safeSub(revealedPoints, 1);
         while (max != safeAdd(min, 1)) {
             uint mid = safeDiv(safeAdd(max, min), 2);
             if (points[mid].block<=_block) {
@@ -105,13 +107,10 @@ contract DynamicCeiling is SafeMath {
             }
         }
 
-        return safeAdd(
-                    points[min].limit,
-                    safeDiv(
-                        safeMul(
-                            safeSub(_block, points[min].block),
-                            safeSub(points[max].limit, points[min].limit)),
-                        safeSub(points[max].block, points[min].block)));
+        return safeAdd(points[min].limit,
+                       safeDiv(safeMul(safeSub(_block, points[min].block),
+                                       safeSub(points[max].limit, points[min].limit)),
+                               safeSub(points[max].block, points[min].block)));
 
     }
 
@@ -133,4 +132,5 @@ contract DynamicCeiling is SafeMath {
     function nPoints() constant returns(uint) {
         return points.length;
     }
+
 }
