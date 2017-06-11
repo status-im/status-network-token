@@ -55,12 +55,9 @@ contract ContributionWallet {
 
     // @dev Withdraw function sends all the funds to the wallet if conditions are correct
     function withdraw() public {
-        if (msg.sender != multisig) throw;                       // Only the multisig can request it
-        if (block.number > finalBlock) return doWithdraw();      // Allow after the final block
-        if (contribution.finalized() != 0) return doWithdraw();  // Allow when sale is finalized
-    }
-
-    function doWithdraw() private {
+        if (msg.sender != multisig) throw;         // Only the multisig can request it
+        if (block.number <= finalBlock &&          // Allow after final block
+            contribution.finalized() == 0) throw;  // Allow when sale is finalized
         multisig.transfer(this.balance);
     }
 
