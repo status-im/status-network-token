@@ -259,7 +259,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
         if (!SNT.generateTokens(_th, tokensGenerated)) throw;
 
-        if (!destEthDevs.send(_toFund)) throw;
+        destEthDevs.transfer(_toFund);
 
         if (toReturn > 0) {
             // If the call comes from the Token controller,
