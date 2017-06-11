@@ -6,9 +6,11 @@ const setHiddenPoints = require("./helpers/hiddenPoints.js").setHiddenPoints;
 contract("DynamicCeiling", () => {
     let dynamicCeiling;
 
-    const points = [ [ 1000000, web3.toWei(1000) ],
-        [ 1001000, web3.toWei(21000) ],
-        [ 1002000, web3.toWei(61000) ] ];
+    const points = [
+        [1000000, web3.toWei(1000)],
+        [1001000, web3.toWei(21000)],
+        [1002000, web3.toWei(61000)],
+    ];
 
     it("Should deploy dynamicCeiling", async () => {
         dynamicCeiling = await DynamicCeiling.new();
@@ -46,10 +48,10 @@ contract("DynamicCeiling", () => {
 
     it("Should reveal 1st point", async () => {
         await dynamicCeiling.revealPoint(
-                points[ 0 ][ 0 ],
-                points[ 0 ][ 1 ],
-                false,
-                web3.sha3("pwd0"));
+            points[0][0],
+            points[0][1],
+            false,
+            web3.sha3("pwd0"));
 
         assert.equal(await dynamicCeiling.revealedPoints(), 1);
         assert.equal(await dynamicCeiling.allRevealed(), false);
@@ -71,10 +73,10 @@ contract("DynamicCeiling", () => {
 
     it("Should reveal 2nd point", async () => {
         await dynamicCeiling.revealPoint(
-                points[ 1 ][ 0 ],
-                points[ 1 ][ 1 ],
-                false,
-                web3.sha3("pwd1"));
+            points[1][0],
+            points[1][1],
+            false,
+            web3.sha3("pwd1"));
 
         assert.equal(await dynamicCeiling.revealedPoints(), 2);
         assert.equal(await dynamicCeiling.allRevealed(), false);
@@ -96,10 +98,10 @@ contract("DynamicCeiling", () => {
 
     it("Should reveal last point", async () => {
         await dynamicCeiling.revealPoint(
-                points[ 2 ][ 0 ],
-                points[ 2 ][ 1 ],
-                true,
-                web3.sha3("pwd2"));
+            points[2][0],
+            points[2][1],
+            true,
+            web3.sha3("pwd2"));
 
         assert.equal(await dynamicCeiling.revealedPoints(), 3);
         assert.equal(await dynamicCeiling.allRevealed(), true);
