@@ -47,7 +47,8 @@ import "./StatusContribution.sol";
 import "./SafeMath.sol";
 
 
-contract DevTokensHolder is Owned, SafeMath {
+contract DevTokensHolder is Owned {
+    using SafeMath for uint;
 
     uint collectedTokens;
     StatusContribution contribution;
@@ -63,29 +64,29 @@ contract DevTokensHolder is Owned, SafeMath {
     /// @notice The Dev (Owner) will call this method to extract the tokens
     function collectTokens() public onlyOwner {
         uint balance = snt.balanceOf(address(this));
-        uint total = safeAdd(collectedTokens, snt.balanceOf(address(this)));
+        uint total = collectedTokens.add(snt.balanceOf(address(this)));
 
         uint finalized = contribution.finalized();
 
         if (finalized == 0) throw;
-        if (safeSub(getTime(), finalized) <= months(6)) throw;
+        if (getTime().sub(finalized) <= months(6)) throw;
 
-        uint canExtract = safeMul(total, safeDiv(safeSub(getTime(), finalized), months(24)));
+        uint canExtract = total.mul(getTime().sub(finalized).div(months(24)));
 
-        canExtract = safeSub(canExtract, collectedTokens);
+        canExtract = canExtract.sub(collectedTokens);
 
         if (canExtract > balance) {
             canExtract = balance;
         }
 
-        collectedTokens = safeAdd(collectedTokens, canExtract);
+        collectedTokens = collectedTokens.add(canExtract);
         if (!snt.transfer(owner, canExtract)) throw;
 
         TokensWithdrawn(owner, canExtract);
     }
 
     function months(uint m) internal returns(uint) {
-        return safeMul(m, 30 days);
+        return m.mul(30 days);
     }
 
     function getTime() internal returns(uint) {

@@ -33,7 +33,8 @@ import "./DynamicCeiling.sol";
 import "./SafeMath.sol";
 
 
-contract StatusContribution is Owned, SafeMath, TokenController {
+contract StatusContribution is Owned, TokenController {
+    using SafeMath for uint;
 
     uint constant public failSafe = 300000 ether;
     uint constant public exchangeRate = 10000;
@@ -211,26 +212,26 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         uint toFund;
         uint cap = dynamicCeiling.cap(getBlockNumber());
 
-        cap = safeAdd(totalNormalCollected, safeDiv(safeSub(cap, totalNormalCollected), 30));
+        cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(30));
 
         if (cap > failSafe) cap = failSafe;
 
-        if (safeAdd(totalNormalCollected, msg.value) > cap) {
-            toFund = safeSub(cap, totalNormalCollected);
+        if (totalNormalCollected.add(msg.value) > cap) {
+            toFund = cap.sub(totalNormalCollected);
         } else {
             toFund = msg.value;
         }
 
         if (getBlockNumber() < startBlock + sgtPreferenceBlocks) {
            if (SGT.balanceOf(_th) == 0) throw;
-           if ( safeAdd(sgtContributed[_th], toFund) > sgtLimit ) {
-               toFund = safeSub(sgtLimit, sgtContributed[_th]);
+           if (sgtContributed[_th].add(toFund) > sgtLimit) {
+               toFund = sgtLimit.sub(sgtContributed[_th]);
            }
-           sgtContributed[_th] = safeAdd(sgtContributed[_th], toFund);
+           sgtContributed[_th] = sgtContributed[_th].add(toFund);
         }
 
 
-        totalNormalCollected = safeAdd(totalNormalCollected, toFund);
+        totalNormalCollected = totalNormalCollected.add(toFund);
         doBuy(_th, toFund, false);
     }
 
@@ -238,14 +239,14 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         uint toFund;
         uint cap = guaranteedBuyersLimit[_th];
 
-        if (safeAdd(guaranteedBuyersBought[_th], msg.value) > cap) {
-            toFund = safeSub(cap, guaranteedBuyersBought[_th]);
+        if (guaranteedBuyersBought[_th].add(msg.value) > cap) {
+            toFund = cap.sub(guaranteedBuyersBought[_th]);
         } else {
             toFund = msg.value;
         }
 
-        guaranteedBuyersBought[_th] = safeAdd(guaranteedBuyersBought[_th], toFund);
-        totalGuaranteedCollected = safeAdd(totalGuaranteedCollected, toFund);
+        guaranteedBuyersBought[_th] = guaranteedBuyersBought[_th].add(toFund);
+        totalGuaranteedCollected = totalGuaranteedCollected.add(toFund);
 
         doBuy(_th, toFund, true);
     }
@@ -254,8 +255,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         if (_toFund == 0) throw;  // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
-        uint tokensGenerated = safeMul(_toFund, exchangeRate);
-        uint toReturn = safeSub(msg.value, _toFund);
+        uint tokensGenerated = _toFund.mul(exchangeRate);
+        uint toReturn = msg.value.sub(_toFund);
 
         if (!SNT.generateTokens(_th, tokensGenerated)) throw;
 
@@ -307,7 +308,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber () < stopBlock) {
-            var (,,lastLimit) = dynamicCeiling.points( safeSub(dynamicCeiling.revealedPoints(), 1));
+            var (,,lastLimit) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
 
             if (totalCollected() < lastLimit - 1 ether) throw;
         }
@@ -324,8 +325,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
             //  percentageToSgt = 10% * -------------------
             //                             maxSGTSupply
             //
-            percentageToSgt = safeDiv(safeMul(percent(10), SGT.totalSupply()),
-                                      maxSGTSupply);
+            percentageToSgt = percent(10).mul(SGT.totalSupply()).div(maxSGTSupply);
         }
 
         uint percentageToDevs = percent(20);  // 20%
@@ -334,8 +334,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //
         //  % To Contributors = 41% + (10% - % to SGT holders)
         //
-        uint percentageToContributors = safeAdd(percent(41),
-                                                safeSub(percent(10), percentageToSgt));
+        uint percentageToContributors = percent(41).add(percent(10).sub(percentageToSgt));
 
         uint percentageToSecondary = percent(29);
 
@@ -357,8 +356,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //  =>  totalTokens = ---------------------------- * SNT.totalSupply()
         //                      percentageToContributors
         //
-        uint totalTokens = safeDiv(safeMul(SNT.totalSupply(), percent(100)),
-                                   percentageToContributors);
+        uint totalTokens = SNT.totalSupply().mul(percent(100)).div(percentageToContributors);
 
 
         // Generate tokens for SGT Holders.
@@ -370,8 +368,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //
         if (!SNT.generateTokens(
             destTokensSecondarySale,
-            safeDiv(safeMul(totalTokens, percentageToSecondary),
-                    percent(100)))) throw;
+            totalTokens.mul(percentageToSecondary).div(percent(100)))) throw;
 
         //
         //                  percentageToSgt
@@ -380,8 +377,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //
         if (!SNT.generateTokens(
             destTokensSgt,
-            safeDiv(safeMul(totalTokens, percentageToSgt),
-                    percent(100)))) throw;
+            totalTokens.mul(percentageToSgt).div(percent(100)))) throw;
 
 
         //
@@ -391,8 +387,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         //
         if (!SNT.generateTokens(
             destTokensDevs,
-            safeDiv(safeMul(totalTokens, percentageToDevs),
-                    percent(100)))) throw;
+            totalTokens.mul(percentageToDevs).div(percent(100)))) throw;
 
         SNT.changeController(sntController);
 
@@ -401,7 +396,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
     }
 
     function percent(uint p) internal returns(uint) {
-        return safeMul(p, 10**16);
+        return p.mul(10**16);
     }
 
 
@@ -416,7 +411,7 @@ contract StatusContribution is Owned, SafeMath, TokenController {
 
     /// @return Total Ether collected.
     function totalCollected() public constant returns (uint) {
-        return safeAdd(totalNormalCollected, totalGuaranteedCollected);
+        return totalNormalCollected.add(totalGuaranteedCollected);
     }
 
 
