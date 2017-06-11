@@ -125,6 +125,6 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
         ClaimedTokens(_token, owner, balance);
     }
 
-    event ClaimedTokens(address indexed token, address indexed controller, uint amount);
-    event ControllerChanged(address indexed newController);
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
+    event ControllerChanged(address indexed _newController);
 }

@@ -114,7 +114,7 @@ contract DevTokensHolder is Owned, SafeMath {
         ClaimedTokens(_token, owner, balance);
     }
 
-    event ClaimedTokens(address indexed token, address indexed controller, uint amount);
-    event TokensWithdrawn(address indexed holder, uint amount);
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
+    event TokensWithdrawn(address indexed _holder, uint _amount);
 
 }
