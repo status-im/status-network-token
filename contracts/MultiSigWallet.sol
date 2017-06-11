@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 
 /// @title Multisignature wallet - Allows multiple parties to agree on transactions before execution.
 /// @author Stefan George - <stefan.george@consensys.net>
-contract MultisigWallet {
+contract MultiSigWallet {
 
     uint constant public MAX_OWNER_COUNT = 50;
 
@@ -102,7 +102,7 @@ contract MultisigWallet {
     /// @dev Contract constructor sets initial owners and required number of confirmations.
     /// @param _owners List of initial owners.
     /// @param _required Number of required confirmations.
-    function MultisigWallet(address[] _owners, uint _required)
+    function MultiSigWallet(address[] _owners, uint _required)
         public
         validRequirement(_owners.length, _required)
     {

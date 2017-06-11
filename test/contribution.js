@@ -3,7 +3,7 @@
 const MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
 const SGT = artifacts.require("SGT");
 const SNT = artifacts.require("SNT");
-const MultisigWallet = artifacts.require("MultisigWallet");
+const MultiSigWallet = artifacts.require("MultiSigWallet");
 const ContributionWallet = artifacts.require("ContributionWallet");
 const StatusContributionMock = artifacts.require("StatusContributionMock");
 const DevTokensHolder = artifacts.require("DevTokensHolderMock");
@@ -43,10 +43,10 @@ contract("StatusContribution", (accounts) => {
     const sgtLimit = web3.toWei(0.1);
 
     it("Should deploy Contribution contracts", async () => {
-        multisigStatus = await MultisigWallet.new([accounts[0]], 1);
-        multisigComunity = await MultisigWallet.new([accounts[1]], 1);
-        multisigSecondarySell = await MultisigWallet.new([accounts[2]], 1);
-        multisigDevs = await MultisigWallet.new([accounts[3]], 1);
+        multisigStatus = await MultiSigWallet.new([accounts[0]], 1);
+        multisigComunity = await MultiSigWallet.new([accounts[1]], 1);
+        multisigSecondarySell = await MultiSigWallet.new([accounts[2]], 1);
+        multisigDevs = await MultiSigWallet.new([accounts[3]], 1);
         miniMeFactory = await MiniMeTokenFactory.new();
         sgt = await SGT.new(miniMeFactory.address);
         await sgt.generateTokens(accounts[4], 2500);
