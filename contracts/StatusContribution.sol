@@ -125,8 +125,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         if (SNT.controller() != address(this)) throw;
         if (SNT.decimals() != 18) throw;  // Same amount of decimals as ETH
 
+        if (_startBlock < getBlockNumber()) throw;
         if (_stopBlock < _startBlock) throw;
-
         startBlock = _startBlock;
         stopBlock = _stopBlock;
         sgtLimit = _sgtLimit;
