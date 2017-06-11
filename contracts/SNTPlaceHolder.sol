@@ -32,7 +32,9 @@ import "./SafeMath.sol";
 import "./Owned.sol";
 
 
-contract SNTPlaceHolder is TokenController, SafeMath, Owned {
+contract SNTPlaceHolder is TokenController, Owned {
+    using SafeMath for uint;
+
     MiniMeToken public snt;
     StatusContribution public contribution;
     uint public activationTime;
@@ -83,7 +85,7 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
         if (activationTime == 0) {
             uint f = contribution.finalized();
             if (f > 0) {
-                activationTime = safeAdd(f, 1 weeks);
+                activationTime = f.add(1 weeks);
             } else {
                 return false;
             }

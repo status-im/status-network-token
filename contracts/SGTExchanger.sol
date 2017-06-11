@@ -31,7 +31,8 @@ import "./SafeMath.sol";
 import "./Owned.sol";
 
 
-contract SGTExchanger is TokenController, SafeMath, Owned {
+contract SGTExchanger is TokenController, Owned {
+    using SafeMath for uint;
 
     mapping (address => uint) public collected;
     uint public totalCollected;
@@ -46,18 +47,18 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
     /// @notice This method should be called by the SGT holders to collect their
     ///  corresponding SNTs
     function collect() public {
-        uint total = safeAdd(totalCollected, snt.balanceOf(address(this)));
+        uint total = totalCollected.add(snt.balanceOf(address(this)));
 
         uint balance = sgt.balanceOf(msg.sender);
 
         // First calculate how much correspond to him
-        uint amount = safeDiv(safeMul(total, balance), sgt.totalSupply());
+        uint amount = total.mul(balance).div(sgt.totalSupply());
 
         // And then subtract the amount already collected
-        amount = safeSub(amount, collected[msg.sender]);
+        amount = amount.sub(collected[msg.sender]);
 
-        totalCollected = safeAdd(totalCollected, amount);
-        collected[msg.sender] = safeAdd(collected[msg.sender], amount);
+        totalCollected = totalCollected.add(amount);
+        collected[msg.sender] = collected[msg.sender].add(amount);
 
         if (!snt.transfer(msg.sender, amount)) throw;
 
