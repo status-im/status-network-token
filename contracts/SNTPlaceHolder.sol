@@ -55,7 +55,7 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
     ///  Please, be sure that the owner is a trusted agent or 0x0 address.
     /// @param _newController The address of the new controller
 
-    function changeController(address _newController) onlyOwner {
+    function changeController(address _newController) public onlyOwner {
         snt.changeController(_newController);
         ControllerChanged(_newController);
     }
@@ -66,15 +66,15 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
     //////////
 
     // In between the offering and the network. Default settings for allowing token transfers.
-    function proxyPayment(address) payable returns (bool) {
+    function proxyPayment(address) public payable returns (bool) {
         return false;
     }
 
-    function onTransfer(address _from, address, uint) returns (bool) {
+    function onTransfer(address _from, address, uint) public returns (bool) {
         return transferable(_from);
     }
 
-    function onApprove(address _from, address, uint) returns (bool) {
+    function onApprove(address _from, address, uint) public returns (bool) {
         return transferable(_from);
     }
 
@@ -110,7 +110,7 @@ contract SNTPlaceHolder is TokenController, SafeMath, Owned {
     ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
-    function claimTokens(address _token) onlyOwner {
+    function claimTokens(address _token) public onlyOwner {
         if (snt.controller() == address(this)) {
             snt.claimTokens(_token);
         }

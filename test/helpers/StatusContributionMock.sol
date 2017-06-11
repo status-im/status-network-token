@@ -12,7 +12,7 @@ contract StatusContributionMock is StatusContribution {
         return mock_blockNumber;
     }
 
-    function setMockedBlockNumber(uint _b) {
+    function setMockedBlockNumber(uint _b) public {
         mock_blockNumber = _b;
     }
 

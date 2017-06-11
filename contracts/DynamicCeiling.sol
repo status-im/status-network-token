@@ -52,7 +52,7 @@ contract DynamicCeiling is SafeMath {
     ///  by the `calculateHash` method. More hashes than actual points of the curve
     ///  can be committed in order to hide also the number of points of the curve.
     ///  The remaining hashes can be just random numbers.
-    function setHiddenPoints(bytes32[] _pointHashes) {
+    function setHiddenPoints(bytes32[] _pointHashes) public {
         if (msg.sender != creator) throw;
         if (points.length > 0) throw;
 
@@ -70,7 +70,7 @@ contract DynamicCeiling is SafeMath {
     ///  (must be greater or equal than the previous one).
     /// @param _last `true` if it's the last point of the curve.
     /// @param _salt Random number used to commit the point
-    function revealPoint(uint _block, uint _limit, bool _last, bytes32 _salt) {
+    function revealPoint(uint _block, uint _limit, bool _last, bytes32 _salt) public {
         if (allRevealed) throw;
         if (points[revealedPoints].hash != sha3(_block, _limit, _last, _salt)) throw;
         if (revealedPoints > 0) {
@@ -85,7 +85,7 @@ contract DynamicCeiling is SafeMath {
 
     /// @return Return the limit at specific block number
     ///  (or 0 if no points revealed yet or block before first point)
-    function cap(uint _block) constant returns (uint) {
+    function cap(uint _block) public constant returns (uint) {
         if (revealedPoints == 0) return 0;
 
         // Shortcut if _block is after most recently revealed point
@@ -120,14 +120,14 @@ contract DynamicCeiling is SafeMath {
     /// @param _salt Random number that will be needed to reveal this point.
     /// @return The calculated hash of this point to be used in the
     ///  `setHiddenPoints` method
-    function calculateHash(uint _block, uint _limit, bool _last, bytes32 _salt) constant returns (bytes32) {
+    function calculateHash(uint _block, uint _limit, bool _last, bytes32 _salt) public constant returns (bytes32) {
         return sha3(_block, _limit, _last, _salt);
     }
 
     /// @return Return the total number of points committed
     ///  (can be larger than the number of actual points on the curve to hide
     ///  the real number of points)
-    function nPoints() constant returns(uint) {
+    function nPoints() public constant returns(uint) {
         return points.length;
     }
 

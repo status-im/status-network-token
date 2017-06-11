@@ -45,7 +45,7 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
 
     /// @notice This method should be called by the SGT holders to collect their
     ///  corresponding SNTs
-    function collect() {
+    function collect() public {
         uint total = safeAdd(totalCollected, snt.balanceOf(address(this)));
 
         uint balance = sgt.balanceOf(msg.sender);
@@ -64,15 +64,15 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
         TokensCollected(msg.sender, amount);
     }
 
-    function proxyPayment(address) payable returns(bool) {
+    function proxyPayment(address) public payable returns(bool) {
         throw;
     }
 
-    function onTransfer(address, address, uint) returns(bool) {
+    function onTransfer(address, address, uint) public returns(bool) {
         return false;
     }
 
-    function onApprove(address, address, uint) returns(bool) {
+    function onApprove(address, address, uint) public returns(bool) {
         return false;
     }
 
@@ -85,7 +85,7 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
     ///  sent tokens to this contract.
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
-    function claimTokens(address _token) onlyOwner {
+    function claimTokens(address _token) public onlyOwner {
         if (_token == address(snt)) throw;
         if (_token == 0x0) {
             owner.transfer(this.balance);
