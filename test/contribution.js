@@ -163,16 +163,16 @@ contract("StatusContribution", (accounts) => {
 
     it("Should return the remaining in the last transaction ", async () => {
         await statusContribution.setMockedBlockNumber(1005000);
-        const initailBalance = await web3.eth.getBalance(accounts[0]);
+        const initialBalance = await web3.eth.getBalance(accounts[0]);
         await snt.sendTransaction({value: web3.toWei(5), gas: 300000, gasPrice: "20000000000"});
         const finalBalance = await web3.eth.getBalance(accounts[0]);
 
         const b = Math.min(5, ((lim - cur) / divs));
         cur += b;
 
-        const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
-        assert.isAbove(spended, b);
-        assert.isBelow(spended, b + 0.02);
+        const spent = web3.fromWei(initialBalance.sub(finalBalance)).toNumber();
+        assert.isAbove(spent, b);
+        assert.isBelow(spent, b + 0.02);
 
         const totalCollected = await statusContribution.totalCollected();
         assert.equal(web3.fromWei(totalCollected), cur);
@@ -190,7 +190,7 @@ contract("StatusContribution", (accounts) => {
 
         await statusContribution.setMockedBlockNumber(1005000);
 
-        const initailBalance = await web3.eth.getBalance(accounts[0]);
+        const initialBalance = await web3.eth.getBalance(accounts[0]);
         await snt.sendTransaction({value: web3.toWei(10), gas: 300000, gasPrice: "20000000000"});
         const finalBalance = await web3.eth.getBalance(accounts[0]);
 
@@ -198,9 +198,9 @@ contract("StatusContribution", (accounts) => {
         const b = Math.min(5, ((lim - cur) / divs));
         cur += b;
 
-        const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
-        assert.isAbove(spended, b);
-        assert.isBelow(spended, b + 0.02);
+        const spent = web3.fromWei(initialBalance.sub(finalBalance)).toNumber();
+        assert.isAbove(spent, b);
+        assert.isBelow(spent, b + 0.02);
 
         const totalCollected = await statusContribution.totalCollected();
         assert.equal(web3.fromWei(totalCollected), cur);
@@ -218,7 +218,7 @@ contract("StatusContribution", (accounts) => {
 
         await statusContribution.setMockedBlockNumber(1025000);
 
-        const initailBalance = await web3.eth.getBalance(accounts[0]);
+        const initialBalance = await web3.eth.getBalance(accounts[0]);
         await statusContribution.proxyPayment(
             accounts[1],
             {value: web3.toWei(15), gas: 300000, from: accounts[0], gasPrice: "20000000000"});
@@ -233,9 +233,9 @@ contract("StatusContribution", (accounts) => {
 
         assert.equal(web3.fromWei(balance1).toNumber(), b * 10000);
 
-        const spended = web3.fromWei(initailBalance.sub(finalBalance)).toNumber();
-        assert.isAbove(spended, b);
-        assert.isBelow(spended, b + 0.02);
+        const spent = web3.fromWei(initialBalance.sub(finalBalance)).toNumber();
+        assert.isAbove(spent, b);
+        assert.isBelow(spent, b + 0.02);
 
         const totalCollected = await statusContribution.totalCollected();
         assert.equal(web3.fromWei(totalCollected), cur);
