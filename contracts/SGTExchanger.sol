@@ -98,7 +98,7 @@ contract SGTExchanger is TokenController, SafeMath, Owned {
         ClaimedTokens(_token, owner, balance);
     }
 
-    event ClaimedTokens(address indexed token, address indexed controller, uint amount);
-    event TokensCollected(address indexed holder, uint amount);
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
+    event TokensCollected(address indexed _holder, uint _amount);
 
 }

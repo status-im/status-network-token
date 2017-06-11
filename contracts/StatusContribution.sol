@@ -453,8 +453,8 @@ contract StatusContribution is Owned, SafeMath, TokenController {
         ClaimedTokens(_token, owner, balance);
     }
 
-    event ClaimedTokens(address indexed token, address indexed controller, uint amount);
-    event NewSale(address indexed th, uint amount, uint tokens, bool guaranteed);
-    event GuaranteedAddress(address indexed th, uint limit);
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
+    event NewSale(address indexed th, uint _amount, uint _tokens, bool _guaranteed);
+    event GuaranteedAddress(address indexed _th, uint _limit);
     event Finalized();
 }
