@@ -37,14 +37,14 @@ contract ContributionWallet {
 
     // Public variables
     address public multisig;
-    uint public endBlock;
+    uint256 public endBlock;
     StatusContribution public contribution;
 
     // @dev Constructor initializes public variables
     // @param _multisig The address of the multisig that will receive the funds
     // @param _endBlock Block after which the multisig can request the funds
     // @param _contribution Address of the StatusContribution contract
-    function ContributionWallet(address _multisig, uint _endBlock, address _contribution) {
+    function ContributionWallet(address _multisig, uint256 _endBlock, address _contribution) {
         multisig = _multisig;
         endBlock = _endBlock;
         contribution = StatusContribution(_contribution);

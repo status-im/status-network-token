@@ -34,37 +34,37 @@ import "./SafeMath.sol";
 
 
 contract StatusContribution is Owned, TokenController {
-    using SafeMath for uint;
+    using SafeMath for uint256;
 
-    uint constant public failSafe = 300000 ether;
-    uint constant public exchangeRate = 10000;
-    uint constant public maxGasPrice = 50000000000;
+    uint256 constant public failSafe = 300000 ether;
+    uint256 constant public exchangeRate = 10000;
+    uint256 constant public maxGasPrice = 50000000000;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
-    uint public startBlock;
-    uint public endBlock;
-    uint public sgtPreferenceBlocks;
-    uint public sgtLimit;
+    uint256 public startBlock;
+    uint256 public endBlock;
+    uint256 public sgtPreferenceBlocks;
+    uint256 public sgtLimit;
 
     address public destEthDevs;
 
     address public destTokensDevs;
     address public destTokensSecondarySale;
-    uint public maxSGTSupply;
+    uint256 public maxSGTSupply;
     address public destTokensSgt;
     DynamicCeiling public dynamicCeiling;
 
     address public sntController;
 
-    mapping (address => uint) public guaranteedBuyersLimit;
-    mapping (address => uint) public guaranteedBuyersBought;
-    mapping (address => uint) public sgtContributed;
+    mapping (address => uint256) public guaranteedBuyersLimit;
+    mapping (address => uint256) public guaranteedBuyersBought;
+    mapping (address => uint256) public sgtContributed;
 
-    uint public totalGuaranteedCollected;
-    uint public totalNormalCollected;
+    uint256 public totalGuaranteedCollected;
+    uint256 public totalNormalCollected;
 
-    uint public finalized;
+    uint256 public finalized;
 
     modifier initialized() {
         if (address(SNT) == 0x0 ) throw;
@@ -101,10 +101,10 @@ contract StatusContribution is Owned, TokenController {
     ///  the contribution finalizes.
     function initialize(
         address _sntAddress,
-        uint _startBlock,
-        uint _endBlock,
-        uint _sgtPreferenceBlocks,
-        uint _sgtLimit,
+        uint256 _startBlock,
+        uint256 _endBlock,
+        uint256 _sgtPreferenceBlocks,
+        uint256 _sgtLimit,
         address _dynamicCeiling,
 
         address _destEthDevs,
@@ -114,7 +114,7 @@ contract StatusContribution is Owned, TokenController {
         address _sgt,
 
         address _destTokensSgt,
-        uint _maxSGTSupply,
+        uint256 _maxSGTSupply,
         address _sntController
     ) public onlyOwner {
         // Initialize only once
@@ -168,7 +168,7 @@ contract StatusContribution is Owned, TokenController {
     /// @param _th Guaranteed address
     /// @param _limit Particular limit for the guaranteed address. Set to 0 to remove
     ///   the guaranteed address
-    function setGuaranteedAddress(address _th, uint _limit) public initialized onlyOwner {
+    function setGuaranteedAddress(address _th, uint256 _limit) public initialized onlyOwner {
         if (getBlockNumber() >= startBlock) throw;
         if (_limit > failSafe) throw;
         guaranteedBuyersLimit[_th] = _limit;
@@ -199,19 +199,19 @@ contract StatusContribution is Owned, TokenController {
         return true;
     }
 
-    function onTransfer(address, address, uint) public returns(bool) {
+    function onTransfer(address, address, uint256) public returns(bool) {
         return false;
     }
 
-    function onApprove(address, address, uint) public returns(bool) {
+    function onApprove(address, address, uint256) public returns(bool) {
         return false;
     }
 
     function buyNormal(address _th) internal {
         if (tx.gasprice > maxGasPrice) throw;
 
-        uint toFund;
-        uint cap = dynamicCeiling.cap(getBlockNumber());
+        uint256 toFund;
+        uint256 cap = dynamicCeiling.cap(getBlockNumber());
 
         cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(30));
 
@@ -237,8 +237,8 @@ contract StatusContribution is Owned, TokenController {
     }
 
     function buyGuaranteed(address _th) internal {
-        uint toFund;
-        uint cap = guaranteedBuyersLimit[_th];
+        uint256 toFund;
+        uint256 cap = guaranteedBuyersLimit[_th];
 
         if (guaranteedBuyersBought[_th].add(msg.value) > cap) {
             toFund = cap.sub(guaranteedBuyersBought[_th]);
@@ -252,12 +252,12 @@ contract StatusContribution is Owned, TokenController {
         doBuy(_th, toFund, true);
     }
 
-    function doBuy(address _th, uint _toFund, bool _guaranteed) internal {
+    function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
         if (_toFund == 0) throw;  // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
-        uint tokensGenerated = _toFund.mul(exchangeRate);
-        uint toReturn = msg.value.sub(_toFund);
+        uint256 tokensGenerated = _toFund.mul(exchangeRate);
+        uint256 toReturn = msg.value.sub(_toFund);
 
         if (!SNT.generateTokens(_th, tokensGenerated)) throw;
 
@@ -316,7 +316,7 @@ contract StatusContribution is Owned, TokenController {
 
         finalized = now;
 
-        uint percentageToSgt;
+        uint256 percentageToSgt;
         if (SGT.totalSupply() >= maxSGTSupply) {
             percentageToSgt = percent(10);  // 10%
         } else {
@@ -329,15 +329,15 @@ contract StatusContribution is Owned, TokenController {
             percentageToSgt = percent(10).mul(SGT.totalSupply()).div(maxSGTSupply);
         }
 
-        uint percentageToDevs = percent(20);  // 20%
+        uint256 percentageToDevs = percent(20);  // 20%
 
 
         //
         //  % To Contributors = 41% + (10% - % to SGT holders)
         //
-        uint percentageToContributors = percent(41).add(percent(10).sub(percentageToSgt));
+        uint256 percentageToContributors = percent(41).add(percent(10).sub(percentageToSgt));
 
-        uint percentageToSecondary = percent(29);
+        uint256 percentageToSecondary = percent(29);
 
 
         // SNT.totalSupply() -> Tokens minted during the contribution
@@ -357,7 +357,7 @@ contract StatusContribution is Owned, TokenController {
         //  =>  totalTokens = ---------------------------- * SNT.totalSupply()
         //                      percentageToContributors
         //
-        uint totalTokens = SNT.totalSupply().mul(percent(100)).div(percentageToContributors);
+        uint256 totalTokens = SNT.totalSupply().mul(percent(100)).div(percentageToContributors);
 
 
         // Generate tokens for SGT Holders.
@@ -396,7 +396,7 @@ contract StatusContribution is Owned, TokenController {
 
     }
 
-    function percent(uint p) internal returns(uint) {
+    function percent(uint256 p) internal returns(uint256) {
         return p.mul(10**16);
     }
 
@@ -406,12 +406,12 @@ contract StatusContribution is Owned, TokenController {
     //////////
 
     /// @return Total tokens issued in weis.
-    function tokensIssued() public constant returns (uint) {
+    function tokensIssued() public constant returns (uint256) {
         return SNT.totalSupply();
     }
 
     /// @return Total Ether collected.
-    function totalCollected() public constant returns (uint) {
+    function totalCollected() public constant returns (uint256) {
         return totalNormalCollected.add(totalGuaranteedCollected);
     }
 
@@ -421,7 +421,7 @@ contract StatusContribution is Owned, TokenController {
     //////////
 
     /// @notice This function is overridden by the test Mocks.
-    function getBlockNumber() internal constant returns (uint) {
+    function getBlockNumber() internal constant returns (uint256) {
         return block.number;
     }
 
@@ -444,13 +444,13 @@ contract StatusContribution is Owned, TokenController {
         }
 
         MiniMeToken token = MiniMeToken(_token);
-        uint balance = token.balanceOf(this);
+        uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);
     }
 
-    event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
-    event NewSale(address indexed _th, uint _amount, uint _tokens, bool _guaranteed);
-    event GuaranteedAddress(address indexed _th, uint _limit);
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
+    event NewSale(address indexed _th, uint256 _amount, uint256 _tokens, bool _guaranteed);
+    event GuaranteedAddress(address indexed _th, uint256 _limit);
     event Finalized();
 }

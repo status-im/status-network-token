@@ -10,7 +10,7 @@ import "./MiniMeToken.sol";
 
 contract SGT is MiniMeToken {
 
-    uint constant D160 = 0x0010000000000000000000000000000000000000000;
+    uint256 constant D160 = 0x0010000000000000000000000000000000000000000;
 
     function SGT(address _tokenFactory)
             MiniMeToken(
@@ -23,13 +23,13 @@ contract SGT is MiniMeToken {
                 false                    // Enable transfers
             ) {}
 
-    // data is an array of uints. Each uint represents a transfer.
+    // data is an array of uint256s. Each uint256 represents a transfer.
     // The 160 LSB is the destination of the address that wants to be sent
     // The 96 MSB is the amount of tokens that wants to be sent.
-    function multiMint(uint[] data) public onlyController {
-        for (uint i = 0; i < data.length; i++) {
+    function multiMint(uint256[] data) public onlyController {
+        for (uint256 i = 0; i < data.length; i++) {
             address addr = address(data[i] & (D160 - 1));
-            uint amount = data[i] / D160;
+            uint256 amount = data[i] / D160;
 
             if (!generateTokens(addr, amount)) throw;
         }

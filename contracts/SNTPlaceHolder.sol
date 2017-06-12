@@ -33,11 +33,11 @@ import "./Owned.sol";
 
 
 contract SNTPlaceHolder is TokenController, Owned {
-    using SafeMath for uint;
+    using SafeMath for uint256;
 
     MiniMeToken public snt;
     StatusContribution public contribution;
-    uint public activationTime;
+    uint256 public activationTime;
     address public sgtExchanger;
 
     /// @notice Constructor
@@ -72,18 +72,18 @@ contract SNTPlaceHolder is TokenController, Owned {
         return false;
     }
 
-    function onTransfer(address _from, address, uint) public returns (bool) {
+    function onTransfer(address _from, address, uint256) public returns (bool) {
         return transferable(_from);
     }
 
-    function onApprove(address _from, address, uint) public returns (bool) {
+    function onApprove(address _from, address, uint256) public returns (bool) {
         return transferable(_from);
     }
 
     function transferable(address _from) internal returns (bool) {
         // Allow the exchanger to work from the beginning
         if (activationTime == 0) {
-            uint f = contribution.finalized();
+            uint256 f = contribution.finalized();
             if (f > 0) {
                 activationTime = f.add(1 weeks);
             } else {
@@ -99,7 +99,7 @@ contract SNTPlaceHolder is TokenController, Owned {
     //////////
 
     /// @notice This function is overrided by the test Mocks.
-    function getTime() internal returns(uint) {
+    function getTime() internal returns(uint256) {
         return now;
     }
 
@@ -122,11 +122,11 @@ contract SNTPlaceHolder is TokenController, Owned {
         }
 
         MiniMeToken token = MiniMeToken(_token);
-        uint balance = token.balanceOf(this);
+        uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);
     }
 
-    event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
     event ControllerChanged(address indexed _newController);
 }

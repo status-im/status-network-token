@@ -32,10 +32,10 @@ import "./Owned.sol";
 
 
 contract SGTExchanger is TokenController, Owned {
-    using SafeMath for uint;
+    using SafeMath for uint256;
 
-    mapping (address => uint) public collected;
-    uint public totalCollected;
+    mapping (address => uint256) public collected;
+    uint256 public totalCollected;
     MiniMeToken public sgt;
     MiniMeToken public snt;
 
@@ -47,12 +47,12 @@ contract SGTExchanger is TokenController, Owned {
     /// @notice This method should be called by the SGT holders to collect their
     ///  corresponding SNTs
     function collect() public {
-        uint total = totalCollected.add(snt.balanceOf(address(this)));
+        uint256 total = totalCollected.add(snt.balanceOf(address(this)));
 
-        uint balance = sgt.balanceOf(msg.sender);
+        uint256 balance = sgt.balanceOf(msg.sender);
 
         // First calculate how much correspond to him
-        uint amount = total.mul(balance).div(sgt.totalSupply());
+        uint256 amount = total.mul(balance).div(sgt.totalSupply());
 
         // And then subtract the amount already collected
         amount = amount.sub(collected[msg.sender]);
@@ -69,11 +69,11 @@ contract SGTExchanger is TokenController, Owned {
         throw;
     }
 
-    function onTransfer(address, address, uint) public returns(bool) {
+    function onTransfer(address, address, uint256) public returns(bool) {
         return false;
     }
 
-    function onApprove(address, address, uint) public returns(bool) {
+    function onApprove(address, address, uint256) public returns(bool) {
         return false;
     }
 
@@ -94,12 +94,12 @@ contract SGTExchanger is TokenController, Owned {
         }
 
         MiniMeToken token = MiniMeToken(_token);
-        uint balance = token.balanceOf(this);
+        uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);
     }
 
-    event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
-    event TokensCollected(address indexed _holder, uint _amount);
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
+    event TokensCollected(address indexed _holder, uint256 _amount);
 
 }

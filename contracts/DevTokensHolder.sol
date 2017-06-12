@@ -48,9 +48,9 @@ import "./SafeMath.sol";
 
 
 contract DevTokensHolder is Owned {
-    using SafeMath for uint;
+    using SafeMath for uint256;
 
-    uint collectedTokens;
+    uint256 collectedTokens;
     StatusContribution contribution;
     MiniMeToken snt;
 
@@ -63,15 +63,15 @@ contract DevTokensHolder is Owned {
 
     /// @notice The Dev (Owner) will call this method to extract the tokens
     function collectTokens() public onlyOwner {
-        uint balance = snt.balanceOf(address(this));
-        uint total = collectedTokens.add(snt.balanceOf(address(this)));
+        uint256 balance = snt.balanceOf(address(this));
+        uint256 total = collectedTokens.add(snt.balanceOf(address(this)));
 
-        uint finalized = contribution.finalized();
+        uint256 finalized = contribution.finalized();
 
         if (finalized == 0) throw;
         if (getTime().sub(finalized) <= months(6)) throw;
 
-        uint canExtract = total.mul(getTime().sub(finalized).div(months(24)));
+        uint256 canExtract = total.mul(getTime().sub(finalized).div(months(24)));
 
         canExtract = canExtract.sub(collectedTokens);
 
@@ -85,11 +85,11 @@ contract DevTokensHolder is Owned {
         TokensWithdrawn(owner, canExtract);
     }
 
-    function months(uint m) internal returns(uint) {
+    function months(uint256 m) internal returns(uint256) {
         return m.mul(30 days);
     }
 
-    function getTime() internal returns(uint) {
+    function getTime() internal returns(uint256) {
         return now;
     }
 
@@ -110,12 +110,12 @@ contract DevTokensHolder is Owned {
         }
 
         MiniMeToken token = MiniMeToken(_token);
-        uint balance = token.balanceOf(this);
+        uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);
     }
 
-    event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
-    event TokensWithdrawn(address indexed _holder, uint _amount);
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
+    event TokensWithdrawn(address indexed _holder, uint256 _amount);
 
 }
