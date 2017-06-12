@@ -12,7 +12,7 @@ const DynamicCeiling = artifacts.require("DynamicCeiling");
 const SNTPlaceHolderMock = artifacts.require("SNTPlaceHolderMock");
 const ExternalToken = artifacts.require("ExternalToken");
 
-const setHiddenPoints = require("./helpers/hiddenPoints.js").setHiddenPoints;
+const setHiddenCurves = require("./helpers/hiddenCurves.js").setHiddenCurves;
 const assertFail = require("./helpers/assertFail");
 
 contract("StatusContribution", (accounts) => {
@@ -31,7 +31,7 @@ contract("StatusContribution", (accounts) => {
     let sntPlaceHolder;
     let externalToken;
 
-    const points = [
+    const curves = [
         [1000000, web3.toWei(3)],
         [1001000, web3.toWei(13)],
         [1002000, web3.toWei(15)],
@@ -63,7 +63,7 @@ contract("StatusContribution", (accounts) => {
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
         dynamicCeiling = await DynamicCeiling.new();
 
-        await setHiddenPoints(dynamicCeiling, points);
+        await setHiddenCurves(dynamicCeiling, curves);
 
         sntPlaceHolder = await SNTPlaceHolderMock.new(
             multisigComunity.address,

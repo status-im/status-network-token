@@ -305,7 +305,7 @@ contract StatusContribution is Owned, TokenController {
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber() <= endBlock) {
-            var (,,lastLimit) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
+            var (,lastLimit) = dynamicCeiling.curves(dynamicCeiling.revealedCurves().sub(1));
 
             if (totalCollected() < lastLimit - 1 ether) throw;
         }

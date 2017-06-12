@@ -19,9 +19,9 @@ pragma solidity ^0.4.11;
 
 /// @title DynamicCeiling Contract
 /// @author Jordi Baylina
-/// @dev This contract calculates the ceiling from a series of points.
-///  These points are committed first and revealed later.
-///  All the points must be in increasing order and the last point is marked
+/// @dev This contract calculates the ceiling from a series of curves.
+///  These curves are committed first and revealed later.
+///  All the curves must be in increasing order and the last curve is marked
 ///  as the last one.
 ///  This contract allows to hide and reveal the ceiling at will of the owner.
 
@@ -32,7 +32,7 @@ import "./SafeMath.sol";
 contract DynamicCeiling {
     using SafeMath for uint256;
 
-    struct CurvePoint {
+    struct Curve {
         bytes32 hash;
         uint256 limit;
     }
@@ -42,68 +42,68 @@ contract DynamicCeiling {
 
     address public creator;
     uint256 public currentIndex;
-    uint256 public revealedPoints;
+    uint256 public revealedCurves;
     bool public allRevealed;
-    CurvePoint[] public points;
+    Curve[] public curves;
 
     function DynamicCeiling() {
         creator = msg.sender;
     }
 
     /// @notice This should be called by the creator of the contract to commit
-    ///  all the points of the curve.
-    /// @param _pointHashes Array of hashes of each point. Each hash is calculated
-    ///  by the `calculateHash` method. More hashes than actual points of the curve
-    ///  can be committed in order to hide also the number of points of the curve.
+    ///  all the curves.
+    /// @param _curveHashes Array of hashes of each curve. Each hash is calculated
+    ///  by the `calculateHash` method. More hashes than actual curves can be
+    ///  committed in order to hide also the number of curves.
     ///  The remaining hashes can be just random numbers.
-    function setHiddenPoints(bytes32[] _pointHashes) public {
+    function setHiddenCurves(bytes32[] _curveHashes) public {
         if (msg.sender != creator) throw;
-        if (points.length > 0) throw;
+        if (curves.length > 0) throw;
 
-        points.length = _pointHashes.length;
-        for (uint256 i = 0; i < _pointHashes.length; i = i.add(1)) {
-            points[i].hash = _pointHashes[i];
+        curves.length = _curveHashes.length;
+        for (uint256 i = 0; i < _curveHashes.length; i = i.add(1)) {
+            curves[i].hash = _curveHashes[i];
         }
     }
 
 
-    /// @notice Anybody can reveal the next point of the curve if he knows it.
+    /// @notice Anybody can reveal the next curve if he knows it.
     /// @param _limit Ceiling cap.
     ///  (must be greater or equal to the previous one).
-    /// @param _last `true` if it's the last point of the curve.
-    /// @param _salt Random number used to commit the point
-    function revealPoint(uint256 _limit, bool _last, bytes32 _salt) public {
+    /// @param _last `true` if it's the last curve.
+    /// @param _salt Random number used to commit the curve
+    function revealCurve(uint256 _limit, bool _last, bytes32 _salt) public {
         if (allRevealed) throw;
 
-        if (points[revealedPoints].hash != keccak256(_limit, _last, _salt)) throw;
+        if (curves[revealedCurves].hash != keccak256(_limit, _last, _salt)) throw;
 
-        if (revealedPoints > 0) {
-            if (_limit < points[revealedPoints.sub(1)].limit) throw;
+        if (revealedCurves > 0) {
+            if (_limit < curves[revealedCurves.sub(1)].limit) throw;
         }
 
-        points[revealedPoints].limit = _limit;
-        revealedPoints = revealedPoints.add(1);
+        curves[revealedCurves].limit = _limit;
+        revealedCurves = revealedCurves.add(1);
 
         if (_last) allRevealed = true;
     }
 
-    /// @return Return the funds to collect for the current point on the limit curve
-    ///  (or 0 if no points revealed yet)
+    /// @return Return the funds to collect for the current curve on the limit curve
+    ///  (or 0 if no curves revealed yet)
     function toCollect(uint256 collected) public returns (uint256) {
-        if (revealedPoints == 0) return 0;
+        if (revealedCurves == 0) return 0;
 
-        // Move to the next point
-        if (collected >= points[currentIndex].limit) {  // Catches `limit == 0`
+        // Move to the next curve
+        if (collected >= curves[currentIndex].limit) {  // Catches `limit == 0`
             uint256 nextIndex = currentIndex.add(1);
-            if (nextIndex == revealedPoints) return 0;  // No more points
+            if (nextIndex == revealedCurves) return 0;  // No more curves
             currentIndex = nextIndex;
-            if (collected >= points[currentIndex].limit) return 0;  // Catches `limit == 0`
+            if (collected >= curves[currentIndex].limit) return 0;  // Catches `limit == 0`
         }
 
         // Everything left to collect from this limit
-        uint256 difference = points[currentIndex].limit.sub(collected);
+        uint256 difference = curves[currentIndex].limit.sub(collected);
 
-        // Return current point on curve
+        // Current curve on curve
         uint256 collect = difference.div(slopeFactor);
 
         // Prevents paying too much fees vs to be collected; breaks long tail
@@ -114,21 +114,20 @@ contract DynamicCeiling {
         }
     }
 
-    /// @notice Calculates the hash of a point.
+    /// @notice Calculates the hash of a curve.
     /// @param _limit Ceiling cap.
-    /// @param _last `true` if it's the last point of the curve.
-    /// @param _salt Random number that will be needed to reveal this point.
-    /// @return The calculated hash of this point to be used in the
-    ///  `setHiddenPoints` method
+    /// @param _last `true` if it's the last curve.
+    /// @param _salt Random number that will be needed to reveal this curve.
+    /// @return The calculated hash of this curve to be used in the `setHiddenCurves` method
     function calculateHash(uint256 _limit, bool _last, bytes32 _salt) public constant returns (bytes32) {
         return keccak256(_limit, _last, _salt);
     }
 
-    /// @return Return the total number of points committed
-    ///  (can be larger than the number of actual points on the curve to hide
-    ///  the real number of points)
-    function nPoints() public constant returns (uint256) {
-        return points.length;
+    /// @return Return the total number of curves committed
+    ///  (can be larger than the number of actual curves on the curve to hide
+    ///  the real number of curves)
+    function nCurves() public constant returns (uint256) {
+        return curves.length;
     }
 
 }
