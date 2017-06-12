@@ -37,16 +37,16 @@ contract ContributionWallet {
 
     // Public variables
     address public multisig;
-    uint public finalBlock;
+    uint public endBlock;
     StatusContribution public contribution;
 
     // @dev Constructor initializes public variables
     // @param _multisig The address of the multisig that will receive the funds
-    // @param _finalBlock Block after which the multisig can request the funds
+    // @param _endBlock Block after which the multisig can request the funds
     // @param _contribution Address of the StatusContribution contract
-    function ContributionWallet(address _multisig, uint _finalBlock, address _contribution) {
+    function ContributionWallet(address _multisig, uint _endBlock, address _contribution) {
         multisig = _multisig;
-        finalBlock = _finalBlock;
+        endBlock = _endBlock;
         contribution = StatusContribution(_contribution);
     }
 
@@ -56,7 +56,7 @@ contract ContributionWallet {
     // @dev Withdraw function sends all the funds to the wallet if conditions are correct
     function withdraw() public {
         if (msg.sender != multisig) throw;         // Only the multisig can request it
-        if (block.number <= finalBlock &&          // Allow after final block
+        if (block.number <= endBlock &&            // Allow after end block
             contribution.finalized() == 0) throw;  // Allow when sale is finalized
         multisig.transfer(this.balance);
     }

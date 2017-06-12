@@ -43,7 +43,7 @@ contract StatusContribution is Owned, TokenController {
     MiniMeToken public SGT;
     MiniMeToken public SNT;
     uint public startBlock;
-    uint public stopBlock;
+    uint public endBlock;
     uint public sgtPreferenceBlocks;
     uint public sgtLimit;
 
@@ -73,7 +73,7 @@ contract StatusContribution is Owned, TokenController {
 
     modifier contributionOpen() {
         if ((getBlockNumber() < startBlock) ||
-            (getBlockNumber() >= stopBlock) ||
+            (getBlockNumber() > endBlock) ||
             (finalized > 0) ||
             (address(SNT) == 0x0 ))
             throw;
@@ -87,7 +87,7 @@ contract StatusContribution is Owned, TokenController {
     ///  period starts This initializes most of the parameters
     /// @param _sntAddress Address of the SNT token contract
     /// @param _startBlock Block when the contribution period starts
-    /// @param _stopBlock Maximum block that the contribution period can be longed
+    /// @param _endBlock The last block that the contribution period is active
     /// @param _dynamicCeiling Address of the contract that controls the ceiling
     /// @param _destEthDevs Destination address where the contribution ether is sent
     /// @param _destTokensDevs Address where the tokens for the dev are sent
@@ -102,7 +102,7 @@ contract StatusContribution is Owned, TokenController {
     function initialize(
         address _sntAddress,
         uint _startBlock,
-        uint _stopBlock,
+        uint _endBlock,
         uint _sgtPreferenceBlocks,
         uint _sgtLimit,
         address _dynamicCeiling,
@@ -127,9 +127,10 @@ contract StatusContribution is Owned, TokenController {
         if (SNT.decimals() != 18) throw;  // Same amount of decimals as ETH
 
         if (_startBlock < getBlockNumber()) throw;
-        if (_stopBlock < _startBlock) throw;
+        if (_startBlock >= _endBlock) throw;
         startBlock = _startBlock;
-        stopBlock = _stopBlock;
+        endBlock = _endBlock;
+
         sgtLimit = _sgtLimit;
         sgtPreferenceBlocks = _sgtPreferenceBlocks;
 
@@ -300,14 +301,14 @@ contract StatusContribution is Owned, TokenController {
     ///  controller.
     function finalize() public initialized {
         if (getBlockNumber() < startBlock) throw;
-        if (msg.sender != owner && getBlockNumber() < stopBlock) throw;
+        if (msg.sender != owner && getBlockNumber() <= endBlock) throw;
         if (finalized > 0) throw;
 
         // Do not allow terminate until all revealed.
         if (!dynamicCeiling.allRevealed()) throw;
 
         // Allow premature finalization if final limit is reached
-        if (getBlockNumber () < stopBlock) {
+        if (getBlockNumber() <= endBlock) {
             var (,,lastLimit) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
 
             if (totalCollected() < lastLimit - 1 ether) throw;
