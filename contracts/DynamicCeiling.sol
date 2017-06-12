@@ -87,7 +87,7 @@ contract DynamicCeiling {
         if (_last) allRevealed = true;
     }
 
-    /// @return Return the funds to collect for the current curve on the limit curve
+    /// @return Return the funds to collect for the current point on the curve
     ///  (or 0 if no curves revealed yet)
     function toCollect(uint256 collected) public returns (uint256) {
         if (revealedCurves == 0) return 0;
@@ -103,7 +103,7 @@ contract DynamicCeiling {
         // Everything left to collect from this limit
         uint256 difference = curves[currentIndex].limit.sub(collected);
 
-        // Current curve on curve
+        // Current point on the curve
         uint256 collect = difference.div(slopeFactor);
 
         // Prevents paying too much fees vs to be collected; breaks long tail
