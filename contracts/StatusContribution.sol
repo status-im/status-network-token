@@ -210,17 +210,14 @@ contract StatusContribution is Owned, TokenController {
     function buyNormal(address _th) internal {
         if (tx.gasprice > maxGasPrice) throw;
 
+        uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
+        if (totalNormalCollected.add(toCollect) > failSafe) throw;
+
         uint256 toFund;
-        uint256 cap = dynamicCeiling.cap(getBlockNumber());
-
-        cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(30));
-
-        if (cap > failSafe) cap = failSafe;
-
-        if (totalNormalCollected.add(msg.value) > cap) {
-            toFund = cap.sub(totalNormalCollected);
-        } else {
+        if (msg.value <= toCollect) {
             toFund = msg.value;
+        } else {
+            toFund = toCollect;
         }
 
         if (getBlockNumber() < startBlock + sgtPreferenceBlocks) {
@@ -230,7 +227,6 @@ contract StatusContribution is Owned, TokenController {
            }
            sgtContributed[_th] = sgtContributed[_th].add(toFund);
         }
-
 
         totalNormalCollected = totalNormalCollected.add(toFund);
         doBuy(_th, toFund, false);
