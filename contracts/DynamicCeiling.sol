@@ -128,7 +128,7 @@ contract DynamicCeiling {
     /// @return Return the total number of points committed
     ///  (can be larger than the number of actual points on the curve to hide
     ///  the real number of points)
-    function nPoints() public constant returns(uint256) {
+    function nPoints() public constant returns (uint256) {
         return points.length;
     }
 

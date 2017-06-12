@@ -199,11 +199,11 @@ contract StatusContribution is Owned, TokenController {
         return true;
     }
 
-    function onTransfer(address, address, uint256) public returns(bool) {
+    function onTransfer(address, address, uint256) public returns (bool) {
         return false;
     }
 
-    function onApprove(address, address, uint256) public returns(bool) {
+    function onApprove(address, address, uint256) public returns (bool) {
         return false;
     }
 
@@ -396,7 +396,7 @@ contract StatusContribution is Owned, TokenController {
 
     }
 
-    function percent(uint256 p) internal returns(uint256) {
+    function percent(uint256 p) internal returns (uint256) {
         return p.mul(10**16);
     }
 
