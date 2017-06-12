@@ -4,7 +4,6 @@ exports.setHiddenPoints = async (dynamicCeiling, points) => {
     for (let p of points) {
         const h = await dynamicCeiling.calculateHash(
             p[0],
-            p[1],
             i === points.length - 1,
             web3.sha3(`pwd${ i }`));
         hashes.push(h);

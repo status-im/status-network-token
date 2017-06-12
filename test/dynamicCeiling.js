@@ -7,9 +7,9 @@ contract("DynamicCeiling", () => {
     let dynamicCeiling;
 
     const points = [
-        [1000000, web3.toWei(1000)],
-        [1001000, web3.toWei(21000)],
-        [1002000, web3.toWei(61000)],
+        [web3.toWei(1000)],
+        [web3.toWei(21000)],
+        [web3.toWei(61000)],
     ];
 
     it("Should deploy dynamicCeiling", async () => {
@@ -17,15 +17,15 @@ contract("DynamicCeiling", () => {
     });
 
     it("Cap should be 0 before points are set", async () => {
-        assert.equal(await dynamicCeiling.cap(99999), 0);
-        assert.equal(await dynamicCeiling.cap(100000), 0);
-        assert.equal(await dynamicCeiling.cap(100001), 0);
-        assert.equal(await dynamicCeiling.cap(100999), 0);
-        assert.equal(await dynamicCeiling.cap(101000), 0);
-        assert.equal(await dynamicCeiling.cap(101001), 0);
-        assert.equal(await dynamicCeiling.cap(101999), 0);
-        assert.equal(await dynamicCeiling.cap(102000), 0);
-        assert.equal(await dynamicCeiling.cap(102001), 0);
+        assert.equal(await dynamicCeiling.toCollect(0), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(10)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(15)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(20)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(30)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(55)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(676)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(5555)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(10**8)), 0);
     });
 
     it("Should set the points", async () => {
@@ -35,21 +35,20 @@ contract("DynamicCeiling", () => {
     });
 
     it("Cap should be 0 before points are revealed", async () => {
-        assert.equal(await dynamicCeiling.cap(99999), 0);
-        assert.equal(await dynamicCeiling.cap(1000000), 0);
-        assert.equal(await dynamicCeiling.cap(1000001), 0);
-        assert.equal(await dynamicCeiling.cap(1000999), 0);
-        assert.equal(await dynamicCeiling.cap(1001000), 0);
-        assert.equal(await dynamicCeiling.cap(1001001), 0);
-        assert.equal(await dynamicCeiling.cap(1001999), 0);
-        assert.equal(await dynamicCeiling.cap(1002000), 0);
-        assert.equal(await dynamicCeiling.cap(1002001), 0);
+        assert.equal(await dynamicCeiling.toCollect(0), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(10)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(15)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(20)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(30)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(55)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(676)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(5555)), 0);
+        assert.equal(await dynamicCeiling.toCollect(web3.toWei(10**8)), 0);
     });
 
     it("Should reveal 1st point", async () => {
         await dynamicCeiling.revealPoint(
             points[0][0],
-            points[0][1],
             false,
             web3.sha3("pwd0"));
 
@@ -58,66 +57,65 @@ contract("DynamicCeiling", () => {
     });
 
     it("Check limits after revealed 1st point", async () => {
-        assert.equal(await dynamicCeiling.cap(99999), 0);
-        assert.equal((await dynamicCeiling.cap(1000000)).toString(10), web3.toWei(1000));
-        assert.equal((await dynamicCeiling.cap(1000001)).toString(10), web3.toWei(1000));
-
-        assert.equal((await dynamicCeiling.cap(1000999)).toString(10), web3.toWei(1000));
-        assert.equal((await dynamicCeiling.cap(1001000)).toString(10), web3.toWei(1000));
-        assert.equal((await dynamicCeiling.cap(1001001)).toString(10), web3.toWei(1000));
-
-        assert.equal((await dynamicCeiling.cap(1001999)).toString(10), web3.toWei(1000));
-        assert.equal((await dynamicCeiling.cap(1002000)).toString(10), web3.toWei(1000));
-        assert.equal((await dynamicCeiling.cap(1002001)).toString(10), web3.toWei(1000));
+        assert.equal((await dynamicCeiling.toCollect(0)).toString(10), '33333333333333333333');
+        assert.equal((await dynamicCeiling.toCollect(web3.toWei(10))).toString(10), '33000000000000000000');
+        assert.equal((await dynamicCeiling.toCollect(web3.toWei(15))).toString(10), '32833333333333333333');
+        assert.equal((await dynamicCeiling.toCollect(web3.toWei(20))).toString(10), '32666666666666666666');
+        assert.equal((await dynamicCeiling.toCollect(web3.toWei(30))).toString(10), '32333333333333333333');
+        assert.equal((await dynamicCeiling.toCollect(web3.toWei(55))).toString(10), '31500000000000000000');
+        assert.equal((await dynamicCeiling.toCollect(web3.toWei(676))).toString(10), '10800000000000000000');
+        assert.equal((await dynamicCeiling.toCollect(web3.toWei(999))).toString(10), '33333333333333333');
+        assert.equal((await dynamicCeiling.toCollect('999999999998999999999')).toString(10), '1000000001');
+        assert.equal((await dynamicCeiling.toCollect('999999999999000000000')).toString(10), '1000000000');
+        assert.equal((await dynamicCeiling.toCollect('999999999999999999999')).toString(10), '1');
+        assert.equal((await dynamicCeiling.toCollect(web3.toWei(1000))).toString(10), '0');
     });
 
-    it("Should reveal 2nd point", async () => {
-        await dynamicCeiling.revealPoint(
-            points[1][0],
-            points[1][1],
-            false,
-            web3.sha3("pwd1"));
+    // it("Should reveal 2nd point", async () => {
+    //     await dynamicCeiling.revealPoint(
+    //         points[1][0],
+    //         false,
+    //         web3.sha3("pwd1"));
 
-        assert.equal(await dynamicCeiling.revealedPoints(), 2);
-        assert.equal(await dynamicCeiling.allRevealed(), false);
-    });
+    //     assert.equal(await dynamicCeiling.revealedPoints(), 2);
+    //     assert.equal(await dynamicCeiling.allRevealed(), false);
+    // });
 
-    it("Check limits after revealed 1st point", async () => {
-        assert.equal(await dynamicCeiling.cap(99999), 0);
-        assert.equal((await dynamicCeiling.cap(1000000)).toString(10), web3.toWei(1000));
-        assert.equal((await dynamicCeiling.cap(1000001)).toString(10), web3.toWei(1020));
+    // it("Check limits after revealed 1st point", async () => {
+    //     assert.equal(await dynamicCeiling.toCollect(99999), 0);
+    //     assert.equal((await dynamicCeiling.toCollect(1000000)).toString(10), web3.toWei(1000));
+    //     assert.equal((await dynamicCeiling.toCollect(1000001)).toString(10), web3.toWei(1020));
 
-        assert.equal((await dynamicCeiling.cap(1000999)).toString(10), web3.toWei(20980));
-        assert.equal((await dynamicCeiling.cap(1001000)).toString(10), web3.toWei(21000));
-        assert.equal((await dynamicCeiling.cap(1001001)).toString(10), web3.toWei(21000));
+    //     assert.equal((await dynamicCeiling.toCollect(1000999)).toString(10), web3.toWei(20980));
+    //     assert.equal((await dynamicCeiling.toCollect(1001000)).toString(10), web3.toWei(21000));
+    //     assert.equal((await dynamicCeiling.toCollect(1001001)).toString(10), web3.toWei(21000));
 
-        assert.equal((await dynamicCeiling.cap(1001999)).toString(10), web3.toWei(21000));
-        assert.equal((await dynamicCeiling.cap(1002000)).toString(10), web3.toWei(21000));
-        assert.equal((await dynamicCeiling.cap(1002001)).toString(10), web3.toWei(21000));
-    });
+    //     assert.equal((await dynamicCeiling.toCollect(1001999)).toString(10), web3.toWei(21000));
+    //     assert.equal((await dynamicCeiling.toCollect(1002000)).toString(10), web3.toWei(21000));
+    //     assert.equal((await dynamicCeiling.toCollect(1002001)).toString(10), web3.toWei(21000));
+    // });
 
-    it("Should reveal last point", async () => {
-        await dynamicCeiling.revealPoint(
-            points[2][0],
-            points[2][1],
-            true,
-            web3.sha3("pwd2"));
+    // it("Should reveal last point", async () => {
+    //     await dynamicCeiling.revealPoint(
+    //         points[2][0],
+    //         true,
+    //         web3.sha3("pwd2"));
 
-        assert.equal(await dynamicCeiling.revealedPoints(), 3);
-        assert.equal(await dynamicCeiling.allRevealed(), true);
-    });
+    //     assert.equal(await dynamicCeiling.revealedPoints(), 3);
+    //     assert.equal(await dynamicCeiling.allRevealed(), true);
+    // });
 
-    it("Check limits after revealed 1st point", async () => {
-        assert.equal(await dynamicCeiling.cap(99999), 0);
-        assert.equal((await dynamicCeiling.cap(1000000)).toString(10), web3.toWei(1000));
-        assert.equal((await dynamicCeiling.cap(1000001)).toString(10), web3.toWei(1020));
+    // it("Check limits after revealed 1st point", async () => {
+    //     assert.equal(await dynamicCeiling.toCollect(99999), 0);
+    //     assert.equal((await dynamicCeiling.toCollect(1000000)).toString(10), web3.toWei(1000));
+    //     assert.equal((await dynamicCeiling.toCollect(1000001)).toString(10), web3.toWei(1020));
 
-        assert.equal((await dynamicCeiling.cap(1000999)).toString(10), web3.toWei(20980));
-        assert.equal((await dynamicCeiling.cap(1001000)).toString(10), web3.toWei(21000));
-        assert.equal((await dynamicCeiling.cap(1001001)).toString(10), web3.toWei(21040));
+    //     assert.equal((await dynamicCeiling.toCollect(1000999)).toString(10), web3.toWei(20980));
+    //     assert.equal((await dynamicCeiling.toCollect(1001000)).toString(10), web3.toWei(21000));
+    //     assert.equal((await dynamicCeiling.toCollect(1001001)).toString(10), web3.toWei(21040));
 
-        assert.equal((await dynamicCeiling.cap(1001999)).toString(10), web3.toWei(60960));
-        assert.equal((await dynamicCeiling.cap(1002000)).toString(10), web3.toWei(61000));
-        assert.equal((await dynamicCeiling.cap(1002001)).toString(10), web3.toWei(61000));
-    });
+    //     assert.equal((await dynamicCeiling.toCollect(1001999)).toString(10), web3.toWei(60960));
+    //     assert.equal((await dynamicCeiling.toCollect(1002000)).toString(10), web3.toWei(61000));
+    //     assert.equal((await dynamicCeiling.toCollect(1002001)).toString(10), web3.toWei(61000));
+    // });
 });
