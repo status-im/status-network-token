@@ -32,9 +32,9 @@ contract("StatusContribution", (accounts) => {
     let externalToken;
 
     const curves = [
-        [1000000, web3.toWei(3)],
-        [1001000, web3.toWei(13)],
-        [1002000, web3.toWei(15)],
+        [web3.toWei(3)],
+        [web3.toWei(13)],
+        [web3.toWei(15)],
     ];
     const startBlock = 1000000;
     const endBlock = 1003000;

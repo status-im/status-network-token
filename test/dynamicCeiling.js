@@ -81,7 +81,7 @@ contract("DynamicCeiling", () => {
     //     assert.equal(await dynamicCeiling.allRevealed(), false);
     // });
 
-    // it("Check limits after revealed 1st curve", async () => {
+    // it("Check limits after revealed 2nd curve", async () => {
     //     assert.equal(await dynamicCeiling.toCollect(99999), 0);
     //     assert.equal((await dynamicCeiling.toCollect(1000000)).toString(10), web3.toWei(1000));
     //     assert.equal((await dynamicCeiling.toCollect(1000001)).toString(10), web3.toWei(1020));
@@ -105,7 +105,7 @@ contract("DynamicCeiling", () => {
     //     assert.equal(await dynamicCeiling.allRevealed(), true);
     // });
 
-    // it("Check limits after revealed 1st curve", async () => {
+    // it("Check limits after revealed 3rd curve", async () => {
     //     assert.equal(await dynamicCeiling.toCollect(99999), 0);
     //     assert.equal((await dynamicCeiling.toCollect(1000000)).toString(10), web3.toWei(1000));
     //     assert.equal((await dynamicCeiling.toCollect(1000001)).toString(10), web3.toWei(1020));
