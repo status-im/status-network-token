@@ -108,7 +108,11 @@ contract DynamicCeiling {
 
         // Prevents paying too much fees vs to be collected; breaks long tail
         if (collect <= collectMinimum) {
-            return difference;
+            if (difference > collectMinimum) {
+                return collectMinimum;
+            } else {
+                return difference;
+            }
         } else {
             return collect;
         }
