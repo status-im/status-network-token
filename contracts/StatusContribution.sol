@@ -44,7 +44,6 @@ contract StatusContribution is Owned, TokenController {
     MiniMeToken public SNT;
     uint256 public startBlock;
     uint256 public endBlock;
-    uint256 public sgtPreferenceBlocks;
     uint256 public sgtLimit;
 
     address public destEthDevs;
@@ -103,7 +102,6 @@ contract StatusContribution is Owned, TokenController {
         address _sntAddress,
         uint256 _startBlock,
         uint256 _endBlock,
-        uint256 _sgtPreferenceBlocks,
         uint256 _sgtLimit,
         address _dynamicCeiling,
 
@@ -132,7 +130,6 @@ contract StatusContribution is Owned, TokenController {
         endBlock = _endBlock;
 
         sgtLimit = _sgtLimit;
-        sgtPreferenceBlocks = _sgtPreferenceBlocks;
 
         if (_dynamicCeiling == 0x0) throw;
         dynamicCeiling = DynamicCeiling(_dynamicCeiling);
@@ -211,7 +208,7 @@ contract StatusContribution is Owned, TokenController {
         if (tx.gasprice > maxGasPrice) throw;
 
         uint256 toFund;
-        uint256 cap = dynamicCeiling.cap(getBlockNumber());
+        var (onlySgt, cap) = dynamicCeiling.cap(getBlockNumber());
 
         cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(30));
 
@@ -223,7 +220,7 @@ contract StatusContribution is Owned, TokenController {
             toFund = msg.value;
         }
 
-        if (getBlockNumber() < startBlock + sgtPreferenceBlocks) {
+        if (onlySgt) {
            if (SGT.balanceOf(_th) == 0) throw;
            if (sgtContributed[_th].add(toFund) > sgtLimit) {
                toFund = sgtLimit.sub(sgtContributed[_th]);
@@ -309,7 +306,7 @@ contract StatusContribution is Owned, TokenController {
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber() <= endBlock) {
-            var (,,lastLimit) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
+            var (,,lastLimit,) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
 
             if (totalCollected() < lastLimit - 1 ether) throw;
         }
