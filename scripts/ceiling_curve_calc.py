@@ -25,14 +25,22 @@ def args_parse(arguments: Sequence[str] = None) -> argparse.Namespace:
     par0.add_argument('--collect-min', metavar='MINIMUM', required=True, type=Decimal,
                       help='Minimum collection amount')
 
+    # Optional
+    par0.add_argument('--collected-start', metavar='AMOUNT', type=Decimal, default=Decimal(0),
+                      help='Amount collected at start of curve')
+
     args0 = par0.parse_args(arguments)
     return args0
 
 
-def transactions_calc(limit: Decimal, curve_factor: Decimal,
-                      collect_minimum: Decimal) -> Tuple[List[Decimal], int]:
+def transactions_calc(
+        limit: Decimal,
+        curve_factor: Decimal,
+        collect_minimum: Decimal,
+        collected_start: Decimal = Decimal(0),
+) -> Tuple[List[Decimal], int]:
     ''' Calculate transactions '''
-    collected = Decimal(0)
+    collected = collected_start
     transactions = []
     collect_minimum_total = 0
     while True:
@@ -58,10 +66,14 @@ def transactions_calc(limit: Decimal, curve_factor: Decimal,
 def main() -> None:
     ''' Main '''
     transactions, collect_minimum_total = transactions_calc(
-        ARGS.limit, ARGS.curve_factor, ARGS.collect_min)
+        ARGS.limit,
+        ARGS.curve_factor,
+        ARGS.collect_min,
+        collected_start=ARGS.collected_start,
+    )
 
     for n, transaction in enumerate(transactions):
-        print(f'{n: >4}: {transaction:.0f}')
+        print(f'{(n + 1): >4}: {transaction:.0f}')
     print()
 
     print(f'Number of transactions: {len(transactions)}')
