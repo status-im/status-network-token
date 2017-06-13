@@ -69,7 +69,7 @@ contract DevTokensHolder is Owned {
 
         uint256 finalizedTime = contribution.finalizedTime();
 
-        assert (finalized > 0 && getTime() > finalized.add(months(6)));
+        assert (finalizedTime > 0 && getTime() > finalizedTime.add(months(6)));
 
         uint256 canExtract = total.mul(getTime().sub(finalizedTime).div(months(24)));
 
