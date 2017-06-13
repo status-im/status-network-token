@@ -38,7 +38,10 @@ contract DynamicCeiling is Owned {
         uint256 limit;
     }
 
+    // The funds remaining to be collected are divided by `slopeFactor` smooth ceiling
+    // with a long tail where big and small buyers can take part.
     uint256 constant public slopeFactor = 30;
+    // This keeps the curve flat at this number, until funds to be collected is less than this
     uint256 constant public collectMinimum = 10**15;
 
     address public contribution;
@@ -99,7 +102,7 @@ contract DynamicCeiling is Owned {
     /// @notice Move to next point, used as a failsafe
     function moveNext() public onlyOwner {
         uint256 nextIndex = currentIndex.add(1);
-        if (nextIndex == revealedPoints) throw;  // No more points
+        if (nextIndex >= revealedPoints) throw;  // No more points
         currentIndex = nextIndex;
     }
 
@@ -111,7 +114,7 @@ contract DynamicCeiling is Owned {
         // Move to the next point
         if (collected >= points[currentIndex].limit) {  // Catches `limit == 0`
             uint256 nextIndex = currentIndex.add(1);
-            if (nextIndex == revealedPoints) return 0;  // No more points
+            if (nextIndex >= revealedPoints) return 0;  // No more points
             currentIndex = nextIndex;
             if (collected >= points[currentIndex].limit) return 0;  // Catches `limit == 0`
         }
