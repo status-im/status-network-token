@@ -39,6 +39,7 @@ contract StatusContribution is Owned, TokenController {
     uint256 constant public failSafe = 300000 ether;
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
+    uint256 constant public dust = 0.0001 ether;
 
     /*
         remainingDivisor limits the contribution that can be done
@@ -265,7 +266,7 @@ contract StatusContribution is Owned, TokenController {
     }
 
     function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
-        if (_toFund == 0) throw;  // Do not spend gas for
+        if (_toFund < dust) throw;  // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
         uint256 tokensGenerated = _toFund.mul(exchangeRate);
