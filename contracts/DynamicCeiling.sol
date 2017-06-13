@@ -110,6 +110,7 @@ contract DynamicCeiling is Owned {
         if (_index >= revealedPoints ||            // No more points
             _index != currentIndex.add(1)) throw;  // Only move one index at a time
         currentIndex = _index;
+        initialBlock = getBlockNumber();
     }
 
     /// @return Return the funds to collect for the current point on the point
