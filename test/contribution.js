@@ -244,13 +244,20 @@ contract("StatusContribution", (accounts) => {
         const balanceContributionWallet = await web3.eth.getBalance(contributionWallet.address);
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
 
-        while (cur < 14) {
+        // Go to te ceil!!
+        while (cur < 15) {
             await statusContribution.proxyPayment(
                 accounts[1],
                 {value: web3.toWei(15), gas: 300000, from: accounts[0], gasPrice: "20000000000"});
 
             const b2 = Math.min(5, ((lim - cur) / divs));
             cur += b2;
+
+            const tc = await statusContribution.totalCollected();
+
+            if (web3.fromWei(tc).toNumber() == 15) {
+                cur = 15;
+            }
 
             const balanceContributionWallet2 =
                 await web3.eth.getBalance(contributionWallet.address);
