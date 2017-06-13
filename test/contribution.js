@@ -34,7 +34,7 @@ contract("StatusContribution", (accounts) => {
 
     const curves = [
         [web3.toWei(3)],
-        [web3.toWei(13)],
+        [web3.toWei(8)],
         [web3.toWei(15)],
     ];
     const startBlock = 1000000;
@@ -185,6 +185,7 @@ contract("StatusContribution", (accounts) => {
             curves[1][0],
             false,
             web3.sha3("pwd1"));
+        await dynamicCeiling.moveNext();
 
         await statusContribution.setMockedBlockNumber(1005000);
 
@@ -212,6 +213,7 @@ contract("StatusContribution", (accounts) => {
             curves[2][0],
             true,
             web3.sha3("pwd2"));
+        await dynamicCeiling.moveNext();
 
         await statusContribution.setMockedBlockNumber(1025000);
 
@@ -274,6 +276,7 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Should finalize", async () => {
+        await statusContribution.setMockedBlockNumber(endBlock + 1);
         await statusContribution.finalize();
 
         const totalSupply = await snt.totalSupply();
