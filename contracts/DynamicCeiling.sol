@@ -38,7 +38,6 @@ contract DynamicCeiling is Owned {
         bytes32 hash;
         uint256 block;
         uint256 limit;
-        bool onlySgt;
     }
 
     uint256 public revealedPoints;
@@ -68,16 +67,13 @@ contract DynamicCeiling is Owned {
     /// @param _limit Ceiling cap at that block.
     ///  (must be greater or equal than the previous one).
     /// @param _last `true` if it's the last point of the curve.
-    /// @param _onlySgt true if only SGT contributions are accepted in the upcoming segment of the curve.
     /// @param _salt Random number used to commit the point
-    function revealPoint(uint256 _block, uint256 _limit, bool _last, bool _onlySgt, bytes32 _salt) onlyOwner public {
+    function revealPoint(uint256 _block, uint256 _limit, bool _last, bytes32 _salt) onlyOwner public {
         if (allRevealed) throw;
-        if (points[revealedPoints].hash != sha3(_limit, _last, _onlySgt, _salt)) throw;
+        if (points[revealedPoints].hash != sha3(_limit, _last, _salt)) throw;
         if (revealedPoints > 0) {
             if (_block <= points[revealedPoints.sub(1)].block) throw;
             if (_limit < points[revealedPoints.sub(1)].limit) throw;
-            // Once onlySGT is turned off, it can not be turned on again
-            if ((_onlySgt) && (!points[revealedPoints.sub(1)].onlySgt)) throw;
         }
         points[revealedPoints].block = _block;
         points[revealedPoints].limit = _limit;
@@ -87,14 +83,13 @@ contract DynamicCeiling is Owned {
 
     /// @return Return the limit at specific block number
     ///  (or 0 if no points revealed yet or block before first point)
-    function cap(uint256 _block) public constant returns (bool _onlySgt, uint256 _cap) {
-        if (revealedPoints == 0) return (false,0);
+    function cap(uint256 _block) public constant returns (uint256 _cap) {
+        if (revealedPoints == 0) return 0;
 
         // Shortcut if _block is after most recently revealed point
         if (_block >= points[revealedPoints.sub(1)].block)
-            return (points[revealedPoints.sub(1)].onlySgt,
-                        points[revealedPoints.sub(1)].limit);
-        if (_block < points[0].block) return (false, 0);
+            return points[revealedPoints.sub(1)].limit;
+        if (_block < points[0].block) return 0;
 
         // Binary search of the value in the array
         uint256 min = 0;
@@ -108,22 +103,20 @@ contract DynamicCeiling is Owned {
             }
         }
 
-        return (points[min].onlySgt, points[min].limit.add(
+        return points[min].limit.add(
             _block.sub(points[min].block).mul(
                 points[max].limit.sub(points[min].limit)).div(
-                    points[max].block.sub(points[min].block))));
-
+                    points[max].block.sub(points[min].block)));
     }
 
     /// @notice Calculates the hash of a point.
     /// @param _limit Ceiling cap at that block.
     /// @param _last `true` if it's the last point of the curve.
-    /// @param _onlySgt True if only SGTs contribution accepted in the upcoming block.
     /// @param _salt Random number that will be needed to reveal this point.
     /// @return The calculated hash of this point to be used in the
     ///  `setHiddenPoints` method
-    function calculateHash(uint256 _limit, bool _last, bool _onlySgt, bytes32 _salt) public constant returns (bytes32) {
-        return sha3(_limit, _last, _onlySgt, _salt);
+    function calculateHash(uint256 _limit, bool _last, bytes32 _salt) public constant returns (bytes32) {
+        return sha3(_limit, _last, _salt);
     }
 
     /// @return Return the total number of points committed

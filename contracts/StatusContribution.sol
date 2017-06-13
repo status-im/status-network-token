@@ -64,6 +64,7 @@ contract StatusContribution is Owned, TokenController {
     uint256 public totalNormalCollected;
 
     uint256 public finalized;
+    bool public onlySgt;
 
     modifier initialized() {
         if (address(SNT) == 0x0 ) throw;
@@ -79,7 +80,9 @@ contract StatusContribution is Owned, TokenController {
         _;
     }
 
-    function StatusContribution() {}
+    function StatusContribution() {
+        onlySgt = true;
+    }
 
 
     /// @notice This method should be called by the owner before the contribution
@@ -157,6 +160,11 @@ contract StatusContribution is Owned, TokenController {
         sntController = _sntController;
     }
 
+    /// @notice Called by the owner when wants to activate nonSGT contributions
+    function openToNonSGT() onlyOwner {
+        onlySgt = false;
+    }
+
     /// @notice Sets the limit for a guaranteed address. All the guaranteed addresses
     ///  will be able to get SNTs during the contribution period with his own
     ///  specific limit.
@@ -208,7 +216,7 @@ contract StatusContribution is Owned, TokenController {
         if (tx.gasprice > maxGasPrice) throw;
 
         uint256 toFund;
-        var (onlySgt, cap) = dynamicCeiling.cap(getBlockNumber());
+        uint256 cap = dynamicCeiling.cap(getBlockNumber());
 
         cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(30));
 
@@ -220,6 +228,7 @@ contract StatusContribution is Owned, TokenController {
             toFund = msg.value;
         }
 
+
         if (onlySgt) {
            if (SGT.balanceOf(_th) == 0) throw;
            if (sgtContributed[_th].add(toFund) > sgtLimit) {
@@ -227,7 +236,6 @@ contract StatusContribution is Owned, TokenController {
            }
            sgtContributed[_th] = sgtContributed[_th].add(toFund);
         }
-
 
         totalNormalCollected = totalNormalCollected.add(toFund);
         doBuy(_th, toFund, false);
@@ -306,7 +314,7 @@ contract StatusContribution is Owned, TokenController {
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber() <= endBlock) {
-            var (,,lastLimit,) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
+            var (,,lastLimit) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
 
             if (totalCollected() < lastLimit - 1 ether) throw;
         }

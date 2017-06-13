@@ -80,7 +80,6 @@ contract("StatusContribution", (accounts) => {
             snt.address,
             startBlock,
             endBlock,
-            sgtPreferenceBlocks,
             sgtLimit,
             dynamicCeiling.address,
 
@@ -95,6 +94,7 @@ contract("StatusContribution", (accounts) => {
             5000 * 2,
 
             sntPlaceHolder.address);
+
     });
 
     it("Check initial parameters", async () => {
@@ -162,6 +162,7 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Should return the remaining in the last transaction ", async () => {
+        await statusContribution.openToNonSGT();
         await statusContribution.setMockedBlockNumber(1005000);
         const initialBalance = await web3.eth.getBalance(accounts[0]);
         await snt.sendTransaction({value: web3.toWei(5), gas: 300000, gasPrice: "20000000000"});
