@@ -32,9 +32,9 @@ contract("StatusContribution", (accounts) => {
     let externalToken;
 
     const points = [
-        [1000000, web3.toWei(3)],
-        [1001000, web3.toWei(13)],
-        [1002000, web3.toWei(15)],
+        [web3.toWei(3)],
+        [web3.toWei(13)],
+        [web3.toWei(15)],
     ];
     const startBlock = 1000000;
     const endBlock = 1003000;
@@ -61,7 +61,7 @@ contract("StatusContribution", (accounts) => {
             statusContribution.address,
             snt.address);
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
-        dynamicCeiling = await DynamicCeiling.new();
+        dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
 
         await setHiddenPoints(dynamicCeiling, points);
 

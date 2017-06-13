@@ -33,9 +33,9 @@ contract("StatusContribution", (accounts) => {
     const divs = 30;
 
     const points = [
-        [1000000, web3.toWei(3)],
-        [1010000, web3.toWei(13)],
-        [1020000, web3.toWei(15)],
+        [web3.toWei(3)],
+        [web3.toWei(8)],
+        [web3.toWei(15)],
     ];
     const startBlock = 1000000;
     const sgtPreferenceBlocks = 2000;
@@ -63,7 +63,7 @@ contract("StatusContribution", (accounts) => {
             statusContribution.address,
             snt.address);
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
-        dynamicCeiling = await DynamicCeiling.new();
+        dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
 
         await setHiddenPoints(dynamicCeiling, points);
 
@@ -124,7 +124,6 @@ contract("StatusContribution", (accounts) => {
     it("Reveal a point, move time to start of the ICO, and do the first buy", async () => {
         await dynamicCeiling.revealPoint(
             points[0][0],
-            points[0][1],
             false,
             web3.sha3("pwd0"));
 
@@ -184,9 +183,9 @@ contract("StatusContribution", (accounts) => {
     it("Should reveal second point and check that every that the limit is right", async () => {
         await dynamicCeiling.revealPoint(
             points[1][0],
-            points[1][1],
             false,
             web3.sha3("pwd1"));
+        await dynamicCeiling.moveTo(1);
 
         await statusContribution.setMockedBlockNumber(1005000);
 
@@ -212,9 +211,9 @@ contract("StatusContribution", (accounts) => {
     it("Should reveal last point, fill the collaboration", async () => {
         await dynamicCeiling.revealPoint(
             points[2][0],
-            points[2][1],
             true,
             web3.sha3("pwd2"));
+        await dynamicCeiling.moveTo(2);
 
         await statusContribution.setMockedBlockNumber(1025000);
 
@@ -277,6 +276,7 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Should finalize", async () => {
+        await statusContribution.setMockedBlockNumber(endBlock + 1);
         await statusContribution.finalize();
 
         const totalSupply = await snt.totalSupply();
