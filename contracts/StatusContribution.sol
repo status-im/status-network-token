@@ -298,14 +298,13 @@ contract StatusContribution is Owned, TokenController {
         if (msg.sender != owner && getBlockNumber() <= endBlock) throw;
         if (finalized > 0) throw;
 
-        // Do not allow terminate until all revealed.
+        // Do not allow termination until all curves revealed.
         if (!dynamicCeiling.allRevealed()) throw;
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber() <= endBlock) {
             var (,lastLimit) = dynamicCeiling.curves(dynamicCeiling.revealedCurves().sub(1));
-
-            if (totalCollected() < lastLimit - 1 ether) throw;
+            if (totalNormalCollected < lastLimit) throw;
         }
 
         finalized = now;
