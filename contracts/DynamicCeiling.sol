@@ -44,12 +44,18 @@ contract DynamicCeiling is Owned {
     // This keeps the curve flat at this number, until funds to be collected is less than this
     uint256 constant public collectMinimum = 10**15;
 
+    uint256 constant public initialSlopeFactor = 300;
+    uint256 constant public finalSlopeFactor = 30;
+    uint256 constant public blocksToFinalSlope = 240;
+
     address public contribution;
 
     Point[] public points;
     uint256 public currentIndex;
     uint256 public revealedPoints;
     bool public allRevealed;
+
+    uint256 public initialBlock;
 
     /// @dev `contribution` is the only address that can call a function with this
     /// modifier
@@ -109,6 +115,18 @@ contract DynamicCeiling is Owned {
     /// @return Return the funds to collect for the current point on the point
     ///  (or 0 if no points revealed yet)
     function toCollect(uint256 collected) public onlyContribution returns (uint256) {
+
+        uint256 slopeFactor;
+        uint256 blocksFromInit = (getBlockNumber() - initialBlock);
+        if (blocksFromInit >= blocksToFinalSlope) {
+            slopeFactor = finalSlopeFactor;
+        } else {
+
+            uint256 a = (initialSlopeFactor.sub(finalSlopeFactor)).div(blocksToFinalSlope);
+
+            slopeFactor = initialSlopeFactor.sub(a.mul(blocksFromInit));
+        }
+
         if (revealedPoints == 0) return 0;
 
         // Move to the next point
@@ -151,6 +169,15 @@ contract DynamicCeiling is Owned {
     ///  the real number of points)
     function nPoints() public constant returns (uint256) {
         return points.length;
+    }
+
+    //////////
+    // Testing specific methods
+    //////////
+
+    /// @notice This function is overridden by the test Mocks.
+    function getBlockNumber() internal constant returns (uint256) {
+        return block.number;
     }
 
 }
