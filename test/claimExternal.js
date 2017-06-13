@@ -38,8 +38,6 @@ contract("StatusContribution", (accounts) => {
     ];
     const startBlock = 1000000;
     const endBlock = 1003000;
-    const sgtPreferenceBlocks = 2000;
-    const sgtLimit = web3.toWei(0.1);
 
     it("Should deploy Contribution contracts", async () => {
         multisigStatus = await MultiSigWallet.new([accounts[0]], 1);
@@ -78,8 +76,6 @@ contract("StatusContribution", (accounts) => {
             snt.address,
             startBlock,
             endBlock,
-            sgtPreferenceBlocks,
-            sgtLimit,
             dynamicCeiling.address,
 
             contributionWallet.address,

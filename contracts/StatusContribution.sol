@@ -44,8 +44,6 @@ contract StatusContribution is Owned, TokenController {
     MiniMeToken public SNT;
     uint256 public startBlock;
     uint256 public endBlock;
-    uint256 public sgtPreferenceBlocks;
-    uint256 public sgtLimit;
 
     address public destEthDevs;
 
@@ -59,7 +57,6 @@ contract StatusContribution is Owned, TokenController {
 
     mapping (address => uint256) public guaranteedBuyersLimit;
     mapping (address => uint256) public guaranteedBuyersBought;
-    mapping (address => uint256) public sgtContributed;
 
     uint256 public totalGuaranteedCollected;
     uint256 public totalNormalCollected;
@@ -103,8 +100,6 @@ contract StatusContribution is Owned, TokenController {
         address _sntAddress,
         uint256 _startBlock,
         uint256 _endBlock,
-        uint256 _sgtPreferenceBlocks,
-        uint256 _sgtLimit,
         address _dynamicCeiling,
 
         address _destEthDevs,
@@ -130,9 +125,6 @@ contract StatusContribution is Owned, TokenController {
         if (_startBlock >= _endBlock) throw;
         startBlock = _startBlock;
         endBlock = _endBlock;
-
-        sgtLimit = _sgtLimit;
-        sgtPreferenceBlocks = _sgtPreferenceBlocks;
 
         if (_dynamicCeiling == 0x0) throw;
         dynamicCeiling = DynamicCeiling(_dynamicCeiling);
@@ -218,14 +210,6 @@ contract StatusContribution is Owned, TokenController {
             toFund = msg.value;
         } else {
             toFund = toCollect;
-        }
-
-        if (getBlockNumber() < startBlock + sgtPreferenceBlocks) {
-           if (SGT.balanceOf(_th) == 0) throw;
-           if (sgtContributed[_th].add(toFund) > sgtLimit) {
-               toFund = sgtLimit.sub(sgtContributed[_th]);
-           }
-           sgtContributed[_th] = sgtContributed[_th].add(toFund);
         }
 
         totalNormalCollected = totalNormalCollected.add(toFund);
