@@ -78,7 +78,6 @@ contract("StatusContribution", (accounts) => {
             snt.address,
             startBlock,
             endBlock,
-            sgtPreferenceBlocks,
             sgtLimit,
             dynamicCeiling.address,
 

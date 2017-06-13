@@ -39,12 +39,19 @@ contract StatusContribution is Owned, TokenController {
     uint256 constant public failSafe = 300000 ether;
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
+    uint256 constant public dust = 0.0001 ether;
+
+    /*
+        remainingDivisor limits the contribution that can be done
+        Example, if remainingDivisor = 30, A contributor can only contribute
+        1/30 of the remaining funds allowed until the current cap
+     */
+    uint256 constant public remainingDivisor = 30;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
     uint256 public startBlock;
     uint256 public endBlock;
-    uint256 public sgtPreferenceBlocks;
     uint256 public sgtLimit;
 
     address public destEthDevs;
@@ -65,6 +72,7 @@ contract StatusContribution is Owned, TokenController {
     uint256 public totalNormalCollected;
 
     uint256 public finalized;
+    bool public onlySgt;
 
     modifier initialized() {
         if (address(SNT) == 0x0 ) throw;
@@ -80,7 +88,9 @@ contract StatusContribution is Owned, TokenController {
         _;
     }
 
-    function StatusContribution() {}
+    function StatusContribution() {
+        onlySgt = true;
+    }
 
 
     /// @notice This method should be called by the owner before the contribution
@@ -103,7 +113,6 @@ contract StatusContribution is Owned, TokenController {
         address _sntAddress,
         uint256 _startBlock,
         uint256 _endBlock,
-        uint256 _sgtPreferenceBlocks,
         uint256 _sgtLimit,
         address _dynamicCeiling,
 
@@ -132,7 +141,6 @@ contract StatusContribution is Owned, TokenController {
         endBlock = _endBlock;
 
         sgtLimit = _sgtLimit;
-        sgtPreferenceBlocks = _sgtPreferenceBlocks;
 
         if (_dynamicCeiling == 0x0) throw;
         dynamicCeiling = DynamicCeiling(_dynamicCeiling);
@@ -158,6 +166,11 @@ contract StatusContribution is Owned, TokenController {
 
         if (_sntController == 0x0) throw;
         sntController = _sntController;
+    }
+
+    /// @notice Called by the owner when wants to activate nonSGT contributions
+    function openToNonSGT() onlyOwner {
+        onlySgt = false;
     }
 
     /// @notice Sets the limit for a guaranteed address. All the guaranteed addresses
@@ -191,6 +204,7 @@ contract StatusContribution is Owned, TokenController {
     ///  behalf of a token holder.
     /// @param _th SNT holder where the SNTs will be minted.
     function proxyPayment(address _th) public payable initialized contributionOpen returns (bool) {
+        if (msg.value < dust) throw;
         if (guaranteedBuyersLimit[_th] > 0) {
             buyGuaranteed(_th);
         } else {
@@ -213,7 +227,12 @@ contract StatusContribution is Owned, TokenController {
         uint256 toFund;
         uint256 cap = dynamicCeiling.cap(getBlockNumber());
 
-        cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(30));
+        uint256 difference = cap.sub(totalNormalCollected);
+
+        // If difference is less than the dust, then just allow get it all.
+        if (difference > dust) {
+            cap = totalNormalCollected.add(difference.div(remainingDivisor));
+        }
 
         if (cap > failSafe) cap = failSafe;
 
@@ -223,14 +242,14 @@ contract StatusContribution is Owned, TokenController {
             toFund = msg.value;
         }
 
-        if (getBlockNumber() < startBlock + sgtPreferenceBlocks) {
+
+        if (onlySgt) {
            if (SGT.balanceOf(_th) == 0) throw;
            if (sgtContributed[_th].add(toFund) > sgtLimit) {
                toFund = sgtLimit.sub(sgtContributed[_th]);
            }
            sgtContributed[_th] = sgtContributed[_th].add(toFund);
         }
-
 
         totalNormalCollected = totalNormalCollected.add(toFund);
         doBuy(_th, toFund, false);
