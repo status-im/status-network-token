@@ -41,6 +41,7 @@ contract StatusContribution is Owned, TokenController {
     uint256 constant public maxGuaranteedLimit = 30000 ether;
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
+    uint256 constant public MaxCallFrequency = 100;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
@@ -65,6 +66,8 @@ contract StatusContribution is Owned, TokenController {
 
     uint256 public finalizedBlock;
     uint256 public finalizedTime;
+
+    mapping (address => uint256) public lastCallBlock;
 
     modifier initialized() {
         require(address(SNT) != 0x0);
@@ -202,6 +205,20 @@ contract StatusContribution is Owned, TokenController {
 
     function buyNormal(address _th) internal {
         require(tx.gasprice <= maxGasPrice);
+
+        // Antispam mechanism
+        address caller;
+        if (msg.sender == address(SNT)) {
+            caller = _th;
+        } else {
+            caller = msg.sender;
+        }
+
+        // Do not allow make tricki contracts to game the system
+        if (isContract(caller)) throw;
+
+        if (getBlockNumber().sub(lastCallBlock[caller]) < MaxCallFrequency) throw;
+        lastCallBlock[caller] = getBlockNumber();
 
         uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
 
@@ -375,6 +392,18 @@ contract StatusContribution is Owned, TokenController {
 
     function percent(uint256 p) internal returns (uint256) {
         return p.mul(10**16);
+    }
+
+    /// @dev Internal function to determine if an address is a contract
+    /// @param _addr The address being queried
+    /// @return True if `_addr` is a contract
+    function isContract(address _addr) constant internal returns(bool) {
+        uint size;
+        if (_addr == 0) return false;
+        assembly {
+            size := extcodesize(_addr)
+        }
+        return size>0;
     }
 
 
