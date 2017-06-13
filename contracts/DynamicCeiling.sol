@@ -135,6 +135,7 @@ contract DynamicCeiling is Owned {
             uint256 nextIndex = currentIndex.add(1);
             if (nextIndex >= revealedPoints) return 0;  // No more points
             currentIndex = nextIndex;
+            initialBlock = getBlockNumber();
             if (collected >= points[currentIndex].limit) return 0;  // Catches `limit == 0`
         }
 
