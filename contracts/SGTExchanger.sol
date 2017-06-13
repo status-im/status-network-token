@@ -29,6 +29,7 @@ pragma solidity ^0.4.11;
 import "./MiniMeToken.sol";
 import "./SafeMath.sol";
 import "./Owned.sol";
+import "./StatusContribution.sol";
 
 
 contract SGTExchanger is TokenController, Owned {
@@ -38,21 +39,27 @@ contract SGTExchanger is TokenController, Owned {
     uint256 public totalCollected;
     MiniMeToken public sgt;
     MiniMeToken public snt;
+    StatusContribution public statusContribution;
 
-    function SGTExchanger(address _sgt, address _snt) {
+    function SGTExchanger(address _sgt, address _snt, address _statusContribution) {
         sgt = MiniMeToken(_sgt);
         snt = MiniMeToken(_snt);
+        statusContribution = StatusContribution(_statusContribution);
     }
 
     /// @notice This method should be called by the SGT holders to collect their
     ///  corresponding SNTs
     function collect() public {
+        uint256 finalizedBlock = statusContribution.finalizedBlock();
+
+        if (finalizedBlock == 0) throw;
+
         uint256 total = totalCollected.add(snt.balanceOf(address(this)));
 
-        uint256 balance = sgt.balanceOf(msg.sender);
+        uint256 balance = sgt.balanceOfAt(msg.sender, finalizedBlock);
 
         // First calculate how much correspond to him
-        uint256 amount = total.mul(balance).div(sgt.totalSupply());
+        uint256 amount = total.mul(balance).div(sgt.totalSupplyAt(finalizedBlock));
 
         // And then subtract the amount already collected
         amount = amount.sub(collected[msg.sender]);

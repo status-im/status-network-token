@@ -66,12 +66,12 @@ contract DevTokensHolder is Owned {
         uint256 balance = snt.balanceOf(address(this));
         uint256 total = collectedTokens.add(snt.balanceOf(address(this)));
 
-        uint256 finalized = contribution.finalized();
+        uint256 finalizedTime = contribution.finalizedTime();
 
-        if (finalized == 0) throw;
-        if (getTime().sub(finalized) <= months(6)) throw;
+        if (finalizedTime == 0) throw;
+        if (getTime().sub(finalizedTime) <= months(6)) throw;
 
-        uint256 canExtract = total.mul(getTime().sub(finalized).div(months(24)));
+        uint256 canExtract = total.mul(getTime().sub(finalizedTime).div(months(24)));
 
         canExtract = canExtract.sub(collectedTokens);
 

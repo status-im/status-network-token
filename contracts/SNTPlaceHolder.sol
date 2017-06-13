@@ -83,7 +83,7 @@ contract SNTPlaceHolder is TokenController, Owned {
     function transferable(address _from) internal returns (bool) {
         // Allow the exchanger to work from the beginning
         if (activationTime == 0) {
-            uint256 f = contribution.finalized();
+            uint256 f = contribution.finalizedTime();
             if (f > 0) {
                 activationTime = f.add(1 weeks);
             } else {

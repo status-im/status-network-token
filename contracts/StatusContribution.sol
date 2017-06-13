@@ -61,7 +61,8 @@ contract StatusContribution is Owned, TokenController {
     uint256 public totalGuaranteedCollected;
     uint256 public totalNormalCollected;
 
-    uint256 public finalized;
+    uint256 public finalizedBlock;
+    uint256 public finalizedTime;
 
     modifier initialized() {
         if (address(SNT) == 0x0 ) throw;
@@ -71,7 +72,7 @@ contract StatusContribution is Owned, TokenController {
     modifier contributionOpen() {
         if ((getBlockNumber() < startBlock) ||
             (getBlockNumber() > endBlock) ||
-            (finalized > 0) ||
+            (finalizedBlock > 0) ||
             (address(SNT) == 0x0 ))
             throw;
         _;
@@ -280,7 +281,7 @@ contract StatusContribution is Owned, TokenController {
     function finalize() public initialized {
         if (getBlockNumber() < startBlock) throw;
         if (msg.sender != owner && getBlockNumber() <= endBlock) throw;
-        if (finalized > 0) throw;
+        if (finalizedBlock > 0) throw;
 
         // Do not allow termination until all points revealed.
         if (!dynamicCeiling.allRevealed()) throw;
@@ -291,7 +292,8 @@ contract StatusContribution is Owned, TokenController {
             if (totalNormalCollected < lastLimit) throw;
         }
 
-        finalized = now;
+        finalizedBlock = getBlockNumber();
+        finalizedTime = now;
 
         uint256 percentageToSgt;
         if (SGT.totalSupply() >= maxSGTSupply) {

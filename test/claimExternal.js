@@ -58,7 +58,7 @@ contract("StatusContribution", (accounts) => {
             multisigDevs.address,
             statusContribution.address,
             snt.address);
-        sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
+        sgtExchanger = await SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
         dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
 
         await setHiddenPoints(dynamicCeiling, points);
