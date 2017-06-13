@@ -40,6 +40,13 @@ contract StatusContribution is Owned, TokenController {
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
 
+    /*
+        remainingDivisor limits the contribution that can be done
+        Example, if remainingDivisor = 30, A contributor can only contribute
+        1/30 of the remaining funds allowed until the current cap
+     */
+    uint256 constant public remainingDivisor = 30;
+
     MiniMeToken public SGT;
     MiniMeToken public SNT;
     uint256 public startBlock;
@@ -218,7 +225,7 @@ contract StatusContribution is Owned, TokenController {
         uint256 toFund;
         uint256 cap = dynamicCeiling.cap(getBlockNumber());
 
-        cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(30));
+        cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(remainingDivisor));
 
         if (cap > failSafe) cap = failSafe;
 
