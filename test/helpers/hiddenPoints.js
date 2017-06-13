@@ -1,10 +1,10 @@
-exports.setHiddenCurves = async (dynamicCeiling, curves) => {
+exports.setHiddenPoints = async (dynamicCeiling, points) => {
     const hashes = [];
     let i = 0;
-    for (let c of curves) {
+    for (let c of points) {
         const h = await dynamicCeiling.calculateHash(
             c[0],
-            i === curves.length - 1,
+            i === points.length - 1,
             web3.sha3(`pwd${ i }`));
         hashes.push(h);
         i += 1;
@@ -12,5 +12,5 @@ exports.setHiddenCurves = async (dynamicCeiling, curves) => {
     for (; i < 10; i += 1) {
         hashes.push(web3.sha3(`pwd${ i }`));
     }
-    await dynamicCeiling.setHiddenCurves(hashes);
+    await dynamicCeiling.setHiddenPoints(hashes);
 };

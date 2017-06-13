@@ -11,7 +11,7 @@ const SGTExchanger = artifacts.require("SGTExchanger");
 const DynamicCeiling = artifacts.require("DynamicCeiling");
 const SNTPlaceHolderMock = artifacts.require("SNTPlaceHolderMock");
 
-const setHiddenCurves = require("./helpers/hiddenCurves.js").setHiddenCurves;
+const setHiddenPoints = require("./helpers/hiddenPoints.js").setHiddenPoints;
 const assertFail = require("./helpers/assertFail");
 
 contract("StatusContribution", (accounts) => {
@@ -32,7 +32,7 @@ contract("StatusContribution", (accounts) => {
     let cur;
     const divs = 30;
 
-    const curves = [
+    const points = [
         [web3.toWei(3)],
         [web3.toWei(8)],
         [web3.toWei(15)],
@@ -65,7 +65,7 @@ contract("StatusContribution", (accounts) => {
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
         dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
 
-        await setHiddenCurves(dynamicCeiling, curves);
+        await setHiddenPoints(dynamicCeiling, points);
 
         sntPlaceHolder = await SNTPlaceHolderMock.new(
             multisigComunity.address,
@@ -121,9 +121,9 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(permited8).toNumber(), 2);
     });
 
-    it("Reveal a curve, move time to start of the ICO, and do the first buy", async () => {
-        await dynamicCeiling.revealCurve(
-            curves[0][0],
+    it("Reveal a point, move time to start of the ICO, and do the first buy", async () => {
+        await dynamicCeiling.revealPoint(
+            points[0][0],
             false,
             web3.sha3("pwd0"));
 
@@ -180,9 +180,9 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
-    it("Should reveal second curve and check that every that the limit is right", async () => {
-        await dynamicCeiling.revealCurve(
-            curves[1][0],
+    it("Should reveal second point and check that every that the limit is right", async () => {
+        await dynamicCeiling.revealPoint(
+            points[1][0],
             false,
             web3.sha3("pwd1"));
         await dynamicCeiling.moveNext();
@@ -208,9 +208,9 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
-    it("Should reveal last curve, fill the collaboration", async () => {
-        await dynamicCeiling.revealCurve(
-            curves[2][0],
+    it("Should reveal last point, fill the collaboration", async () => {
+        await dynamicCeiling.revealPoint(
+            points[2][0],
             true,
             web3.sha3("pwd2"));
         await dynamicCeiling.moveNext();
