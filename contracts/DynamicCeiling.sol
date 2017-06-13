@@ -99,11 +99,11 @@ contract DynamicCeiling is Owned {
         if (_last) allRevealed = true;
     }
 
-    /// @notice Move to next point, used as a failsafe
-    function moveNext() public onlyOwner {
-        uint256 nextIndex = currentIndex.add(1);
-        if (nextIndex >= revealedPoints) throw;  // No more points
-        currentIndex = nextIndex;
+    /// @notice Move to point, used as a failsafe
+    function moveTo(uint256 _index) public onlyOwner {
+        if (_index >= revealedPoints ||            // No more points
+            _index != currentIndex.add(1)) throw;  // Only move one index at a time
+        currentIndex = _index;
     }
 
     /// @return Return the funds to collect for the current point on the point

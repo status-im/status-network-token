@@ -185,7 +185,7 @@ contract("StatusContribution", (accounts) => {
             points[1][0],
             false,
             web3.sha3("pwd1"));
-        await dynamicCeiling.moveNext();
+        await dynamicCeiling.moveTo(1);
 
         await statusContribution.setMockedBlockNumber(1005000);
 
@@ -213,7 +213,7 @@ contract("StatusContribution", (accounts) => {
             points[2][0],
             true,
             web3.sha3("pwd2"));
-        await dynamicCeiling.moveNext();
+        await dynamicCeiling.moveTo(2);
 
         await statusContribution.setMockedBlockNumber(1025000);
 
