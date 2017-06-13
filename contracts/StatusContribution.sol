@@ -226,7 +226,12 @@ contract StatusContribution is Owned, TokenController {
         uint256 toFund;
         uint256 cap = dynamicCeiling.cap(getBlockNumber());
 
-        cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(remainingDivisor));
+        uint256 difference = cap.sub(totalNormalCollected);
+
+        // If difference is less than the dust, then just allow get it all.
+        if (difference > dust) {
+            cap = totalNormalCollected.add(difference.div(remainingDivisor));
+        }
 
         if (cap > failSafe) cap = failSafe;
 
@@ -266,7 +271,7 @@ contract StatusContribution is Owned, TokenController {
     }
 
     function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
-        if (_toFund < dust) throw;  // Do not spend gas for
+        if (_toFund == 0) throw;  // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
         uint256 tokensGenerated = _toFund.mul(exchangeRate);
