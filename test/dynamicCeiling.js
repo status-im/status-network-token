@@ -7,9 +7,9 @@ contract("DynamicCeiling", (accounts) => {
     let dynamicCeiling;
 
     const curves = [
-        [web3.toWei(1000)],
-        [web3.toWei(21000)],
-        [web3.toWei(61000)],
+        [web3.toWei(1000), 30, 10**12],
+        [web3.toWei(21000), 30, 10**12],
+        [web3.toWei(61000), 30, 10**12],
     ];
 
     it("Should deploy dynamicCeiling", async () => {
@@ -54,6 +54,8 @@ contract("DynamicCeiling", (accounts) => {
     it("Should reveal 1st curve", async () => {
         await dynamicCeiling.revealCurve(
             curves[0][0],
+            curves[0][1],
+            curves[0][2],
             false,
             web3.sha3("pwd0"));
 
@@ -86,6 +88,8 @@ contract("DynamicCeiling", (accounts) => {
     it("Should reveal 2nd curve", async () => {
         await dynamicCeiling.revealCurve(
             curves[1][0],
+            curves[1][1],
+            curves[1][2],
             false,
             web3.sha3("pwd1"));
 
@@ -119,6 +123,8 @@ contract("DynamicCeiling", (accounts) => {
     it("Should reveal last curve", async () => {
         await dynamicCeiling.revealCurve(
             curves[2][0],
+            curves[2][1],
+            curves[2][2],
             true,
             web3.sha3("pwd2"));
 

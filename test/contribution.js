@@ -33,9 +33,9 @@ contract("StatusContribution", (accounts) => {
     const divs = 30;
 
     const curves = [
-        [web3.toWei(3)],
-        [web3.toWei(8)],
-        [web3.toWei(15)],
+        [web3.toWei(3), 30, 10**12],
+        [web3.toWei(8), 30, 10**12],
+        [web3.toWei(15), 30, 10**12],
     ];
     const startBlock = 1000000;
     const endBlock = 1030000;
@@ -120,6 +120,8 @@ contract("StatusContribution", (accounts) => {
     it("Reveal a curve, move time to start of the ICO, and do the first buy", async () => {
         await dynamicCeiling.revealCurve(
             curves[0][0],
+            curves[0][1],
+            curves[0][2],
             false,
             web3.sha3("pwd0"));
 
@@ -165,6 +167,8 @@ contract("StatusContribution", (accounts) => {
     it("Should reveal second curve and check that every that the limit is right", async () => {
         await dynamicCeiling.revealCurve(
             curves[1][0],
+            curves[1][1],
+            curves[1][2],
             false,
             web3.sha3("pwd1"));
         await dynamicCeiling.moveTo(1);
@@ -195,6 +199,8 @@ contract("StatusContribution", (accounts) => {
     it("Should reveal last curve, fill the collaboration", async () => {
         await dynamicCeiling.revealCurve(
             curves[2][0],
+            curves[2][1],
+            curves[2][2],
             true,
             web3.sha3("pwd2"));
         await dynamicCeiling.moveTo(2);
