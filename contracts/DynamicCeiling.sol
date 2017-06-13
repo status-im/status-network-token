@@ -27,9 +27,10 @@ pragma solidity ^0.4.11;
 
 
 import "./SafeMath.sol";
+import "./Owned.sol";
 
 
-contract DynamicCeiling {
+contract DynamicCeiling is Owned {
     using SafeMath for uint256;
 
     struct Curve {
@@ -40,14 +41,23 @@ contract DynamicCeiling {
     uint256 constant public slopeFactor = 30;
     uint256 constant public collectMinimum = 10**15;
 
-    address public creator;
+    address public contribution;
+
+    Curve[] public curves;
     uint256 public currentIndex;
     uint256 public revealedCurves;
     bool public allRevealed;
-    Curve[] public curves;
 
-    function DynamicCeiling() {
-        creator = msg.sender;
+    /// @dev `contribution` is the only address that can call a function with this
+    /// modifier
+    modifier onlyContribution {
+        if (msg.sender != contribution) throw;
+        _;
+    }
+
+    function DynamicCeiling(address _owner, address _contribution) {
+        owner = _owner;
+        contribution = _contribution;
     }
 
     /// @notice This should be called by the creator of the contract to commit
@@ -56,8 +66,7 @@ contract DynamicCeiling {
     ///  by the `calculateHash` method. More hashes than actual curves can be
     ///  committed in order to hide also the number of curves.
     ///  The remaining hashes can be just random numbers.
-    function setHiddenCurves(bytes32[] _curveHashes) public {
-        if (msg.sender != creator) throw;
+    function setHiddenCurves(bytes32[] _curveHashes) public onlyOwner {
         if (curves.length > 0) throw;
 
         curves.length = _curveHashes.length;
@@ -87,9 +96,16 @@ contract DynamicCeiling {
         if (_last) allRevealed = true;
     }
 
+    /// @notice Move to next curve, used as a failsafe
+    function moveNext() public onlyOwner {
+        uint256 nextIndex = currentIndex.add(1);
+        if (nextIndex == revealedCurves) throw;  // No more curves
+        currentIndex = nextIndex;
+    }
+
     /// @return Return the funds to collect for the current point on the curve
     ///  (or 0 if no curves revealed yet)
-    function toCollect(uint256 collected) public returns (uint256) {
+    function toCollect(uint256 collected) public onlyContribution returns (uint256) {
         if (revealedCurves == 0) return 0;
 
         // Move to the next curve

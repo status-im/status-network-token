@@ -3,7 +3,7 @@ const DynamicCeiling = artifacts.require("DynamicCeiling");
 
 const setHiddenCurves = require("./helpers/hiddenCurves.js").setHiddenCurves;
 
-contract("DynamicCeiling", () => {
+contract("DynamicCeiling", (accounts) => {
     let dynamicCeiling;
 
     const curves = [
@@ -13,7 +13,7 @@ contract("DynamicCeiling", () => {
     ];
 
     it("Should deploy dynamicCeiling", async () => {
-        dynamicCeiling = await DynamicCeiling.new();
+        dynamicCeiling = await DynamicCeiling.new(accounts[0], accounts[0]);
 
         assert.equal(await dynamicCeiling.currentIndex(), 0);
     });

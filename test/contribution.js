@@ -63,7 +63,7 @@ contract("StatusContribution", (accounts) => {
             statusContribution.address,
             snt.address);
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
-        dynamicCeiling = await DynamicCeiling.new();
+        dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
 
         await setHiddenCurves(dynamicCeiling, curves);
 
