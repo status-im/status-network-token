@@ -52,7 +52,6 @@ contract("StatusContribution", (accounts) => {
         statusContribution = await StatusContributionMock.new();
         contributionWallet = await ContributionWallet.new(
             multisigStatus.address,
-            endBlock,
             statusContribution.address);
         devTokensHolder = await DevTokensHolder.new(
             multisigDevs.address,
