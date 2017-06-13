@@ -99,7 +99,7 @@ contract SNTPlaceHolder is TokenController, Owned {
     //////////
 
     /// @notice This function is overrided by the test Mocks.
-    function getTime() internal returns(uint256) {
+    function getTime() internal returns (uint256) {
         return now;
     }
 

@@ -72,15 +72,15 @@ contract SGTExchanger is TokenController, Owned {
         TokensCollected(msg.sender, amount);
     }
 
-    function proxyPayment(address) public payable returns(bool) {
+    function proxyPayment(address) public payable returns (bool) {
         throw;
     }
 
-    function onTransfer(address, address, uint256) public returns(bool) {
+    function onTransfer(address, address, uint256) public returns (bool) {
         return false;
     }
 
-    function onApprove(address, address, uint256) public returns(bool) {
+    function onApprove(address, address, uint256) public returns (bool) {
         return false;
     }
 

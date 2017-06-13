@@ -200,28 +200,25 @@ contract StatusContribution is Owned, TokenController {
         return true;
     }
 
-    function onTransfer(address, address, uint256) public returns(bool) {
+    function onTransfer(address, address, uint256) public returns (bool) {
         return false;
     }
 
-    function onApprove(address, address, uint256) public returns(bool) {
+    function onApprove(address, address, uint256) public returns (bool) {
         return false;
     }
 
     function buyNormal(address _th) internal {
         if (tx.gasprice > maxGasPrice) throw;
 
+        uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
+        if (totalNormalCollected.add(toCollect) > failSafe) throw;
+
         uint256 toFund;
-        uint256 cap = dynamicCeiling.cap(getBlockNumber());
-
-        cap = totalNormalCollected.add(cap.sub(totalNormalCollected).div(30));
-
-        if (cap > failSafe) cap = failSafe;
-
-        if (totalNormalCollected.add(msg.value) > cap) {
-            toFund = cap.sub(totalNormalCollected);
-        } else {
+        if (msg.value <= toCollect) {
             toFund = msg.value;
+        } else {
+            toFund = toCollect;
         }
 
         if (getBlockNumber() < startBlock + sgtPreferenceBlocks) {
@@ -231,7 +228,6 @@ contract StatusContribution is Owned, TokenController {
            }
            sgtContributed[_th] = sgtContributed[_th].add(toFund);
         }
-
 
         totalNormalCollected = totalNormalCollected.add(toFund);
         doBuy(_th, toFund, false);
@@ -254,19 +250,19 @@ contract StatusContribution is Owned, TokenController {
     }
 
     function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
-        if (_toFund == 0) throw;  // Do not spend gas for
         if (msg.value < _toFund) throw;  // Not needed, but double check.
 
-        uint256 tokensGenerated = _toFund.mul(exchangeRate);
+        if (_toFund > 0) {
+            uint256 tokensGenerated = _toFund.mul(exchangeRate);
+            if (!SNT.generateTokens(_th, tokensGenerated)) throw;
+            destEthDevs.transfer(_toFund);
+            NewSale(_th, _toFund, tokensGenerated, _guaranteed);
+        }
+
         uint256 toReturn = msg.value.sub(_toFund);
-
-        if (!SNT.generateTokens(_th, tokensGenerated)) throw;
-
-        destEthDevs.transfer(_toFund);
-
         if (toReturn > 0) {
             // If the call comes from the Token controller,
-            // then we return it to the token Holder that.
+            // then we return it to the token Holder.
             // Otherwise we return to the sender.
             if (msg.sender == address(SNT)) {
                 _th.transfer(toReturn);
@@ -274,8 +270,6 @@ contract StatusContribution is Owned, TokenController {
                 msg.sender.transfer(toReturn);
             }
         }
-
-        NewSale(_th, _toFund, tokensGenerated, _guaranteed);
     }
 
     // NOTE on Percentage format
@@ -305,14 +299,13 @@ contract StatusContribution is Owned, TokenController {
         if (msg.sender != owner && getBlockNumber() <= endBlock) throw;
         if (finalizedBlock > 0) throw;
 
-        // Do not allow terminate until all revealed.
+        // Do not allow termination until all points revealed.
         if (!dynamicCeiling.allRevealed()) throw;
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber() <= endBlock) {
-            var (,,lastLimit) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
-
-            if (totalCollected() < lastLimit - 1 ether) throw;
+            var (,lastLimit) = dynamicCeiling.points(dynamicCeiling.revealedPoints().sub(1));
+            if (totalNormalCollected < lastLimit) throw;
         }
 
         finalizedBlock = getBlockNumber();
@@ -398,7 +391,7 @@ contract StatusContribution is Owned, TokenController {
 
     }
 
-    function percent(uint256 p) internal returns(uint256) {
+    function percent(uint256 p) internal returns (uint256) {
         return p.mul(10**16);
     }
 
