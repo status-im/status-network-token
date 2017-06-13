@@ -154,4 +154,51 @@ contract("DynamicCeiling", (accounts) => {
         assert.equal((await dynamicCeiling.currentIndex()).toFixed(), '2');
         assert.equal((await dynamicCeiling.toCollect.call(curves[2][0])).toFixed(), '0');
     });
+
+
+    it("Should deploy dynamicCeiling", async () => {
+        dynamicCeiling = await DynamicCeiling.new(accounts[0], accounts[0]);
+
+        assert.equal(await dynamicCeiling.currentIndex(), 0);
+    });
+
+    it("Should set the curves", async () => {
+        await setHiddenCurves(dynamicCeiling, curves);
+        assert.equal(await dynamicCeiling.nCurves(), 10);
+    });
+
+    it("Should reveal multiple curves", async () => {
+        await dynamicCeiling.revealMulti(
+            [
+                curves[0][0],
+                curves[1][0],
+                curves[2][0],
+            ],
+            [
+                curves[0][1],
+                curves[1][1],
+                curves[2][1],
+            ],
+            [
+                curves[0][2],
+                curves[1][2],
+                curves[2][2],
+            ],
+            [
+                false,
+                false,
+                true,
+            ],
+            [
+                web3.sha3("pwd0"),
+                web3.sha3("pwd1"),
+                web3.sha3("pwd2"),
+            ],
+        );
+
+        assert.equal(await dynamicCeiling.currentIndex(), 0);
+        assert.equal(await dynamicCeiling.revealedCurves(), 3);
+        assert.equal(await dynamicCeiling.allRevealed(), true);
+    });
+
 });

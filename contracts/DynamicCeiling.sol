@@ -104,6 +104,20 @@ contract DynamicCeiling is Owned {
         if (_last) allRevealed = true;
     }
 
+    /// @notice Reveal multiple curves at once
+    function revealMulti(uint256[] _limits, uint256[] _slopeFactors, uint256[] _collectMinimums,
+                        bool[] _lasts, bytes32[] _salts) public {
+        // Do not allow none and needs to be same length for all parameters
+        if (_limits.length == 0 ||
+            (_limits.length + _slopeFactors.length + _collectMinimums.length +
+             _lasts.length + _salts.length) % 5 != 0) throw;
+
+        for (uint256 i = 0; i < _limits.length; i = i.add(1)) {
+            revealCurve(_limits[i], _slopeFactors[i], _collectMinimums[i],
+                        _lasts[i], _salts[i]);
+        }
+    }
+
     /// @notice Move to curve, used as a failsafe
     function moveTo(uint256 _index) public onlyOwner {
         if (_index >= revealedCurves ||            // No more curves
