@@ -57,7 +57,7 @@ contract ContributionWallet {
     function withdraw() public {
         if (msg.sender != multisig) throw;         // Only the multisig can request it
         if (block.number <= endBlock &&            // Allow after end block
-            contribution.finalized() == 0) throw;  // Allow when sale is finalized
+            contribution.finalizedBlock() == 0) throw;  // Allow when sale is finalized
         multisig.transfer(this.balance);
     }
 

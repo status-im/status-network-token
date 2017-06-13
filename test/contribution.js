@@ -1,8 +1,8 @@
 // Simulate a full contribution
 
 const MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
-const SGT = artifacts.require("SGT");
-const SNT = artifacts.require("SNT");
+const SGT = artifacts.require("SGTMock");
+const SNT = artifacts.require("SNTMock");
 const MultiSigWallet = artifacts.require("MultiSigWallet");
 const ContributionWallet = artifacts.require("ContributionWallet");
 const StatusContributionMock = artifacts.require("StatusContributionMock");
@@ -62,7 +62,7 @@ contract("StatusContribution", (accounts) => {
             multisigDevs.address,
             statusContribution.address,
             snt.address);
-        sgtExchanger = await SGTExchanger.new(sgt.address, snt.address);
+        sgtExchanger = await SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
         dynamicCeiling = await DynamicCeiling.new();
 
         await setHiddenPoints(dynamicCeiling, points);
@@ -129,6 +129,8 @@ contract("StatusContribution", (accounts) => {
             web3.sha3("pwd0"));
 
         await statusContribution.setMockedBlockNumber(1000000);
+        await sgt.setMockedBlockNumber(1000000);
+        await snt.setMockedBlockNumber(1000000);
 
         lim = 3;
         cur = 0;
@@ -163,6 +165,8 @@ contract("StatusContribution", (accounts) => {
 
     it("Should return the remaining in the last transaction ", async () => {
         await statusContribution.setMockedBlockNumber(1005000);
+        await sgt.setMockedBlockNumber(1005000);
+        await snt.setMockedBlockNumber(1005000);
         const initialBalance = await web3.eth.getBalance(accounts[0]);
         await snt.sendTransaction({value: web3.toWei(5), gas: 300000, gasPrice: "20000000000"});
         const finalBalance = await web3.eth.getBalance(accounts[0]);
@@ -189,6 +193,8 @@ contract("StatusContribution", (accounts) => {
             web3.sha3("pwd1"));
 
         await statusContribution.setMockedBlockNumber(1005000);
+        await sgt.setMockedBlockNumber(1005000);
+        await snt.setMockedBlockNumber(1005000);
 
         const initialBalance = await web3.eth.getBalance(accounts[0]);
         await snt.sendTransaction({value: web3.toWei(10), gas: 300000, gasPrice: "20000000000"});
@@ -217,6 +223,8 @@ contract("StatusContribution", (accounts) => {
             web3.sha3("pwd2"));
 
         await statusContribution.setMockedBlockNumber(1025000);
+        await sgt.setMockedBlockNumber(1025000);
+        await snt.setMockedBlockNumber(1025000);
 
         const initialBalance = await web3.eth.getBalance(accounts[0]);
         await statusContribution.proxyPayment(
