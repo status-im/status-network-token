@@ -40,7 +40,6 @@ contract StatusContribution is Owned, TokenController {
     uint256 constant public failSafe = 300000 ether;
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
-    uint256 constant public limitSGT = 30 ether;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
@@ -59,7 +58,6 @@ contract StatusContribution is Owned, TokenController {
 
     mapping (address => uint256) public guaranteedBuyersLimit;
     mapping (address => uint256) public guaranteedBuyersBought;
-    mapping (address => uint256) public sgtCollected;
 
     uint256 public totalGuaranteedCollected;
     uint256 public totalNormalCollected;
@@ -190,7 +188,7 @@ contract StatusContribution is Owned, TokenController {
         if (guaranteedBuyersLimit[_th] > 0) {
             buyGuaranteed(_th);
         } else {
-            buyNormal(_th);
+            buyNormal(_th, 0);
         }
         return true;
     }
@@ -203,38 +201,40 @@ contract StatusContribution is Owned, TokenController {
         return false;
     }
 
-    function buyNormal(address _th) internal {
-        require(tx.gasprice <= maxGasPrice);
+    function buyNormal(address _th, uint256 _msg_value) internal {
+        uint256 msg_value;
+        if (_msg_value > 0) {
+            msg_value = _msg_value;
+        } else {
+            require(tx.gasprice <= maxGasPrice);
+            msg_value = msg.value;
+        }
 
         uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
         assert(totalNormalCollected.add(toCollect) <= failSafe);
 
         uint256 toFund;
-        if (msg.value <= toCollect) {
-            toFund = msg.value;
+        if (msg_value <= toCollect) {
+            toFund = msg_value;
         } else {
             toFund = toCollect;
         }
 
-        uint256 currentIndex = dynamicCeiling.currentIndex();
-        if (currentIndex == 0) {
-            require(SGT.balanceOf(_th) > 0);
-            if (sgtCollected[_th].add(toFund) > limitSGT) {
-                toFund = limitSGT.sub(sgtCollected[_th]);
-            }
-            sgtCollected[_th] = sgtCollected[_th].add(toFund);
-        }
-
         totalNormalCollected = totalNormalCollected.add(toFund);
-        doBuy(_th, toFund, false);
+        doBuy(_th, toFund, false, msg_value);
     }
 
     function buyGuaranteed(address _th) internal {
-        uint256 toFund;
-        uint256 cap = guaranteedBuyersLimit[_th];
+        uint256 toCollect = guaranteedBuyersLimit[_th];
+        if (guaranteedBuyersBought[_th] >= toCollect) {
+            require(tx.gasprice <= maxGasPrice);
+        }
 
-        if (guaranteedBuyersBought[_th].add(msg.value) > cap) {
-            toFund = cap.sub(guaranteedBuyersBought[_th]);
+        uint256 toFund;
+        uint256 overflow = 0;
+        if (guaranteedBuyersBought[_th].add(msg.value) > toCollect) {
+            toFund = toCollect.sub(guaranteedBuyersBought[_th]);
+            overflow = msg.value.sub(toFund);
         } else {
             toFund = msg.value;
         }
@@ -242,11 +242,14 @@ contract StatusContribution is Owned, TokenController {
         guaranteedBuyersBought[_th] = guaranteedBuyersBought[_th].add(toFund);
         totalGuaranteedCollected = totalGuaranteedCollected.add(toFund);
 
-        doBuy(_th, toFund, true);
+        doBuy(_th, toFund, true, msg.value.sub(overflow));
+        if (overflow > 0) {
+            buyNormal(_th, overflow);
+        }
     }
 
-    function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
-        require(msg.value >= _toFund);  // Not needed, but double check.
+    function doBuy(address _th, uint256 _toFund, bool _guaranteed, uint256 _msg_value) internal {
+        require(_msg_value >= _toFund);  // Not needed, but double check.
 
         if (_toFund > 0) {
             uint256 tokensGenerated = _toFund.mul(exchangeRate);
@@ -255,7 +258,7 @@ contract StatusContribution is Owned, TokenController {
             NewSale(_th, _toFund, tokensGenerated, _guaranteed);
         }
 
-        uint256 toReturn = msg.value.sub(_toFund);
+        uint256 toReturn = _msg_value.sub(_toFund);
         if (toReturn > 0) {
             // If the call comes from the Token controller,
             // then we return it to the token Holder.
