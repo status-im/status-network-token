@@ -3,7 +3,7 @@
 
 - [Whitepaper](https://status.im/whitepaper.pdf)
 - [Contribution Period Specification](/SPEC.md)
-- [The Importance of Distribution](https://blog.status.im/TODO) blogpost.
+- [The Importance of Distribution](https://blog.status.im/distribution-dynamic-ceilings-e2f427f5cca) blogpost.
 - [Encoding the Status ‘Genesis Block’](https://blog.status.im/encoding-the-status-genesis-block-d73d287a750) blogpost.
 
 ## Technical definition
@@ -27,10 +27,12 @@ Also built in the token is a vesting schedule for limiting SNT transferability o
 
 ## Reviewers and audits.
 
-Code for the SNT token and the offering has been reviewed by:
+Code for the SNT token and the offering is being reviewed by:
 
 - Jordi Baylina, Author.
-- Smart Contract Solutions (OpenZeppelin). [Pending audit results](/)
+- [Smart Contract Solutions (OpenZeppelin)](https://smartcontractsolutions.com/). [Pending audit results](/)
+- [CoinFabrik](http://www.coinfabrik.com/). [Pending audit results](/)
+- [BlockchainLabs](http://blockchainlabs.nz/). [Pending audit results](/)
 - YYYYYY. [Pending audit results](/)
 
-A bug bounty for the SNT token and offering started on [pending date]. More details.
+A bug bounty for the SNT token and offering started on 14/6/2017. [More details](https://blog.status.im/status-network-token-bug-bounty-a66fc2324359)
