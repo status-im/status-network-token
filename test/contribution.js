@@ -33,9 +33,9 @@ contract("StatusContribution", (accounts) => {
     const divs = 30;
 
     const curves = [
-        [web3.toWei(3), 30, 10**12],
-        [web3.toWei(8), 30, 10**12],
-        [web3.toWei(15), 30, 10**12],
+        [1000000, web3.toWei(3), 30, 10**12],
+        [1010000, web3.toWei(8), 30, 10**12],
+        [1020000, web3.toWei(15), 30, 10**12],
     ];
     const startBlock = 1000000;
     const endBlock = 1030000;
@@ -61,7 +61,7 @@ contract("StatusContribution", (accounts) => {
             statusContribution.address,
             snt.address);
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
-        dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
+        dynamicCeiling = await DynamicCeiling.new(accounts[0]);
 
         await setHiddenCurves(dynamicCeiling, curves);
 
@@ -120,6 +120,7 @@ contract("StatusContribution", (accounts) => {
             curves[0][0],
             curves[0][1],
             curves[0][2],
+            curves[0][3],
             false,
             web3.sha3("pwd0"));
 
@@ -167,13 +168,13 @@ contract("StatusContribution", (accounts) => {
             curves[1][0],
             curves[1][1],
             curves[1][2],
+            curves[1][3],
             false,
             web3.sha3("pwd1"));
-        await dynamicCeiling.moveTo(1);
 
-        await statusContribution.setMockedBlockNumber(1005000);
-        await sgt.setMockedBlockNumber(1005000);
-        await snt.setMockedBlockNumber(1005000);
+        await statusContribution.setMockedBlockNumber(1015000);
+        await sgt.setMockedBlockNumber(1015000);
+        await snt.setMockedBlockNumber(1015000);
 
         const initialBalance = await web3.eth.getBalance(accounts[0]);
         await snt.sendTransaction({value: web3.toWei(10), gas: 300000, gasPrice: "20000000000"});
@@ -199,9 +200,9 @@ contract("StatusContribution", (accounts) => {
             curves[2][0],
             curves[2][1],
             curves[2][2],
+            curves[2][3],
             true,
             web3.sha3("pwd2"));
-        await dynamicCeiling.moveTo(2);
 
         await statusContribution.setMockedBlockNumber(1025000);
         await sgt.setMockedBlockNumber(1025000);

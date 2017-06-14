@@ -206,8 +206,27 @@ contract StatusContribution is Owned, TokenController {
     function buyNormal(address _th) internal {
         require(tx.gasprice <= maxGasPrice);
 
-        uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
-        assert(totalNormalCollected.add(toCollect) <= failSafe);
+        var (curveIdx, limit, slopeFactor, collectMinimum) =
+            dynamicCeiling.curve(getBlockNumber());
+
+        // Everything left to collect from this limit
+        uint256 difference = limit.sub(totalNormalCollected);
+
+        // Current point on the curve
+        uint256 collect = difference.div(slopeFactor);
+
+        uint256 toCollect;
+
+        // Prevents paying too much fees vs to be collected; breaks long tail
+        if (collect <= collectMinimum) {
+            if (difference > collectMinimum) {
+                toCollect = collectMinimum;
+            } else {
+                toCollect = difference;
+            }
+        } else {
+            toCollect =  collect;
+        }
 
         uint256 toFund;
         if (msg.value <= toCollect) {
@@ -216,8 +235,7 @@ contract StatusContribution is Owned, TokenController {
             toFund = toCollect;
         }
 
-        uint256 currentIndex = dynamicCeiling.currentIndex();
-        if (currentIndex == 0) {
+        if (curveIdx == 0) {
             require(SGT.balanceOf(_th) > 0);
             if (sgtCollected[_th].add(toFund) > limitSGT) {
                 toFund = limitSGT.sub(sgtCollected[_th]);
@@ -226,6 +244,8 @@ contract StatusContribution is Owned, TokenController {
         }
 
         totalNormalCollected = totalNormalCollected.add(toFund);
+        assert(totalNormalCollected <= failSafe);
+
         doBuy(_th, toFund, false);
     }
 
@@ -300,7 +320,7 @@ contract StatusContribution is Owned, TokenController {
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber() <= endBlock) {
-            var (,lastLimit,,) = dynamicCeiling.curves(dynamicCeiling.revealedCurves().sub(1));
+            var (,,lastLimit,,) = dynamicCeiling.curves(dynamicCeiling.revealedCurves().sub(1));
             require(totalNormalCollected >= lastLimit);
         }
 
