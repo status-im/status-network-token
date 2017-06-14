@@ -109,8 +109,10 @@ contract DynamicCeiling is Owned {
                         bool[] _lasts, bytes32[] _salts) public {
         // Do not allow none and needs to be same length for all parameters
         require(_limits.length != 0 &&
-                (_limits.length + _slopeFactors.length + _collectMinimums.length +
-                 _lasts.length + _salts.length) % 5 == 0);
+                _limits.length == _slopeFactors.length &&
+                _limits.length == _collectMinimums.length &&
+                _limits.length == _lasts.length &&
+                _limits.length == _salts.length);
 
         for (uint256 i = 0; i < _limits.length; i = i.add(1)) {
             revealCurve(_limits[i], _slopeFactors[i], _collectMinimums[i],
