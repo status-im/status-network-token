@@ -226,6 +226,10 @@ contract StatusContribution is Owned, TokenController {
 
     function buyGuaranteed(address _th) internal {
         uint256 toCollect = guaranteedBuyersLimit[_th];
+        if (guaranteedBuyersBought[_th] >= toCollect) {
+            require(tx.gasprice <= maxGasPrice);
+        }
+
         uint256 toFund;
         uint256 overflow = 0;
         if (guaranteedBuyersBought[_th].add(msg.value) > toCollect) {
