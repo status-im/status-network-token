@@ -30,6 +30,7 @@ import "./MiniMeToken.sol";
 import "./StatusContribution.sol";
 import "./SafeMath.sol";
 import "./Owned.sol";
+import "./ERC20Token.sol";
 
 
 contract SNTPlaceHolder is TokenController, Owned {
@@ -121,7 +122,7 @@ contract SNTPlaceHolder is TokenController, Owned {
             return;
         }
 
-        MiniMeToken token = MiniMeToken(_token);
+        ERC20Token token = ERC20Token(_token);
         uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);

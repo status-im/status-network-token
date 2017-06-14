@@ -45,6 +45,7 @@ pragma solidity ^0.4.11;
 import "./MiniMeToken.sol";
 import "./StatusContribution.sol";
 import "./SafeMath.sol";
+import "./ERC20Token.sol";
 
 
 contract DevTokensHolder is Owned {
@@ -64,12 +65,11 @@ contract DevTokensHolder is Owned {
     /// @notice The Dev (Owner) will call this method to extract the tokens
     function collectTokens() public onlyOwner {
         uint256 balance = snt.balanceOf(address(this));
-        uint256 total = collectedTokens.add(snt.balanceOf(address(this)));
+        uint256 total = collectedTokens.add(balance);
 
         uint256 finalizedTime = contribution.finalizedTime();
 
-        if (finalizedTime == 0) throw;
-        if (getTime().sub(finalizedTime) <= months(6)) throw;
+        assert (finalizedTime > 0 && getTime() > finalizedTime.add(months(6)));
 
         uint256 canExtract = total.mul(getTime().sub(finalizedTime).div(months(24)));
 
@@ -109,7 +109,7 @@ contract DevTokensHolder is Owned {
             return;
         }
 
-        MiniMeToken token = MiniMeToken(_token);
+        ERC20Token token = ERC20Token(_token);
         uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);
@@ -117,5 +117,4 @@ contract DevTokensHolder is Owned {
 
     event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
     event TokensWithdrawn(address indexed _holder, uint256 _amount);
-
 }

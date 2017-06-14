@@ -31,6 +31,7 @@ import "./Owned.sol";
 import "./MiniMeToken.sol";
 import "./DynamicCeiling.sol";
 import "./SafeMath.sol";
+import "./ERC20Token.sol";
 
 
 contract StatusContribution is Owned, TokenController {
@@ -184,6 +185,7 @@ contract StatusContribution is Owned, TokenController {
     ///  behalf of a token holder.
     /// @param _th SNT holder where the SNTs will be minted.
     function proxyPayment(address _th) public payable initialized contributionOpen returns (bool) {
+        if (_th == 0) throw;
         if (guaranteedBuyersLimit[_th] > 0) {
             buyGuaranteed(_th);
         } else {
@@ -422,7 +424,7 @@ contract StatusContribution is Owned, TokenController {
             return;
         }
 
-        MiniMeToken token = MiniMeToken(_token);
+        ERC20Token token = ERC20Token(_token);
         uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);

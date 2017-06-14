@@ -1,5 +1,8 @@
 pragma solidity ^0.4.11;
 
+
+import "./ERC20Token.sol";
+
 /*
     Copyright 2016, Jordi Baylina
 
@@ -554,7 +557,7 @@ contract MiniMeToken is Controlled {
             return;
         }
 
-        MiniMeToken token = MiniMeToken(_token);
+        ERC20Token token = ERC20Token(_token);
         uint balance = token.balanceOf(this);
         token.transfer(controller, balance);
         ClaimedTokens(_token, controller, balance);

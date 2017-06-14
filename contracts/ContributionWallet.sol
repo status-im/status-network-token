@@ -45,6 +45,9 @@ contract ContributionWallet {
     // @param _endBlock Block after which the multisig can request the funds
     // @param _contribution Address of the StatusContribution contract
     function ContributionWallet(address _multisig, uint256 _endBlock, address _contribution) {
+        if (_multisig == 0) throw;
+        if (_contribution == 0) throw;
+        if ((_endBlock == 0) || (_endBlock > 4000000)) throw;
         multisig = _multisig;
         endBlock = _endBlock;
         contribution = StatusContribution(_contribution);

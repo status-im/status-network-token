@@ -30,7 +30,7 @@ import "./MiniMeToken.sol";
 import "./SafeMath.sol";
 import "./Owned.sol";
 import "./StatusContribution.sol";
-
+import "./ERC20Token.sol";
 
 contract SGTExchanger is TokenController, Owned {
     using SafeMath for uint256;
@@ -100,7 +100,7 @@ contract SGTExchanger is TokenController, Owned {
             return;
         }
 
-        MiniMeToken token = MiniMeToken(_token);
+        ERC20Token token = ERC20Token(_token);
         uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);
