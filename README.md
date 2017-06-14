@@ -33,6 +33,7 @@ Code for the SNT token and the offering is being reviewed by:
 - [Smart Contract Solutions (OpenZeppelin)](https://smartcontractsolutions.com/). [Pending audit results](/)
 - [CoinFabrik](http://www.coinfabrik.com/). [Pending audit results](/)
 - [BlockchainLabs](http://blockchainlabs.nz/). [Pending audit results](/)
+- [Bok Consulting](https://www.bokconsulting.com.au/). [Pending audit results](/)
 - YYYYYY. [Pending audit results](/)
 
 A bug bounty for the SNT token and offering started on 14/6/2017. [More details](https://blog.status.im/status-network-token-bug-bounty-a66fc2324359)
