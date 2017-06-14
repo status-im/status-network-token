@@ -225,11 +225,11 @@ contract StatusContribution is Owned, TokenController {
     }
 
     function buyGuaranteed(address _th) internal {
-        uint256 cap = guaranteedBuyersLimit[_th];
+        uint256 toCollect = guaranteedBuyersLimit[_th];
         uint256 toFund;
         uint256 overflow = 0;
-        if (guaranteedBuyersBought[_th].add(msg.value) > cap) {
-            toFund = cap.sub(guaranteedBuyersBought[_th]);
+        if (guaranteedBuyersBought[_th].add(msg.value) > toCollect) {
+            toFund = toCollect.sub(guaranteedBuyersBought[_th]);
             overflow = msg.value.sub(toFund);
         } else {
             toFund = msg.value;
