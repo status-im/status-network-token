@@ -92,8 +92,8 @@ def fmt_eth(value: Decimal, shift: bool = False) -> str:
 def main() -> None:
     ''' Main '''
     tx_fee = ARGS.gas_per_tx * ARGS.gas_price
-    tx_token_fee = tx_fee / ARGS.fee_token
-    collect_min = ARGS.collect_min if ARGS.collect_min is not None else tx_token_fee
+    tx_fee_token_limit = tx_fee / ARGS.fee_token
+    collect_min = ARGS.collect_min if ARGS.collect_min is not None else tx_fee_token_limit
 
     transactions = transactions_calc(
         ARGS.limit,
@@ -108,7 +108,7 @@ def main() -> None:
         if transaction <= collect_min:
             collect_minimum_total += 1
 
-        if transaction < tx_token_fee:
+        if transaction < tx_fee_token_limit:
             collect_fee_total += 1
 
         if ARGS.print_txs:
@@ -116,11 +116,12 @@ def main() -> None:
                   f' {fmt_eth(transaction, shift=True)}')
     print()
 
-    print(f'Token fee: {fmt_wei(tx_token_fee)} {fmt_eth(tx_token_fee)}')
+    print(f'Token fee limit: {fmt_wei(tx_fee_token_limit)} {fmt_eth(tx_fee_token_limit)}')
+    print(f'Minimum collect: {fmt_wei(collect_min)} {fmt_eth(collect_min)}')
     transactions_len = len(transactions)
     print(f'Number of transactions: {transactions_len}')
-    print(f'Number of transactions <= collectMinimum: {collect_minimum_total}')
-    print(f'Number of transactions < token fee: {collect_fee_total}')
+    print(f'Number of transactions <= minimum collect: {collect_minimum_total}')
+    print(f'Number of transactions < token fee limit: {collect_fee_total}')
 
     average = statistics.mean(transactions)
     print(f'Average contribution: {fmt_wei(average)} {fmt_eth(average)}')
