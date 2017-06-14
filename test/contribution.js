@@ -99,11 +99,9 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Checks that no body can buy before the sale starts", async () => {
-        try {
+        await assertFail(async () => {
             await snt.send(web3.toWei(1));
-        } catch (error) {
-            assertFail(error);
-        }
+        });
     });
 
     it("Add 2 guaranteed addresses ", async () => {
@@ -249,11 +247,9 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Should not allow transfers in contribution period", async () => {
-        try {
+        await assertFail(async () => {
             await snt.transfer(accounts[4], web3.toWei(1000));
-        } catch (error) {
-            assertFail(error);
-        }
+        });
     });
 
     it("Guaranteed address should still be able to buy", async () => {
@@ -306,11 +302,9 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Should not allow transfers in the 1 week period", async () => {
-        try {
+        await assertFail(async () => {
             await snt.transfer(accounts[4], web3.toWei(1000));
-        } catch (error) {
-            assertFail(error);
-        }
+        });
     });
 
     it("Should allow transfers after 1 week period", async () => {
@@ -328,15 +322,13 @@ contract("StatusContribution", (accounts) => {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await devTokensHolder.setMockedTime(t);
 
-        try {
+        await assertFail(async () => {
             await multisigDevs.submitTransaction(
                 devTokensHolder.address,
                 0,
                 devTokensHolder.contract.collectTokens.getData(),
                 {from: accounts[3]});
-        } catch (error) {
-            assertFail(error);
-        }
+        });
     });
 
     it("Devs Should be able to extract 1/2 after a year", async () => {
