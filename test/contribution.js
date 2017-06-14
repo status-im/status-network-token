@@ -257,10 +257,12 @@ contract("StatusContribution", (accounts) => {
         await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: accounts[8]});
 
         const balance7 = await snt.balanceOf(accounts[7]);
+        cur += (web3.fromWei(balance7).toNumber() / 10000) - 1;
         const balance8 = await snt.balanceOf(accounts[8]);
+        cur += (web3.fromWei(balance8).toNumber() / 10000) - 2;
 
-        assert.equal(web3.fromWei(balance7).toNumber(), 10000);
-        assert.equal(web3.fromWei(balance8).toNumber(), 20000);
+        assert.equal(balance7.toFixed(), '10332967692705155420000');
+        assert.equal(balance8.toFixed(), '20321868769614983580000');
     });
 
     it("Should finalize", async () => {
