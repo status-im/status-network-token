@@ -66,16 +66,15 @@ contract StatusContribution is Owned, TokenController {
     uint256 public finalizedTime;
 
     modifier initialized() {
-        if (address(SNT) == 0x0 ) throw;
+        require(address(SNT) != 0x0);
         _;
     }
 
     modifier contributionOpen() {
-        if ((getBlockNumber() < startBlock) ||
-            (getBlockNumber() > endBlock) ||
-            (finalizedBlock > 0) ||
-            (address(SNT) == 0x0 ))
-            throw;
+        require(getBlockNumber() >= startBlock &&
+                getBlockNumber() <= endBlock &&
+                finalizedBlock == 0 &&
+                address(SNT) != 0x0);
         _;
     }
 
@@ -115,42 +114,42 @@ contract StatusContribution is Owned, TokenController {
         address _sntController
     ) public onlyOwner {
         // Initialize only once
-        if (address(SNT) != 0x0) throw;
+        require(address(SNT) == 0x0);
 
         SNT = MiniMeToken(_sntAddress);
 
-        if (SNT.totalSupply() != 0) throw;
-        if (SNT.controller() != address(this)) throw;
-        if (SNT.decimals() != 18) throw;  // Same amount of decimals as ETH
+        require(SNT.totalSupply() == 0);
+        require(SNT.controller() == address(this));
+        require(SNT.decimals() == 18);  // Same amount of decimals as ETH
 
-        if (_startBlock < getBlockNumber()) throw;
-        if (_startBlock >= _endBlock) throw;
+        require(_startBlock >= getBlockNumber());
+        require(_startBlock < _endBlock);
         startBlock = _startBlock;
         endBlock = _endBlock;
 
-        if (_dynamicCeiling == 0x0) throw;
+        require(_dynamicCeiling != 0x0);
         dynamicCeiling = DynamicCeiling(_dynamicCeiling);
 
-        if (_destEthDevs == 0x0) throw;
+        require(_destEthDevs != 0x0);
         destEthDevs = _destEthDevs;
 
-        if (_destTokensDevs == 0x0) throw;
+        require(_destTokensDevs != 0x0);
         destTokensDevs = _destTokensDevs;
 
-        if (_destTokensSecondarySale == 0x0) throw;
+        require(_destTokensSecondarySale != 0x0);
         destTokensSecondarySale = _destTokensSecondarySale;
 
-        if (_sgt == 0x0) throw;
-        if (MiniMeToken(_sgt).controller() != _destTokensSgt) throw;
+        require(_sgt != 0x0);
+        require(MiniMeToken(_sgt).controller() == _destTokensSgt);
         SGT = MiniMeToken(_sgt);
 
-        if (_destTokensSgt == 0x0) throw;
+        require(_destTokensSgt != 0x0);
         destTokensSgt = _destTokensSgt;
 
-        if (_maxSGTSupply < MiniMeToken(SGT).totalSupply()) throw;
+        require(_maxSGTSupply >= MiniMeToken(SGT).totalSupply());
         maxSGTSupply = _maxSGTSupply;
 
-        if (_sntController == 0x0) throw;
+        require(_sntController != 0x0);
         sntController = _sntController;
     }
 
@@ -163,8 +162,8 @@ contract StatusContribution is Owned, TokenController {
     /// @param _limit Particular limit for the guaranteed address. Set to 0 to remove
     ///   the guaranteed address
     function setGuaranteedAddress(address _th, uint256 _limit) public initialized onlyOwner {
-        if (getBlockNumber() >= startBlock) throw;
-        if (_limit > failSafe) throw;
+        require(getBlockNumber() < startBlock);
+        require(_limit <= failSafe);
         guaranteedBuyersLimit[_th] = _limit;
         GuaranteedAddress(_th, _limit);
     }
@@ -185,7 +184,7 @@ contract StatusContribution is Owned, TokenController {
     ///  behalf of a token holder.
     /// @param _th SNT holder where the SNTs will be minted.
     function proxyPayment(address _th) public payable initialized contributionOpen returns (bool) {
-        if (_th == 0) throw;
+        require(_th != 0x0);
         if (guaranteedBuyersLimit[_th] > 0) {
             buyGuaranteed(_th);
         } else {
@@ -203,10 +202,10 @@ contract StatusContribution is Owned, TokenController {
     }
 
     function buyNormal(address _th) internal {
-        if (tx.gasprice > maxGasPrice) throw;
+        require(tx.gasprice <= maxGasPrice);
 
         uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
-        if (totalNormalCollected.add(toCollect) > failSafe) throw;
+        assert(totalNormalCollected.add(toCollect) <= failSafe);
 
         uint256 toFund;
         if (msg.value <= toCollect) {
@@ -236,11 +235,11 @@ contract StatusContribution is Owned, TokenController {
     }
 
     function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
-        if (msg.value < _toFund) throw;  // Not needed, but double check.
+        require(msg.value >= _toFund);  // Not needed, but double check.
 
         if (_toFund > 0) {
             uint256 tokensGenerated = _toFund.mul(exchangeRate);
-            if (!SNT.generateTokens(_th, tokensGenerated)) throw;
+            assert(SNT.generateTokens(_th, tokensGenerated));
             destEthDevs.transfer(_toFund);
             NewSale(_th, _toFund, tokensGenerated, _guaranteed);
         }
@@ -281,17 +280,17 @@ contract StatusContribution is Owned, TokenController {
     ///  by creating the remaining tokens and transferring the controller to the configured
     ///  controller.
     function finalize() public initialized {
-        if (getBlockNumber() < startBlock) throw;
-        if (msg.sender != owner && getBlockNumber() <= endBlock) throw;
-        if (finalizedBlock > 0) throw;
+        require(getBlockNumber() >= startBlock);
+        require(msg.sender == owner || getBlockNumber() > endBlock);
+        require(finalizedBlock == 0);
 
         // Do not allow termination until all curves revealed.
-        if (!dynamicCeiling.allRevealed()) throw;
+        require(dynamicCeiling.allRevealed());
 
         // Allow premature finalization if final limit is reached
         if (getBlockNumber() <= endBlock) {
             var (,lastLimit,,) = dynamicCeiling.curves(dynamicCeiling.revealedCurves().sub(1));
-            if (totalNormalCollected < lastLimit) throw;
+            require(totalNormalCollected >= lastLimit);
         }
 
         finalizedBlock = getBlockNumber();
@@ -348,18 +347,18 @@ contract StatusContribution is Owned, TokenController {
         //  secondContribTokens = ----------------------- * totalTokens
         //                            percentage(100)
         //
-        if (!SNT.generateTokens(
+        assert(SNT.generateTokens(
             destTokensSecondarySale,
-            totalTokens.mul(percentageToSecondary).div(percent(100)))) throw;
+            totalTokens.mul(percentageToSecondary).div(percent(100))));
 
         //
         //                  percentageToSgt
         //  sgtTokens = ----------------------- * totalTokens
         //                   percentage(100)
         //
-        if (!SNT.generateTokens(
+        assert(SNT.generateTokens(
             destTokensSgt,
-            totalTokens.mul(percentageToSgt).div(percent(100)))) throw;
+            totalTokens.mul(percentageToSgt).div(percent(100))));
 
 
         //
@@ -367,9 +366,9 @@ contract StatusContribution is Owned, TokenController {
         //  devTokens = ----------------------- * totalTokens
         //                   percentage(100)
         //
-        if (!SNT.generateTokens(
+        assert(SNT.generateTokens(
             destTokensDevs,
-            totalTokens.mul(percentageToDevs).div(percent(100)))) throw;
+            totalTokens.mul(percentageToDevs).div(percent(100))));
 
         SNT.changeController(sntController);
 

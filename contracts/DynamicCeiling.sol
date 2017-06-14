@@ -54,7 +54,7 @@ contract DynamicCeiling is Owned {
     /// @dev `contribution` is the only address that can call a function with this
     /// modifier
     modifier onlyContribution {
-        if (msg.sender != contribution) throw;
+        require(msg.sender == contribution);
         _;
     }
 
@@ -70,7 +70,7 @@ contract DynamicCeiling is Owned {
     ///  committed in order to hide also the number of curves.
     ///  The remaining hashes can be just random numbers.
     function setHiddenCurves(bytes32[] _curveHashes) public onlyOwner {
-        if (curves.length > 0) throw;
+        require(curves.length == 0);
 
         curves.length = _curveHashes.length;
         for (uint256 i = 0; i < _curveHashes.length; i = i.add(1)) {
@@ -86,14 +86,14 @@ contract DynamicCeiling is Owned {
     /// @param _salt Random number used to commit the curve
     function revealCurve(uint256 _limit, uint256 _slopeFactor, uint256 _collectMinimum,
                          bool _last, bytes32 _salt) public {
-        if (allRevealed) throw;
+        require(!allRevealed);
 
-        if (curves[revealedCurves].hash != keccak256(_limit, _slopeFactor, _collectMinimum,
-                                                     _last, _salt)) throw;
+        require(curves[revealedCurves].hash == keccak256(_limit, _slopeFactor, _collectMinimum,
+                                                     _last, _salt));
 
-        if (_limit == 0 || _slopeFactor == 0 || _collectMinimum == 0) throw;
+        require(_limit != 0 && _slopeFactor != 0 && _collectMinimum != 0);
         if (revealedCurves > 0) {
-            if (_limit < curves[revealedCurves.sub(1)].limit) throw;
+            require(_limit >= curves[revealedCurves.sub(1)].limit);
         }
 
         curves[revealedCurves].limit = _limit;
@@ -108,9 +108,9 @@ contract DynamicCeiling is Owned {
     function revealMulti(uint256[] _limits, uint256[] _slopeFactors, uint256[] _collectMinimums,
                         bool[] _lasts, bytes32[] _salts) public {
         // Do not allow none and needs to be same length for all parameters
-        if (_limits.length == 0 ||
-            (_limits.length + _slopeFactors.length + _collectMinimums.length +
-             _lasts.length + _salts.length) % 5 != 0) throw;
+        require(_limits.length != 0 &&
+                (_limits.length + _slopeFactors.length + _collectMinimums.length +
+                 _lasts.length + _salts.length) % 5 == 0);
 
         for (uint256 i = 0; i < _limits.length; i = i.add(1)) {
             revealCurve(_limits[i], _slopeFactors[i], _collectMinimums[i],
@@ -120,8 +120,8 @@ contract DynamicCeiling is Owned {
 
     /// @notice Move to curve, used as a failsafe
     function moveTo(uint256 _index) public onlyOwner {
-        if (_index >= revealedCurves ||            // No more curves
-            _index != currentIndex.add(1)) throw;  // Only move one index at a time
+        require(_index < revealedCurves &&       // No more curves
+                _index == currentIndex.add(1));  // Only move one index at a time
         currentIndex = _index;
     }
 
