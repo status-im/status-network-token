@@ -229,10 +229,10 @@ contract StatusContribution is Owned, TokenController {
 
     function buyGuaranteed(address _th) internal {
         uint256 toFund;
-        uint256 cap = guaranteedBuyersLimit[_th];
+        uint256 toCollect = guaranteedBuyersLimit[_th];
 
-        if (guaranteedBuyersBought[_th].add(msg.value) > cap) {
-            toFund = cap.sub(guaranteedBuyersBought[_th]);
+        if (guaranteedBuyersBought[_th].add(msg.value) > toCollect) {
+            toFund = toCollect.sub(guaranteedBuyersBought[_th]);
         } else {
             toFund = msg.value;
         }
