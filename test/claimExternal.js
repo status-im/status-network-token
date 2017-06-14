@@ -32,12 +32,12 @@ contract("StatusContribution", (accounts) => {
     let externalToken;
 
     const curves = [
-        [web3.toWei(3), 30, 10**12],
-        [web3.toWei(13), 30, 10**12],
-        [web3.toWei(15), 30, 10**12],
+        [1000000, web3.toWei(3), 30, 10**12],
+        [1010000, web3.toWei(13), 30, 10**12],
+        [1020000, web3.toWei(15), 30, 10**12],
     ];
     const startBlock = 1000000;
-    const endBlock = 1003000;
+    const endBlock = 1030000;
 
     it("Should deploy Contribution contracts", async () => {
         multisigStatus = await MultiSigWallet.new([accounts[0]], 1);
@@ -59,7 +59,7 @@ contract("StatusContribution", (accounts) => {
             statusContribution.address,
             snt.address);
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
-        dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
+        dynamicCeiling = await DynamicCeiling.new(accounts[0]);
 
         await setHiddenCurves(dynamicCeiling, curves);
 
