@@ -221,20 +221,6 @@ contract StatusContribution is Owned, TokenController {
         if (getBlockNumber().sub(lastCallBlock[caller]) < MaxCallFrequency) throw;
         lastCallBlock[caller] = getBlockNumber();
 
-        // Antispam mechanism
-        address caller;
-        if (msg.sender == address(SNT)) {
-            caller = _th;
-        } else {
-            caller = msg.sender;
-        }
-
-        // Do not allow make tricki contracts to game the system
-        if (isContract(caller)) throw;
-
-        if (getBlockNumber().sub(lastCallBlock[caller]) < MaxCallFrequency) throw;
-        lastCallBlock[caller] = getBlockNumber();
-
         uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
         assert(totalNormalCollected.add(toCollect) <= failSafe);
 
