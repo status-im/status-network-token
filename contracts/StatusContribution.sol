@@ -40,6 +40,7 @@ contract StatusContribution is Owned, TokenController {
     uint256 constant public failSafe = 300000 ether;
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
+    uint256 constant public limitSGT = 30 ether;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
@@ -58,6 +59,7 @@ contract StatusContribution is Owned, TokenController {
 
     mapping (address => uint256) public guaranteedBuyersLimit;
     mapping (address => uint256) public guaranteedBuyersBought;
+    mapping (address => uint256) public sgtCollected;
 
     uint256 public totalGuaranteedCollected;
     uint256 public totalNormalCollected;
@@ -212,6 +214,15 @@ contract StatusContribution is Owned, TokenController {
             toFund = msg.value;
         } else {
             toFund = toCollect;
+        }
+
+        uint256 currentIndex = dynamicCeiling.currentIndex();
+        if (currentIndex == 0) {
+            require(SGT.balanceOf(_th) > 0);
+            if (sgtCollected[_th].add(toFund) > limitSGT) {
+                toFund = limitSGT.sub(sgtCollected[_th]);
+            }
+            sgtCollected[_th] = sgtCollected[_th].add(toFund);
         }
 
         totalNormalCollected = totalNormalCollected.add(toFund);
