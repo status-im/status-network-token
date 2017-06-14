@@ -68,8 +68,6 @@ contract StatusContribution is Owned, TokenController {
 
     mapping (address => uint256) public lastCallBlock;
 
-    mapping (address => uint256) public lastCallBlock;
-
     modifier initialized() {
         require(address(SNT) != 0x0);
         _;
