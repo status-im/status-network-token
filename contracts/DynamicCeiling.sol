@@ -93,7 +93,7 @@ contract DynamicCeiling is Owned {
 
         require(_limit != 0 && _slopeFactor != 0 && _collectMinimum != 0);
         if (revealedCurves > 0) {
-            require(_limit >= curves[revealedCurves.sub(1)].limit);
+            require(_limit > curves[revealedCurves.sub(1)].limit);
         }
 
         curves[revealedCurves].limit = _limit;
