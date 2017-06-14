@@ -216,9 +216,9 @@ contract StatusContribution is Owned, TokenController {
         }
 
         // Do not allow make tricki contracts to game the system
-        if (isContract(caller)) throw;
+        require(!isContract(caller));
 
-        if (getBlockNumber().sub(lastCallBlock[caller]) < MaxCallFrequency) throw;
+        require(getBlockNumber().sub(lastCallBlock[caller]) >= MaxCallFrequency);
         lastCallBlock[caller] = getBlockNumber();
 
         uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
