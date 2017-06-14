@@ -68,6 +68,8 @@ contract StatusContribution is Owned, TokenController {
 
     mapping (address => uint256) public lastCallBlock;
 
+    mapping (address => uint256) public lastCallBlock;
+
     modifier initialized() {
         require(address(SNT) != 0x0);
         _;
@@ -206,6 +208,20 @@ contract StatusContribution is Owned, TokenController {
 
     function buyNormal(address _th) internal {
         require(tx.gasprice <= maxGasPrice);
+
+        // Antispam mechanism
+        address caller;
+        if (msg.sender == address(SNT)) {
+            caller = _th;
+        } else {
+            caller = msg.sender;
+        }
+
+        // Do not allow make tricki contracts to game the system
+        if (isContract(caller)) throw;
+
+        if (getBlockNumber().sub(lastCallBlock[caller]) < MaxCallFrequency) throw;
+        lastCallBlock[caller] = getBlockNumber();
 
         // Antispam mechanism
         address caller;
