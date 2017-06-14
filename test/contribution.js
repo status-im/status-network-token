@@ -316,13 +316,15 @@ contract("StatusContribution", (accounts) => {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await devTokensHolder.setMockedTime(t);
 
-        await assertFail(async () => {
-            await multisigDevs.submitTransaction(
-                devTokensHolder.address,
-                0,
-                devTokensHolder.contract.collectTokens.getData(),
-                {from: accounts[3]});
-        });
+        // This function will fail in the multisig
+        await multisigDevs.submitTransaction(
+            devTokensHolder.address,
+            0,
+            devTokensHolder.contract.collectTokens.getData(),
+            {from: accounts[3], gas: 1000000});
+
+        const balance = await snt.balanceOf(multisigDevs.address);
+        assert.equal(balance,0);
     });
 
     it("Devs Should be able to extract 1/2 after a year", async () => {
