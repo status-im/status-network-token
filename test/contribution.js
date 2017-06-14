@@ -47,8 +47,7 @@ contract("StatusContribution", (accounts) => {
         multisigDevs = await MultiSigWallet.new([accounts[3]], 1);
         miniMeFactory = await MiniMeTokenFactory.new();
         sgt = await SGT.new(miniMeFactory.address);
-        await sgt.generateTokens(accounts[4], 2500);
-        await sgt.generateTokens(accounts[0], 2500);
+        await sgt.generateTokens(accounts[9], 2500);
 
         snt = await SNT.new(miniMeFactory.address);
         statusContribution = await StatusContributionMock.new();
@@ -272,7 +271,7 @@ contract("StatusContribution", (accounts) => {
         assert.isBelow(web3.fromWei(totalSupply).toNumber() - (180000 / 0.46), 0.01);
 
         const balanceSGT = await snt.balanceOf(sgtExchanger.address);
-        assert.equal(balanceSGT.toNumber(), totalSupply.mul(0.05).toNumber());
+        assert.equal(balanceSGT.toNumber(), totalSupply.mul(0.025).toNumber());
 
         const balanceDevs = await snt.balanceOf(devTokensHolder.address);
         assert.equal(balanceDevs.toNumber(), totalSupply.mul(0.20).toNumber());
@@ -293,9 +292,9 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Should be able to exchange sgt by snt", async () => {
-        await sgtExchanger.collect({from: accounts[4]});
+        await sgtExchanger.collect({from: accounts[9]});
 
-        const balance = await snt.balanceOf(accounts[4]);
+        const balance = await snt.balanceOf(accounts[9]);
         const totalSupply = await snt.totalSupply();
 
         assert.equal(totalSupply.mul(0.025).toNumber(), balance.toNumber());

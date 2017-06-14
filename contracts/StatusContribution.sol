@@ -40,6 +40,7 @@ contract StatusContribution is Owned, TokenController {
     uint256 constant public failSafe = 300000 ether;
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
+    uint256 constant public guaranteedSGTLimit = 30 ether;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
@@ -165,7 +166,7 @@ contract StatusContribution is Owned, TokenController {
         require(getBlockNumber() < startBlock);
         require(_limit <= failSafe);
         guaranteedBuyersLimit[_th] = _limit;
-        GuaranteedAddress(_th, _limit);
+        GuaranteedAddress(_th, _limit, false);
     }
 
     /// @notice If anybody sends Ether directly to this contract, consider he is
@@ -186,6 +187,14 @@ contract StatusContribution is Owned, TokenController {
     function proxyPayment(address _th) public payable initialized contributionOpen returns (bool) {
         require(_th != 0x0);
         if (guaranteedBuyersLimit[_th] > 0) {
+            if (guaranteedBuyersBought[_th] < guaranteedBuyersLimit[_th]) {
+                buyGuaranteed(_th);
+            } else {
+                buyNormal(_th);
+            }
+        } else if (SGT.balanceOf(_th) > 0) {
+            guaranteedBuyersLimit[_th] = guaranteedSGTLimit;
+            GuaranteedAddress(_th, guaranteedSGTLimit, true);
             buyGuaranteed(_th);
         } else {
             buyNormal(_th);
@@ -431,6 +440,6 @@ contract StatusContribution is Owned, TokenController {
 
     event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
     event NewSale(address indexed _th, uint256 _amount, uint256 _tokens, bool _guaranteed);
-    event GuaranteedAddress(address indexed _th, uint256 _limit);
+    event GuaranteedAddress(address indexed _th, uint256 _limit, bool _sgt);
     event Finalized();
 }
