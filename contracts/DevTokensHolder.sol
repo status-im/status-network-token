@@ -69,7 +69,7 @@ contract DevTokensHolder is Owned {
 
         uint256 finalizedTime = contribution.finalizedTime();
 
-        assert (finalizedTime > 0 && getTime() > finalizedTime.add(months(6)));
+        require(finalizedTime > 0 && getTime() > finalizedTime.add(months(6)));
 
         uint256 canExtract = total.mul(getTime().sub(finalizedTime).div(months(24)));
 
@@ -80,7 +80,7 @@ contract DevTokensHolder is Owned {
         }
 
         collectedTokens = collectedTokens.add(canExtract);
-        if (!snt.transfer(owner, canExtract)) throw;
+        assert(snt.transfer(owner, canExtract));
 
         TokensWithdrawn(owner, canExtract);
     }
@@ -103,7 +103,7 @@ contract DevTokensHolder is Owned {
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
     function claimTokens(address _token) public onlyOwner {
-        if (_token == address(snt)) throw;
+        require(_token != address(snt));
         if (_token == 0x0) {
             owner.transfer(this.balance);
             return;

@@ -52,7 +52,7 @@ contract SGTExchanger is TokenController, Owned {
     function collect() public {
         uint256 finalizedBlock = statusContribution.finalizedBlock();
 
-        if (finalizedBlock == 0) throw;
+        require(finalizedBlock != 0);
 
         uint256 total = totalCollected.add(snt.balanceOf(address(this)));
 
@@ -67,7 +67,7 @@ contract SGTExchanger is TokenController, Owned {
         totalCollected = totalCollected.add(amount);
         collected[msg.sender] = collected[msg.sender].add(amount);
 
-        if (!snt.transfer(msg.sender, amount)) throw;
+        assert(snt.transfer(msg.sender, amount));
 
         TokensCollected(msg.sender, amount);
     }
@@ -94,7 +94,7 @@ contract SGTExchanger is TokenController, Owned {
     /// @param _token The address of the token contract that you want to recover
     ///  set to 0 in case you want to extract ether.
     function claimTokens(address _token) public onlyOwner {
-        if (_token == address(snt)) throw;
+        require(_token != address(snt));
         if (_token == 0x0) {
             owner.transfer(this.balance);
             return;

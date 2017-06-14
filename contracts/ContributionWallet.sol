@@ -45,9 +45,9 @@ contract ContributionWallet {
     // @param _endBlock Block after which the multisig can request the funds
     // @param _contribution Address of the StatusContribution contract
     function ContributionWallet(address _multisig, uint256 _endBlock, address _contribution) {
-        if (_multisig == 0) throw;
-        if (_contribution == 0) throw;
-        if ((_endBlock == 0) || (_endBlock > 4000000)) throw;
+        require(_multisig != 0x0);
+        require(_contribution != 0x0);
+        require(_endBlock != 0 && _endBlock <= 4000000);
         multisig = _multisig;
         endBlock = _endBlock;
         contribution = StatusContribution(_contribution);
@@ -58,9 +58,9 @@ contract ContributionWallet {
 
     // @dev Withdraw function sends all the funds to the wallet if conditions are correct
     function withdraw() public {
-        if (msg.sender != multisig) throw;         // Only the multisig can request it
-        if (block.number <= endBlock &&            // Allow after end block
-            contribution.finalizedBlock() == 0) throw;  // Allow when sale is finalized
+        require(msg.sender == multisig);          // Only the multisig can request it
+        require(block.number > endBlock ||        // Allow after end block
+            contribution.finalizedBlock() != 0);  // Allow when sale is finalized
         multisig.transfer(this.balance);
     }
 

@@ -31,7 +31,7 @@ contract SGT is MiniMeToken {
             address addr = address(data[i] & (D160 - 1));
             uint256 amount = data[i] / D160;
 
-            if (!generateTokens(addr, amount)) throw;
+            assert(generateTokens(addr, amount));
         }
     }
 
