@@ -35,14 +35,14 @@ contract DynamicCeiling is Owned {
 
     struct Curve {
         bytes32 hash;
+        // Absolute limit for this curve
         uint256 limit;
+        // The funds remaining to be collected are divided by `slopeFactor` smooth ceiling
+        // with a long tail where big and small buyers can take part.
+        uint256 slopeFactor;
+        // This keeps the curve flat at this number, until funds to be collected is less than this
+        uint256 collectMinimum;
     }
-
-    // The funds remaining to be collected are divided by `slopeFactor` smooth ceiling
-    // with a long tail where big and small buyers can take part.
-    uint256 constant public slopeFactor = 30;
-    // This keeps the curve flat at this number, until funds to be collected is less than this
-    uint256 constant public collectMinimum = 10**15;
 
     address public contribution;
 
@@ -84,16 +84,21 @@ contract DynamicCeiling is Owned {
     ///  (must be greater or equal to the previous one).
     /// @param _last `true` if it's the last curve.
     /// @param _salt Random number used to commit the curve
-    function revealCurve(uint256 _limit, bool _last, bytes32 _salt) public {
+    function revealCurve(uint256 _limit, uint256 _slopeFactor, uint256 _collectMinimum,
+                         bool _last, bytes32 _salt) public {
         if (allRevealed) throw;
 
-        if (curves[revealedCurves].hash != keccak256(_limit, _last, _salt)) throw;
+        if (curves[revealedCurves].hash != keccak256(_limit, _slopeFactor, _collectMinimum,
+                                                     _last, _salt)) throw;
 
+        if (_limit == 0 || _slopeFactor == 0 || _collectMinimum == 0) throw;
         if (revealedCurves > 0) {
             if (_limit < curves[revealedCurves.sub(1)].limit) throw;
         }
 
         curves[revealedCurves].limit = _limit;
+        curves[revealedCurves].slopeFactor = _slopeFactor;
+        curves[revealedCurves].collectMinimum = _collectMinimum;
         revealedCurves = revealedCurves.add(1);
 
         if (_last) allRevealed = true;
@@ -123,12 +128,12 @@ contract DynamicCeiling is Owned {
         uint256 difference = curves[currentIndex].limit.sub(collected);
 
         // Current point on the curve
-        uint256 collect = difference.div(slopeFactor);
+        uint256 collect = difference.div(curves[currentIndex].slopeFactor);
 
         // Prevents paying too much fees vs to be collected; breaks long tail
-        if (collect <= collectMinimum) {
-            if (difference > collectMinimum) {
-                return collectMinimum;
+        if (collect <= curves[currentIndex].collectMinimum) {
+            if (difference > curves[currentIndex].collectMinimum) {
+                return curves[currentIndex].collectMinimum;
             } else {
                 return difference;
             }
@@ -142,8 +147,9 @@ contract DynamicCeiling is Owned {
     /// @param _last `true` if it's the last curve.
     /// @param _salt Random number that will be needed to reveal this curve.
     /// @return The calculated hash of this curve to be used in the `setHiddenCurves` method
-    function calculateHash(uint256 _limit, bool _last, bytes32 _salt) public constant returns (bytes32) {
-        return keccak256(_limit, _last, _salt);
+    function calculateHash(uint256 _limit, uint256 _slopeFactor, uint256 _collectMinimum,
+                           bool _last, bytes32 _salt) public constant returns (bytes32) {
+        return keccak256(_limit, _slopeFactor, _collectMinimum, _last, _salt);
     }
 
     /// @return Return the total number of curves committed
