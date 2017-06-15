@@ -10,5 +10,7 @@ cache:
     yarn: true
 
 script:
-  - 'testrpc --network-id 15 > /dev/null &'
+  - 'truffle compile'
+  - 'testrpc --network-id 15 --mnemonic ''status mnemonic status mnemonic status mnemonic status mnemonic status mnemonic status mnemonic'' > /dev/null &'
   - 'truffle test --network development'
+  - 'truffle migrate --reset --network development_migrate'
