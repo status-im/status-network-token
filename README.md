@@ -34,7 +34,6 @@ Code for the SNT token and the offering is being reviewed by:
 - [CoinFabrik](http://www.coinfabrik.com/). [2152b17aa2ef584a2aea95533c707a345c6ccf69](/audits/coinfabrik-2152b17aa2ef584a2aea95533c707a345c6ccf69.pdf)
 - [BlockchainLabs](http://blockchainlabs.nz/). [Pending audit results](/)
 - [Bok Consulting](https://www.bokconsulting.com.au/). [Pending audit results](/)
-- [Holiman](https://github.com/holiman). [e6c70b8078aed6f9c04780c0b1e55dbe854dcf68](/audits/holiman-e6c70b8078aed6f9c04780c0b1e55dbe854dcf68.md) (Informal Review *not audit*)
 - YYYYYY. [Pending audit results](/)
 
 A bug bounty for the SNT token and offering started on 14/6/2017. [More details](https://blog.status.im/status-network-token-bug-bounty-a66fc2324359)
