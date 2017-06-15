@@ -73,21 +73,21 @@ contract("StatusContribution", (accounts) => {
 
         await statusContribution.initialize(
             snt.address,
+            sntPlaceHolder.address,
+
             startBlock,
             endBlock,
+
             dynamicCeiling.address,
 
             contributionWallet.address,
 
+            multisigReserve.address,
+            sgtExchanger.address,
             devTokensHolder.address,
 
-            multisigReserve.address,
             sgt.address,
-
-            sgtExchanger.address,
-            5000 * 2,
-
-            sntPlaceHolder.address);
+            5000 * 2);
 
         externalToken = await ExternalToken.new();
         await externalToken.generateTokens(accounts[0], 1000);
