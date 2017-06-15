@@ -50,7 +50,7 @@ contract("StatusContribution", (accounts) => {
 
     const maxSGTSupply = 5000 * 2;
 
-    it("Should deploy Contribution contracts", async () => {
+    it("Deploys all contracts", async () => {
         multisigStatus = await MultiSigWallet.new([addressStatus], 1);
         multisigCommunity = await MultiSigWallet.new([addressCommunity], 1);
         multisigReserve = await MultiSigWallet.new([addressReserve], 1);
@@ -104,17 +104,17 @@ contract("StatusContribution", (accounts) => {
             maxSGTSupply);
     });
 
-    it("Check initial parameters", async () => {
+    it("Checks initial parameters", async () => {
         assert.equal(await snt.controller(), statusContribution.address);
     });
 
-    it("Checks that no body can buy before the sale starts", async () => {
+    it("Checks that nobody can buy before the sale starts", async () => {
         await assertFail(async () => {
             await snt.send(web3.toWei(1));
         });
     });
 
-    it("Add 2 guaranteed addresses ", async () => {
+    it("Adds 2 guaranteed addresses ", async () => {
         await statusContribution.setGuaranteedAddress(addressGuaranteed0, web3.toWei(1));
         await statusContribution.setGuaranteedAddress(addressGuaranteed1, web3.toWei(2));
 
@@ -125,7 +125,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(permited8).toNumber(), 2);
     });
 
-    it("Reveal a curve, move time to start of the ICO, and do the first buy", async () => {
+    it("Reveals a curve, moves time to start of the ICO, and does the first buy", async () => {
         await dynamicCeiling.revealCurve(
             curves[0][0],
             curves[0][1],
@@ -150,7 +150,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balance).toNumber(), b * 10000);
     });
 
-    it("Should return the remaining in the last transaction ", async () => {
+    it("Returns the remaining of the last transaction ", async () => {
         await statusContribution.setMockedBlockNumber(1005000);
         await sgt.setMockedBlockNumber(1005000);
         await snt.setMockedBlockNumber(1005000);
@@ -172,7 +172,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
-    it("Should reveal second curve and check that every that the limit is right", async () => {
+    it("Reveals second curve and checks that the limit is right", async () => {
         await dynamicCeiling.revealCurve(
             curves[1][0],
             curves[1][1],
@@ -204,7 +204,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
-    it("Should reveal last curve, fill the collaboration", async () => {
+    it("Reveals last curve and fills the collaboration", async () => {
         await dynamicCeiling.revealCurve(
             curves[2][0],
             curves[2][1],
@@ -256,13 +256,13 @@ contract("StatusContribution", (accounts) => {
         }
     });
 
-    it("Should not allow transfers in contribution period", async () => {
+    it("Doesn't allow transfers during contribution period", async () => {
         await assertFail(async () => {
             await snt.transfer(addressSGTHolder, web3.toWei(1000));
         });
     });
 
-    it("Guaranteed address should still be able to buy", async () => {
+    it("Checks that Guaranteed addresses are able to buy", async () => {
         await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: addressGuaranteed0});
         await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: addressGuaranteed1});
 
@@ -273,7 +273,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balance8).toNumber(), 20000);
     });
 
-    it("Should finalize", async () => {
+    it("Finalizes", async () => {
         await statusContribution.setMockedBlockNumber(endBlock + 1);
         await statusContribution.finalize();
 
@@ -291,7 +291,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(balanceSecondary.toNumber(), totalSupply.mul(0.29).toNumber());
     });
 
-    it("Should move the Ether to the final multisig", async () => {
+    it("Moves the Ether to the final multisig", async () => {
         await multisigStatus.submitTransaction(
             contributionWallet.address,
             0,
@@ -302,7 +302,7 @@ contract("StatusContribution", (accounts) => {
         assert.isBelow(Math.abs(web3.fromWei(balance).toNumber() - (cur+3)), 0.00001);
     });
 
-    it("Should be able to exchange sgt by snt", async () => {
+    it("Exchanges SGT by SNT", async () => {
         await sgtExchanger.collect({from: addressSGTHolder});
 
         const balance = await snt.balanceOf(addressSGTHolder);
@@ -311,13 +311,13 @@ contract("StatusContribution", (accounts) => {
         assert.equal(totalSupply.mul(0.025).toNumber(), balance.toNumber());
     });
 
-    it("Should not allow transfers in the 1 week period", async () => {
+    it("Doesn't allow transfers in the 1 week period", async () => {
         await assertFail(async () => {
             await snt.transfer(addressSGTHolder, web3.toWei(1000));
         });
     });
 
-    it("Should allow transfers after 1 week period", async () => {
+    it("Allows transfers after 1 week period", async () => {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await sntPlaceHolder.setMockedTime(t);
 
@@ -328,7 +328,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balance2).toNumber(), 1000);
     });
 
-    it("Devs should not allow transfers before 6 months", async () => {
+    it("Disallows devs from transfering before 6 months have past", async () => {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await devTokensHolder.setMockedTime(t);
 
@@ -343,7 +343,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(balance,0);
     });
 
-    it("Devs Should be able to extract 1/2 after a year", async () => {
+    it("Allows devs to extract after 6 months", async () => {
         const t = (await statusContribution.finalizedTime()).toNumber() + (86400 * 360);
         await devTokensHolder.setMockedTime(t);
 
@@ -363,7 +363,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(realTokens, calcTokens);
     });
 
-    it("Devs Should be able to extract every thing after 2 year", async () => {
+    it("Allows devs to extract everything after 24 months", async () => {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 360 * 2);
         await devTokensHolder.setMockedTime(t);
 
@@ -383,7 +383,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(calcTokens, realTokens);
     });
 
-    it("SNT's Controller should be upgradeable", async () => {
+    it("Checks that SNT's Controller is upgradeable", async () => {
         await multisigCommunity.submitTransaction(
             sntPlaceHolder.address,
             0,

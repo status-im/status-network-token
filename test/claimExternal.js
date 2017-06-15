@@ -1,4 +1,4 @@
-// Simulate a full contribution
+// Simulate a an external claim
 
 const MultiSigWallet = artifacts.require("MultiSigWallet");
 const MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
@@ -47,7 +47,7 @@ contract("StatusContribution", (accounts) => {
 
     const maxSGTSupply = 5000 * 2;
 
-    it("Should deploy Contribution contracts", async () => {
+    it("Deploys all contracts", async () => {
         multisigStatus = await MultiSigWallet.new([addressStatus], 1);
         multisigCommunity = await MultiSigWallet.new([addressCommunity], 1);
         multisigReserve = await MultiSigWallet.new([addressReserve], 1);
@@ -103,7 +103,7 @@ contract("StatusContribution", (accounts) => {
         await externalToken.generateTokens(addressStatus, 1000);
     });
 
-    it("Should send and recover tokens to the StatusContribution", async () => {
+    it("Sends to and recover tokens from the StatusContribution", async () => {
         await externalToken.transfer(statusContribution.address, 100);
         const balanceBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(balanceBefore.toNumber(), 900);
@@ -113,7 +113,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(afterBefore.toNumber(), 1000);
     });
 
-    it("Should recover tokens sent to SNT", async () => {
+    it("Recovers tokens sent to SNT", async () => {
         await externalToken.transfer(snt.address, 100);
         const balanceBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(balanceBefore.toNumber(), 900);
