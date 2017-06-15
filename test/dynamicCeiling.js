@@ -193,7 +193,7 @@ contract("DynamicCeiling", (accounts) => {
                 web3.sha3("pwd0"),
                 web3.sha3("pwd1"),
                 web3.sha3("pwd2"),
-            ]
+            ],
         );
 
         assert.equal(await dynamicCeiling.currentIndex(), 0);
