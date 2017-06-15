@@ -45,6 +45,8 @@ contract("StatusContribution", (accounts) => {
     const startBlock = 1000000;
     const endBlock = 1003000;
 
+    const maxSGTSupply = 5000 * 2;
+
     it("Should deploy Contribution contracts", async () => {
         multisigStatus = await MultiSigWallet.new([addressStatus], 1);
         multisigCommunity = await MultiSigWallet.new([addressCommunity], 1);
@@ -95,7 +97,7 @@ contract("StatusContribution", (accounts) => {
             devTokensHolder.address,
 
             sgt.address,
-            5000 * 2);
+            maxSGTSupply);
 
         externalToken = await ExternalToken.new();
         await externalToken.generateTokens(addressStatus, 1000);
