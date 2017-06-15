@@ -373,7 +373,6 @@ contract StatusContribution is Owned, TokenController {
         SNT.changeController(sntController);
 
         Finalized();
-
     }
 
     function percent(uint256 p) internal returns (uint256) {

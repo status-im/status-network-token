@@ -89,7 +89,7 @@ contract DynamicCeiling is Owned {
         require(!allRevealed);
 
         require(curves[revealedCurves].hash == keccak256(_limit, _slopeFactor, _collectMinimum,
-                                                     _last, _salt));
+                                                         _last, _salt));
 
         require(_limit != 0 && _slopeFactor != 0 && _collectMinimum != 0);
         if (revealedCurves > 0) {
@@ -106,7 +106,7 @@ contract DynamicCeiling is Owned {
 
     /// @notice Reveal multiple curves at once
     function revealMulti(uint256[] _limits, uint256[] _slopeFactors, uint256[] _collectMinimums,
-                        bool[] _lasts, bytes32[] _salts) public {
+                         bool[] _lasts, bytes32[] _salts) public {
         // Do not allow none and needs to be same length for all parameters
         require(_limits.length != 0 &&
                 _limits.length == _slopeFactors.length &&
