@@ -205,7 +205,6 @@ contract StatusContribution is Owned, TokenController {
         require(tx.gasprice <= maxGasPrice);
 
         uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
-        assert(totalNormalCollected.add(toCollect) <= failSafe);
 
         uint256 toFund;
         if (msg.value <= toCollect) {
@@ -236,6 +235,10 @@ contract StatusContribution is Owned, TokenController {
 
     function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
         require(msg.value >= _toFund);  // Not needed, but double check.
+
+        uint256 totalCollected = totalNormalCollected.add(totalGuaranteedCollected);
+        uint256 toCollect = dynamicCeiling.toCollect(totalCollected);
+        assert(totalCollected.add(toCollect) <= failSafe);
 
         if (_toFund > 0) {
             uint256 tokensGenerated = _toFund.mul(exchangeRate);
