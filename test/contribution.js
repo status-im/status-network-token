@@ -72,7 +72,6 @@ contract("StatusContribution", (accounts) => {
             sgtExchanger.address);
 
         await snt.changeController(statusContribution.address);
-        await sgt.changeController(sgtExchanger.address);
 
         await statusContribution.initialize(
             snt.address,
@@ -95,7 +94,6 @@ contract("StatusContribution", (accounts) => {
 
     it("Check initial parameters", async () => {
         assert.equal(await snt.controller(), statusContribution.address);
-        assert.equal(await sgt.controller(), sgtExchanger.address);
     });
 
     it("Checks that no body can buy before the sale starts", async () => {

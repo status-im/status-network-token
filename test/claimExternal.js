@@ -70,7 +70,6 @@ contract("StatusContribution", (accounts) => {
             sgtExchanger.address);
 
         await snt.changeController(statusContribution.address);
-        await sgt.changeController(sgtExchanger.address);
 
         await statusContribution.initialize(
             snt.address,
