@@ -16,6 +16,12 @@ const setHiddenCurves = require("./helpers/hiddenCurves.js").setHiddenCurves;
 const assertFail = require("./helpers/assertFail");
 
 contract("StatusContribution", (accounts) => {
+    const addressStatus = accounts[0];
+    const addressCommunity = accounts[1];
+    const addressReserve = accounts[2];
+    const addressDevs = accounts[3];
+    const addressSGTHolder = accounts[4];
+
     let multisigStatus;
     let multisigComunity;
     let multisigReserve;
@@ -40,13 +46,13 @@ contract("StatusContribution", (accounts) => {
     const endBlock = 1003000;
 
     it("Should deploy Contribution contracts", async () => {
-        multisigStatus = await MultiSigWallet.new([accounts[0]], 1);
-        multisigComunity = await MultiSigWallet.new([accounts[1]], 1);
-        multisigReserve = await MultiSigWallet.new([accounts[2]], 1);
-        multisigDevs = await MultiSigWallet.new([accounts[3]], 1);
+        multisigStatus = await MultiSigWallet.new([addressStatus], 1);
+        multisigComunity = await MultiSigWallet.new([addressCommunity], 1);
+        multisigReserve = await MultiSigWallet.new([addressReserve], 1);
+        multisigDevs = await MultiSigWallet.new([addressDevs], 1);
         miniMeFactory = await MiniMeTokenFactory.new();
         sgt = await SGT.new(miniMeFactory.address);
-        await sgt.generateTokens(accounts[4], 5000);
+        await sgt.generateTokens(addressSGTHolder, 5000);
 
         snt = await SNT.new(miniMeFactory.address);
         statusContribution = await StatusContributionMock.new();
@@ -59,7 +65,7 @@ contract("StatusContribution", (accounts) => {
             statusContribution.address,
             snt.address);
         sgtExchanger = await SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
-        dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
+        dynamicCeiling = await DynamicCeiling.new(addressStatus, statusContribution.address);
 
         await setHiddenCurves(dynamicCeiling, curves);
 
@@ -90,26 +96,26 @@ contract("StatusContribution", (accounts) => {
             5000 * 2);
 
         externalToken = await ExternalToken.new();
-        await externalToken.generateTokens(accounts[0], 1000);
+        await externalToken.generateTokens(addressStatus, 1000);
     });
 
     it("Should send and recover tokens to the StatusContribution", async () => {
         await externalToken.transfer(statusContribution.address, 100);
-        const balanceBefore = await externalToken.balanceOf(accounts[0]);
+        const balanceBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(balanceBefore.toNumber(), 900);
 
         await statusContribution.claimTokens(externalToken.address);
-        const afterBefore = await externalToken.balanceOf(accounts[0]);
+        const afterBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(afterBefore.toNumber(), 1000);
     });
 
     it("Should recover tokens sent to SNT", async () => {
         await externalToken.transfer(snt.address, 100);
-        const balanceBefore = await externalToken.balanceOf(accounts[0]);
+        const balanceBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(balanceBefore.toNumber(), 900);
 
         await statusContribution.claimTokens(externalToken.address);
-        const afterBefore = await externalToken.balanceOf(accounts[0]);
+        const afterBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(afterBefore.toNumber(), 1000);
     });
 });
