@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import "../../contracts/MiniMeToken.sol";
+import "../MiniMeToken.sol";
 
 contract ExternalToken is MiniMeToken {
 

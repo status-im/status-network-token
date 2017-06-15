@@ -1,12 +1,12 @@
 pragma solidity ^0.4.11;
 
-import '../../contracts/StatusContribution.sol';
+import '../SNT.sol';
 
 // @dev AragonTokenSaleMock mocks current block number
 
-contract StatusContributionMock is StatusContribution {
+contract SNTMock is SNT {
 
-    function StatusContributionMock() StatusContribution() {}
+    function SNTMock(address _tokenFactory) SNT(_tokenFactory) {}
 
     function getBlockNumber() internal constant returns (uint) {
         return mock_blockNumber;
