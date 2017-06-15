@@ -53,6 +53,8 @@ contract SGTExchanger is TokenController, Owned {
         uint256 finalizedBlock = statusContribution.finalizedBlock();
 
         require(finalizedBlock != 0);
+        require(block.number > finalizedBlock);
+
 
         uint256 total = totalCollected.add(snt.balanceOf(address(this)));
 
