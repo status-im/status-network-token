@@ -1,11 +1,11 @@
 // Simulate a full contribution
 
+const MultiSigWallet = artifacts.require("MultiSigWallet");
 const MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
 const SGT = artifacts.require("SGT");
 const SNT = artifacts.require("SNT");
-const MultiSigWallet = artifacts.require("MultiSigWallet");
-const ContributionWallet = artifacts.require("ContributionWallet");
 const StatusContributionMock = artifacts.require("StatusContributionMock");
+const ContributionWallet = artifacts.require("ContributionWallet");
 const DevTokensHolder = artifacts.require("DevTokensHolderMock");
 const SGTExchanger = artifacts.require("SGTExchanger");
 const DynamicCeiling = artifacts.require("DynamicCeiling");
