@@ -37,7 +37,8 @@ import "./ERC20Token.sol";
 contract StatusContribution is Owned, TokenController {
     using SafeMath for uint256;
 
-    uint256 constant public failSafe = 300000 ether;
+    uint256 constant public failSafeLimit = 300000 ether;
+    uint256 constant public maxGuaranteedLimit = 30000 ether;
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
 
@@ -163,7 +164,7 @@ contract StatusContribution is Owned, TokenController {
     ///   the guaranteed address
     function setGuaranteedAddress(address _th, uint256 _limit) public initialized onlyOwner {
         require(getBlockNumber() < startBlock);
-        require(_limit <= failSafe);
+        require(_limit > 0 && _limit <= maxGuaranteedLimit);
         guaranteedBuyersLimit[_th] = _limit;
         GuaranteedAddress(_th, _limit);
     }
@@ -205,7 +206,6 @@ contract StatusContribution is Owned, TokenController {
         require(tx.gasprice <= maxGasPrice);
 
         uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
-        assert(totalNormalCollected.add(toCollect) <= failSafe);
 
         uint256 toFund;
         if (msg.value <= toCollect) {
@@ -230,12 +230,12 @@ contract StatusContribution is Owned, TokenController {
 
         guaranteedBuyersBought[_th] = guaranteedBuyersBought[_th].add(toFund);
         totalGuaranteedCollected = totalGuaranteedCollected.add(toFund);
-
         doBuy(_th, toFund, true);
     }
 
     function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
-        require(msg.value >= _toFund);  // Not needed, but double check.
+        assert(msg.value >= _toFund);  // Not needed, but double check.
+        assert(totalCollected() <= failSafeLimit);
 
         if (_toFund > 0) {
             uint256 tokensGenerated = _toFund.mul(exchangeRate);
