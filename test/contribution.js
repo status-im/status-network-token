@@ -24,7 +24,7 @@ contract("StatusContribution", (accounts) => {
     const addressGuaranteed1 = accounts[8];
 
     let multisigStatus;
-    let multisigComunity;
+    let multisigCommunity;
     let multisigReserve;
     let multisigDevs;
     let miniMeTokenFactory;
@@ -50,7 +50,7 @@ contract("StatusContribution", (accounts) => {
 
     it("Should deploy Contribution contracts", async () => {
         multisigStatus = await MultiSigWallet.new([addressStatus], 1);
-        multisigComunity = await MultiSigWallet.new([addressCommunity], 1);
+        multisigCommunity = await MultiSigWallet.new([addressCommunity], 1);
         multisigReserve = await MultiSigWallet.new([addressReserve], 1);
         multisigDevs = await MultiSigWallet.new([addressDevs], 1);
 
@@ -76,7 +76,7 @@ contract("StatusContribution", (accounts) => {
         await setHiddenCurves(dynamicCeiling, curves);
 
         sntPlaceHolder = await SNTPlaceHolderMock.new(
-            multisigComunity.address,
+            multisigCommunity.address,
             snt.address,
             statusContribution.address,
             sgtExchanger.address);
@@ -382,7 +382,7 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("SNT's Controller should be upgradeable", async () => {
-        await multisigComunity.submitTransaction(
+        await multisigCommunity.submitTransaction(
             sntPlaceHolder.address,
             0,
             sntPlaceHolder.contract.changeController.getData(accounts[6]),
