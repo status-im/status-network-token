@@ -26,7 +26,7 @@ contract("StatusContribution", (accounts) => {
     let multisigComunity;
     let multisigReserve;
     let multisigDevs;
-    let miniMeFactory;
+    let miniMeTokenFactory;
     let sgt;
     let snt;
     let statusContribution;
@@ -50,11 +50,13 @@ contract("StatusContribution", (accounts) => {
         multisigComunity = await MultiSigWallet.new([addressCommunity], 1);
         multisigReserve = await MultiSigWallet.new([addressReserve], 1);
         multisigDevs = await MultiSigWallet.new([addressDevs], 1);
-        miniMeFactory = await MiniMeTokenFactory.new();
-        sgt = await SGT.new(miniMeFactory.address);
+
+        miniMeTokenFactory = await MiniMeTokenFactory.new();
+
+        sgt = await SGT.new(miniMeTokenFactory.address);
         await sgt.generateTokens(addressSGTHolder, 5000);
 
-        snt = await SNT.new(miniMeFactory.address);
+        snt = await SNT.new(miniMeTokenFactory.address);
         statusContribution = await StatusContributionMock.new();
         contributionWallet = await ContributionWallet.new(
             multisigStatus.address,
