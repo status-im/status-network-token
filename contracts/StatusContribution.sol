@@ -84,7 +84,7 @@ contract StatusContribution is Owned, TokenController {
 
     /// @notice This method should be called by the owner before the contribution
     ///  period starts This initializes most of the parameters
-    /// @param _sntAddress Address of the SNT token contract
+    /// @param _snt Address of the SNT token contract
     /// @param _startBlock Block when the contribution period starts
     /// @param _endBlock The last block that the contribution period is active
     /// @param _dynamicCeiling Address of the contract that controls the ceiling
@@ -98,7 +98,7 @@ contract StatusContribution is Owned, TokenController {
     /// @param _sntController Token controller for the SNT that will be transferred after
     ///  the contribution finalizes.
     function initialize(
-        address _sntAddress,
+        address _snt,
         uint256 _startBlock,
         uint256 _endBlock,
         address _dynamicCeiling,
@@ -116,7 +116,7 @@ contract StatusContribution is Owned, TokenController {
         // Initialize only once
         require(address(SNT) == 0x0);
 
-        SNT = MiniMeToken(_sntAddress);
+        SNT = MiniMeToken(_snt);
 
         require(SNT.totalSupply() == 0);
         require(SNT.controller() == address(this));
