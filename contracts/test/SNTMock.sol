@@ -1,6 +1,6 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.11;
 
-import '../../contracts/SNT.sol';
+import '../SNT.sol';
 
 // @dev AragonTokenSaleMock mocks current block number
 
