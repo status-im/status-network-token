@@ -27,21 +27,19 @@ module.exports = {
             port: 8545,
             gas: 4000000,
             gasPrice: 4e9,
-            from: "0x1",
+            from: "0xf93df8c288b9020e76583a6997362e89e0599e99",
         },
         ropsten: {
             network_id: 3,
             provider: providerRopsten,
             gas: 4000000,
             gasPrice: 4e9,
-            from: "0x1",
         },
         kovan: {
             network_id: 42,
             provider: providerKovan,
             gas: 4000000,
             gasPrice: 4e9,
-            from: "0x1",
         },
     }
 };
