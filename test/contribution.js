@@ -337,7 +337,7 @@ contract("StatusContribution", (accounts) => {
         const t = (await statusContribution.finalizedTime()).toNumber() + (86400 * 360);
         await devTokensHolder.setMockedTime(t);
 
-        const tokenHolderBalance = await snt.balanceOf(devTokensHolder.address);
+        const totalSupply = await snt.totalSupply();
 
         await multisigDevs.submitTransaction(
             devTokensHolder.address,
@@ -347,7 +347,7 @@ contract("StatusContribution", (accounts) => {
 
         const balance = await snt.balanceOf(multisigDevs.address);
 
-        const calcTokens = web3.fromWei(tokenHolderBalance.mul(0.5)).toNumber();
+        const calcTokens = web3.fromWei(totalSupply.mul(0.20).mul(0.5)).toNumber();
         const realTokens = web3.fromWei(balance).toNumber();
 
         assert.equal(realTokens, calcTokens);
