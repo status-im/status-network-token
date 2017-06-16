@@ -173,6 +173,15 @@ contract StatusContribution is Owned, TokenController {
         proxyPayment(msg.sender);
     }
 
+    /// @notice Checks if _addr is a contract
+    function isContract(address _addr) private returns (bool) {
+        _addr = _addr;  // Solidity bug, doesn't compile due to "Unused local variable" otherwise
+        uint256 size;
+        assembly {
+            size := extcodesize(_addr)
+        }
+        return (size > 0);
+    }
 
     //////////
     // MiniMe Controller functions
@@ -202,6 +211,13 @@ contract StatusContribution is Owned, TokenController {
 
     function buyNormal(address _th) internal {
         require(tx.gasprice <= maxGasPrice);
+
+        // Block contracts to prevent buying multiple times in one TX
+        if (msg.sender == address(SNT)) {
+            require(!isContract(_th));
+        } else {
+            require(!isContract(msg.sender));
+        }
 
         uint256 toCollect = dynamicCeiling.toCollect(totalNormalCollected);
 
