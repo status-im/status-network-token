@@ -180,7 +180,7 @@ contract StatusContribution is Owned, TokenController {
     //////////
 
     /// @notice This method will generally be called by the SNT token contract to
-    ///  acquire SNTs. Or directly from third parties that want po acquire SNTs in
+    ///  acquire SNTs. Or directly from third parties that want to acquire SNTs in
     ///  behalf of a token holder.
     /// @param _th SNT holder where the SNTs will be minted.
     function proxyPayment(address _th) public payable initialized contributionOpen returns (bool) {
@@ -266,7 +266,7 @@ contract StatusContribution is Owned, TokenController {
     //  100% = 100*(10**16) = 10**18
     //
     // To get a percentage of a value we do it by first multiplying it by the percentage in  (x per 10^18)
-    //  and then divide it by 10**8
+    //  and then divide it by 10**18
     //
     //              Y * X(in x per 10**18)
     //  X% of Y = -------------------------
