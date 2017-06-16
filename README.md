@@ -25,6 +25,8 @@ Also built in the token is a vesting schedule for limiting SNT transferability o
 - [DevTokensHolder.sol](/contracts/DevTokensHolder.sol): Contract where tokens belonging to developers will be held. This contract will release this tokens in a vested timing.
 - [SGTExchanger.sol](/contracts/SGTExchanger.sol): Contract responsible for crediting SNTs to the SGT holders after the contribution period ends.
 
+See [INSTRUCTIONS.md](/INSTRUCTIONS.md) for instructions on how to test and deploy the contracts.
+
 ## Reviewers and audits.
 
 Code for the SNT token and the offering is being reviewed by:
