@@ -334,7 +334,7 @@ contract("StatusContribution", (accounts) => {
     });
 
     it("Devs Should be able to extract 1/2 after a year", async () => {
-        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 360);
+        const t = (await statusContribution.finalizedTime()).toNumber() + (86400 * 360);
         await devTokensHolder.setMockedTime(t);
 
         const totalSupply = await snt.totalSupply();
@@ -350,7 +350,7 @@ contract("StatusContribution", (accounts) => {
         const calcTokens = web3.fromWei(totalSupply.mul(0.20).mul(0.5)).toNumber();
         const realTokens = web3.fromWei(balance).toNumber();
 
-        assert.isBelow(realTokens - calcTokens, 0.1);
+        assert.equal(realTokens, calcTokens);
     });
 
     it("Devs Should be able to extract every thing after 2 year", async () => {

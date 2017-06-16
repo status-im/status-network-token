@@ -71,7 +71,7 @@ contract DevTokensHolder is Owned {
 
         require(finalizedTime > 0 && getTime() > finalizedTime.add(months(6)));
 
-        uint256 canExtract = total.mul(getTime().sub(finalizedTime).div(months(24)));
+        uint256 canExtract = total.mul(getTime().sub(finalizedTime)).div(months(24));
 
         canExtract = canExtract.sub(collectedTokens);
 
