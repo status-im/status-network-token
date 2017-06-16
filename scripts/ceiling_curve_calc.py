@@ -139,6 +139,7 @@ def main() -> None:
     print(f'Number of TXs: {transactions_len}')
     print(f'Number of TXs <= minimum collect: {collect_minimum_total}')
     print(f'Number of TXs < token fee limit: {collect_fee_total}')
+    print(f'Number of addresses: {transactions_len / ARGS.txs_per_address:.0f}')
 
     average = statistics.mean(transactions)
     print(f'Average contribution: {fmt_wei(average)} {fmt_eth(average)}')
