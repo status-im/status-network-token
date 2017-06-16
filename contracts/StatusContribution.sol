@@ -236,7 +236,6 @@ contract StatusContribution is Owned, TokenController {
     function doBuy(address _th, uint256 _toFund, bool _guaranteed) internal {
         assert(msg.value >= _toFund);  // Not needed, but double check.
         assert(totalCollected() <= failSafeLimit);
-        require(_toFund > 0);  // Throw to notify the user.
 
         if (_toFund > 0) {
             uint256 tokensGenerated = _toFund.mul(exchangeRate);
