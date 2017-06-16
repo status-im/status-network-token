@@ -1,4 +1,5 @@
-// Simulate a full contribution
+// Simulate dynamic ceilings
+
 const DynamicCeiling = artifacts.require("DynamicCeiling");
 
 const setHiddenCurves = require("./helpers/hiddenCurves.js").setHiddenCurves;
@@ -12,13 +13,13 @@ contract("DynamicCeiling", (accounts) => {
         [web3.toWei(61000), 30, 10**12],
     ];
 
-    it("Should deploy dynamicCeiling", async () => {
+    it("Deploys dynamicCeiling", async () => {
         dynamicCeiling = await DynamicCeiling.new(accounts[0], accounts[0]);
 
         assert.equal(await dynamicCeiling.currentIndex(), 0);
     });
 
-    it("Cap should be 0 before curves are set", async () => {
+    it("Checks that toCollect is 0 before curves are set", async () => {
         assert.equal(await dynamicCeiling.toCollect.call(0), 0);
         assert.equal(await dynamicCeiling.toCollect.call(web3.toWei(10)), 0);
         assert.equal(await dynamicCeiling.toCollect.call(web3.toWei(15)), 0);
@@ -32,12 +33,12 @@ contract("DynamicCeiling", (accounts) => {
         assert.equal(await dynamicCeiling.currentIndex(), 0);
     });
 
-    it("Should set the curves", async () => {
+    it("Sets the curves", async () => {
         await setHiddenCurves(dynamicCeiling, curves);
         assert.equal(await dynamicCeiling.nCurves(), 10);
     });
 
-    it("Cap should be 0 before curves are revealed", async () => {
+    it("Checks that toCollect is 0 before curves are revealed", async () => {
         assert.equal(await dynamicCeiling.toCollect.call('0'), '0');
         assert.equal(await dynamicCeiling.toCollect.call(web3.toWei(10)), 0);
         assert.equal(await dynamicCeiling.toCollect.call(web3.toWei(15)), 0);
@@ -51,7 +52,7 @@ contract("DynamicCeiling", (accounts) => {
         assert.equal(await dynamicCeiling.currentIndex(), 0);
     });
 
-    it("Should reveal 1st curve", async () => {
+    it("Reveals 1st curve", async () => {
         await dynamicCeiling.revealCurve(
             curves[0][0],
             curves[0][1],
@@ -64,7 +65,7 @@ contract("DynamicCeiling", (accounts) => {
         assert.equal(await dynamicCeiling.allRevealed(), false);
     });
 
-    it("Check limits after revealed 1st curve", async () => {
+    it("Checks toCollect after 1st curve is revealed", async () => {
         assert.equal((await dynamicCeiling.currentIndex()).toFixed(), '0');
         assert.equal((await dynamicCeiling.toCollect.call(0)).toFixed(), '33333333333333333333');
 
@@ -85,7 +86,7 @@ contract("DynamicCeiling", (accounts) => {
         assert.equal((await dynamicCeiling.toCollect.call(curves[0][0])).toFixed(), '0');
     });
 
-    it("Should reveal 2nd curve", async () => {
+    it("Reveals 2nd curve", async () => {
         await dynamicCeiling.revealCurve(
             curves[1][0],
             curves[1][1],
@@ -98,7 +99,7 @@ contract("DynamicCeiling", (accounts) => {
         assert.equal(await dynamicCeiling.allRevealed(), false);
     });
 
-    it("Check limits after revealed 2nd curve", async () => {
+    it("Checks toCollect after 2nd curve is revealed", async () => {
         await dynamicCeiling.toCollect(curves[0][0]);
         assert.equal((await dynamicCeiling.currentIndex()).toFixed(), '1');
         assert.equal((await dynamicCeiling.toCollect.call(curves[0][0])).toFixed(), '666666666666666666666')
@@ -120,7 +121,7 @@ contract("DynamicCeiling", (accounts) => {
         assert.equal((await dynamicCeiling.toCollect.call(curves[1][0])).toFixed(), '0');
     });
 
-    it("Should reveal last curve", async () => {
+    it("Reveals last curve", async () => {
         await dynamicCeiling.revealCurve(
             curves[2][0],
             curves[2][1],
@@ -133,7 +134,7 @@ contract("DynamicCeiling", (accounts) => {
         assert.equal(await dynamicCeiling.allRevealed(), true);
     });
 
-    it("Check limits after revealed 3rd curve", async () => {
+    it("Checks toCollect after 3rd curve is revealed", async () => {
         await dynamicCeiling.toCollect(curves[1][0]);
         assert.equal((await dynamicCeiling.currentIndex()).toFixed(), '2');
         assert.equal((await dynamicCeiling.toCollect.call(curves[1][0])).toFixed(), '1333333333333333333333');
@@ -156,18 +157,18 @@ contract("DynamicCeiling", (accounts) => {
     });
 
 
-    it("Should deploy dynamicCeiling", async () => {
+    it("Deploys dynamicCeiling", async () => {
         dynamicCeiling = await DynamicCeiling.new(accounts[0], accounts[0]);
 
         assert.equal(await dynamicCeiling.currentIndex(), 0);
     });
 
-    it("Should set the curves", async () => {
+    it("Sets the curves", async () => {
         await setHiddenCurves(dynamicCeiling, curves);
         assert.equal(await dynamicCeiling.nCurves(), 10);
     });
 
-    it("Should reveal multiple curves", async () => {
+    it("Reveals multiple curves", async () => {
         await dynamicCeiling.revealMulti(
             [
                 curves[0][0],
