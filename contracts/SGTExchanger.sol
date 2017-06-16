@@ -53,6 +53,7 @@ contract SGTExchanger is TokenController, Owned {
         uint256 finalizedBlock = statusContribution.finalizedBlock();
 
         require(finalizedBlock != 0);
+        require(getBlockNumber() > finalizedBlock);
 
         uint256 total = totalCollected.add(snt.balanceOf(address(this)));
 
@@ -86,6 +87,14 @@ contract SGTExchanger is TokenController, Owned {
         return false;
     }
 
+    //////////
+    // Testing specific methods
+    //////////
+
+    /// @notice This function is overridden by the test Mocks.
+    function getBlockNumber() internal constant returns (uint256) {
+        return block.number;
+    }
 
     //////////
     // Safety Method

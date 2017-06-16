@@ -2,7 +2,7 @@ pragma solidity ^0.4.11;
 
 import '../SGT.sol';
 
-// @dev AragonTokenSaleMock mocks current block number
+// @dev SGTMock mocks current block number
 
 contract SGTMock is SGT {
 

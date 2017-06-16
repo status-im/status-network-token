@@ -2,7 +2,7 @@ pragma solidity ^0.4.11;
 
 import '../DevTokensHolder.sol';
 
-// @dev AragonTokenSaleMock mocks current block number
+// @dev DevTokensHolderMock mocks current block number
 
 contract DevTokensHolderMock is DevTokensHolder {
 

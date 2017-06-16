@@ -2,7 +2,7 @@ pragma solidity ^0.4.11;
 
 import '../SNTPlaceHolder.sol';
 
-// @dev AragonTokenSaleMock mocks current block number
+// @dev SNTPlaceHolderMock mocks current block number
 
 contract SNTPlaceHolderMock is SNTPlaceHolder {
 
