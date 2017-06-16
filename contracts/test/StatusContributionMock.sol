@@ -2,7 +2,7 @@ pragma solidity ^0.4.11;
 
 import '../StatusContribution.sol';
 
-// @dev AragonTokenSaleMock mocks current block number
+// @dev StatusContributionMock mocks current block number
 
 contract StatusContributionMock is StatusContribution {
 

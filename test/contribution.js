@@ -7,7 +7,7 @@ const SNT = artifacts.require("SNTMock");
 const StatusContributionMock = artifacts.require("StatusContributionMock");
 const ContributionWallet = artifacts.require("ContributionWallet");
 const DevTokensHolder = artifacts.require("DevTokensHolderMock");
-const SGTExchanger = artifacts.require("SGTExchanger");
+const SGTExchangerMock = artifacts.require("SGTExchangerMock");
 const DynamicCeiling = artifacts.require("DynamicCeiling");
 const SNTPlaceHolderMock = artifacts.require("SNTPlaceHolderMock");
 
@@ -72,7 +72,7 @@ contract("StatusContribution", function(accounts) {
             multisigDevs.address,
             statusContribution.address,
             snt.address);
-        sgtExchanger = await SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
+        sgtExchanger = await SGTExchangerMock.new(sgt.address, snt.address, statusContribution.address);
         dynamicCeiling = await DynamicCeiling.new(addressStatus, statusContribution.address);
 
         await setHiddenCurves(dynamicCeiling, curves);
@@ -292,6 +292,7 @@ contract("StatusContribution", function(accounts) {
     });
 
     it("Moves the Ether to the final multisig", async function() {
+        await sgtExchanger.setMockedBlockNumber(endBlock + 5);
         await multisigStatus.submitTransaction(
             contributionWallet.address,
             0,
