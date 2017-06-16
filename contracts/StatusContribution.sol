@@ -159,8 +159,7 @@ contract StatusContribution is Owned, TokenController {
     ///  This method should be called by the owner after the initialization
     ///  and before the contribution starts.
     /// @param _th Guaranteed address
-    /// @param _limit Particular limit for the guaranteed address. Set to 0 to remove
-    ///   the guaranteed address
+    /// @param _limit Limit for the guaranteed address.
     function setGuaranteedAddress(address _th, uint256 _limit) public initialized onlyOwner {
         require(getBlockNumber() < startBlock);
         require(_limit > 0 && _limit <= maxGuaranteedLimit);
