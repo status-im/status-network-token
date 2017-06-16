@@ -136,9 +136,9 @@ def main() -> None:
     print(f'Token fee limit: {fmt_wei(tx_fee_token_limit)} {fmt_eth(tx_fee_token_limit)}')
     print(f'Minimum collect: {fmt_wei(collect_min)} {fmt_eth(collect_min)}')
     transactions_len = len(transactions)
-    print(f'Number of transactions: {transactions_len}')
-    print(f'Number of transactions <= minimum collect: {collect_minimum_total}')
-    print(f'Number of transactions < token fee limit: {collect_fee_total}')
+    print(f'Number of TXs: {transactions_len}')
+    print(f'Number of TXs <= minimum collect: {collect_minimum_total}')
+    print(f'Number of TXs < token fee limit: {collect_fee_total}')
 
     average = statistics.mean(transactions)
     print(f'Average contribution: {fmt_wei(average)} {fmt_eth(average)}')
@@ -147,8 +147,8 @@ def main() -> None:
 
     decimal.getcontext().rounding = decimal.ROUND_HALF_EVEN
     blocks = math.ceil((transactions_len * gas_per_tx) / ARGS.gas_limit)
-    print(f'Minimum blocks for curve: {blocks}')
-    print(f'Minimum time for curve: {blocks * ARGS.secs_per_block:.2f}s')
+    print(f'Minimum blocks: {blocks}')
+    print(f'Minimum time: {blocks * ARGS.secs_per_block:.2f}s')
     decimal.getcontext().rounding = decimal.ROUND_DOWN
 
 
