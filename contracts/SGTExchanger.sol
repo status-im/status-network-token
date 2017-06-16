@@ -64,6 +64,8 @@ contract SGTExchanger is TokenController, Owned {
         // And then subtract the amount already collected
         amount = amount.sub(collected[msg.sender]);
 
+        require(amount>0); // Notify the user that there is no tokens to exchange
+
         totalCollected = totalCollected.add(amount);
         collected[msg.sender] = collected[msg.sender].add(amount);
 
