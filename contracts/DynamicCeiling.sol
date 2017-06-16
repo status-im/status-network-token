@@ -88,8 +88,8 @@ contract DynamicCeiling is Owned {
                          bool _last, bytes32 _salt) public {
         require(!allRevealed);
 
-        require(curves[revealedCurves].hash == keccak256(_limit, _slopeFactor, _collectMinimum,
-                                                         _last, _salt));
+        require(curves[revealedCurves].hash == calculateHash(_limit, _slopeFactor, _collectMinimum,
+                                                             _last, _salt));
 
         require(_limit != 0 && _slopeFactor != 0 && _collectMinimum != 0);
         if (revealedCurves > 0) {
