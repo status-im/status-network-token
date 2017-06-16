@@ -1,4 +1,4 @@
-exports.setHiddenCurves = async (dynamicCeiling, curves) => {
+exports.setHiddenCurves = async function(dynamicCeiling, curves) {
     const hashes = [];
     let i = 0;
     for (let c of curves) {

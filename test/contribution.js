@@ -14,7 +14,7 @@ const SNTPlaceHolderMock = artifacts.require("SNTPlaceHolderMock");
 const setHiddenCurves = require("./helpers/hiddenCurves.js").setHiddenCurves;
 const assertFail = require("./helpers/assertFail");
 
-contract("StatusContribution", (accounts) => {
+contract("StatusContribution", function(accounts) {
     const addressStatus = accounts[0];
     const addressCommunity = accounts[1];
     const addressReserve = accounts[2];
@@ -50,7 +50,7 @@ contract("StatusContribution", (accounts) => {
 
     const maxSGTSupply = 5000 * 2;
 
-    it("Deploys all contracts", async () => {
+    it("Deploys all contracts", async function() {
         multisigStatus = await MultiSigWallet.new([addressStatus], 1);
         multisigCommunity = await MultiSigWallet.new([addressCommunity], 1);
         multisigReserve = await MultiSigWallet.new([addressReserve], 1);
@@ -104,17 +104,17 @@ contract("StatusContribution", (accounts) => {
             maxSGTSupply);
     });
 
-    it("Checks initial parameters", async () => {
+    it("Checks initial parameters", async function() {
         assert.equal(await snt.controller(), statusContribution.address);
     });
 
-    it("Checks that nobody can buy before the sale starts", async () => {
-        await assertFail(async () => {
+    it("Checks that nobody can buy before the sale starts", async function() {
+        await assertFail(async function() {
             await snt.send(web3.toWei(1));
         });
     });
 
-    it("Adds 2 guaranteed addresses ", async () => {
+    it("Adds 2 guaranteed addresses ", async function() {
         await statusContribution.setGuaranteedAddress(addressGuaranteed0, web3.toWei(1));
         await statusContribution.setGuaranteedAddress(addressGuaranteed1, web3.toWei(2));
 
@@ -125,7 +125,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(permited8).toNumber(), 2);
     });
 
-    it("Reveals a curve, moves time to start of the ICO, and does the first buy", async () => {
+    it("Reveals a curve, moves time to start of the ICO, and does the first buy", async function() {
         await dynamicCeiling.revealCurve(
             curves[0][0],
             curves[0][1],
@@ -150,7 +150,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balance).toNumber(), b * 10000);
     });
 
-    it("Returns the remaining of the last transaction ", async () => {
+    it("Returns the remaining of the last transaction ", async function() {
         await statusContribution.setMockedBlockNumber(1005000);
         await sgt.setMockedBlockNumber(1005000);
         await snt.setMockedBlockNumber(1005000);
@@ -172,7 +172,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
-    it("Reveals second curve and checks that the limit is right", async () => {
+    it("Reveals second curve and checks that the limit is right", async function() {
         await dynamicCeiling.revealCurve(
             curves[1][0],
             curves[1][1],
@@ -204,7 +204,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
-    it("Reveals last curve and fills the collaboration", async () => {
+    it("Reveals last curve and fills the collaboration", async function() {
         await dynamicCeiling.revealCurve(
             curves[2][0],
             curves[2][1],
@@ -256,13 +256,13 @@ contract("StatusContribution", (accounts) => {
         }
     });
 
-    it("Doesn't allow transfers during contribution period", async () => {
-        await assertFail(async () => {
+    it("Doesn't allow transfers during contribution period", async function() {
+        await assertFail(async function() {
             await snt.transfer(addressSGTHolder, web3.toWei(1000));
         });
     });
 
-    it("Checks that Guaranteed addresses are able to buy", async () => {
+    it("Checks that Guaranteed addresses are able to buy", async function() {
         await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: addressGuaranteed0});
         await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: addressGuaranteed1});
 
@@ -273,7 +273,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balance8).toNumber(), 20000);
     });
 
-    it("Finalizes", async () => {
+    it("Finalizes", async function() {
         await statusContribution.setMockedBlockNumber(endBlock + 1);
         await statusContribution.finalize();
 
@@ -291,7 +291,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(balanceSecondary.toNumber(), totalSupply.mul(0.29).toNumber());
     });
 
-    it("Moves the Ether to the final multisig", async () => {
+    it("Moves the Ether to the final multisig", async function() {
         await multisigStatus.submitTransaction(
             contributionWallet.address,
             0,
@@ -302,7 +302,7 @@ contract("StatusContribution", (accounts) => {
         assert.isBelow(Math.abs(web3.fromWei(balance).toNumber() - (cur+3)), 0.00001);
     });
 
-    it("Exchanges SGT by SNT", async () => {
+    it("Exchanges SGT by SNT", async function() {
         await sgtExchanger.collect({from: addressSGTHolder});
 
         const balance = await snt.balanceOf(addressSGTHolder);
@@ -311,13 +311,13 @@ contract("StatusContribution", (accounts) => {
         assert.equal(totalSupply.mul(0.025).toNumber(), balance.toNumber());
     });
 
-    it("Doesn't allow transfers in the 1 week period", async () => {
-        await assertFail(async () => {
+    it("Doesn't allow transfers in the 1 week period", async function() {
+        await assertFail(async function() {
             await snt.transfer(addressSGTHolder, web3.toWei(1000));
         });
     });
 
-    it("Allows transfers after 1 week period", async () => {
+    it("Allows transfers after 1 week period", async function() {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await sntPlaceHolder.setMockedTime(t);
 
@@ -328,7 +328,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(web3.fromWei(balance2).toNumber(), 1000);
     });
 
-    it("Disallows devs from transfering before 6 months have past", async () => {
+    it("Disallows devs from transfering before 6 months have past", async function() {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await devTokensHolder.setMockedTime(t);
 
@@ -343,7 +343,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(balance,0);
     });
 
-    it("Allows devs to extract after 6 months", async () => {
+    it("Allows devs to extract after 6 months", async function() {
         const t = (await statusContribution.finalizedTime()).toNumber() + (86400 * 360);
         await devTokensHolder.setMockedTime(t);
 
@@ -363,7 +363,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(realTokens, calcTokens);
     });
 
-    it("Allows devs to extract everything after 24 months", async () => {
+    it("Allows devs to extract everything after 24 months", async function() {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 360 * 2);
         await devTokensHolder.setMockedTime(t);
 
@@ -383,7 +383,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(calcTokens, realTokens);
     });
 
-    it("Checks that SNT's Controller is upgradeable", async () => {
+    it("Checks that SNT's Controller is upgradeable", async function() {
         await multisigCommunity.submitTransaction(
             sntPlaceHolder.address,
             0,
