@@ -50,7 +50,7 @@ contract StatusContribution is Owned, TokenController {
     address public destEthDevs;
 
     address public destTokensDevs;
-    address public destTokensSecondarySale;
+    address public destTokensReserve;
     uint256 public maxSGTSupply;
     address public destTokensSgt;
     DynamicCeiling public dynamicCeiling;
@@ -90,8 +90,7 @@ contract StatusContribution is Owned, TokenController {
     /// @param _dynamicCeiling Address of the contract that controls the ceiling
     /// @param _destEthDevs Destination address where the contribution ether is sent
     /// @param _destTokensDevs Address where the tokens for the dev are sent
-    /// @param _destTokensSecondarySale Address where the tokens for the secondary sell
-    ///  are going to be sent
+    /// @param _destTokensReserve Address where the tokens for the reserve are sent
     /// @param _sgt Address of the SGT token contract
     /// @param _destTokensSgt Address of the exchanger SGT-SNT where the SNT are sent
     ///  to be distributed to the SGT holders.
@@ -107,7 +106,7 @@ contract StatusContribution is Owned, TokenController {
         address _destEthDevs,
 
         address _destTokensDevs,
-        address _destTokensSecondarySale,
+        address _destTokensReserve,
         address _sgt,
 
         address _destTokensSgt,
@@ -137,8 +136,8 @@ contract StatusContribution is Owned, TokenController {
         require(_destTokensDevs != 0x0);
         destTokensDevs = _destTokensDevs;
 
-        require(_destTokensSecondarySale != 0x0);
-        destTokensSecondarySale = _destTokensSecondarySale;
+        require(_destTokensReserve != 0x0);
+        destTokensReserve = _destTokensReserve;
 
         require(_sgt != 0x0);
         SGT = MiniMeToken(_sgt);
@@ -316,12 +315,12 @@ contract StatusContribution is Owned, TokenController {
         //
         uint256 percentageToContributors = percent(41).add(percent(10).sub(percentageToSgt));
 
-        uint256 percentageToSecondary = percent(29);
+        uint256 percentageToReserve = percent(29);
 
 
         // SNT.totalSupply() -> Tokens minted during the contribution
         //  totalTokens  -> Total tokens that should be after the allocation
-        //                   of devTokens, sgtTokens and secondary
+        //                   of devTokens, sgtTokens and reserve
         //  percentageToContributors -> Which percentage should go to the
         //                               contribution participants
         //                               (x per 10**18 format)
@@ -342,13 +341,13 @@ contract StatusContribution is Owned, TokenController {
         // Generate tokens for SGT Holders.
 
         //
-        //                         percentageToSecondary
-        //  secondContribTokens = ----------------------- * totalTokens
-        //                            percentage(100)
+        //                    percentageToReserve
+        //  reserveTokens = ----------------------- * totalTokens
+        //                      percentage(100)
         //
         assert(SNT.generateTokens(
-            destTokensSecondarySale,
-            totalTokens.mul(percentageToSecondary).div(percent(100))));
+            destTokensReserve,
+            totalTokens.mul(percentageToReserve).div(percent(100))));
 
         //
         //                  percentageToSgt

@@ -18,7 +18,7 @@ const assertFail = require("./helpers/assertFail");
 contract("StatusContribution", (accounts) => {
     let multisigStatus;
     let multisigComunity;
-    let multisigSecondarySell;
+    let multisigReserve;
     let multisigDevs;
     let miniMeFactory;
     let sgt;
@@ -42,7 +42,7 @@ contract("StatusContribution", (accounts) => {
     it("Should deploy Contribution contracts", async () => {
         multisigStatus = await MultiSigWallet.new([accounts[0]], 1);
         multisigComunity = await MultiSigWallet.new([accounts[1]], 1);
-        multisigSecondarySell = await MultiSigWallet.new([accounts[2]], 1);
+        multisigReserve = await MultiSigWallet.new([accounts[2]], 1);
         multisigDevs = await MultiSigWallet.new([accounts[3]], 1);
         miniMeFactory = await MiniMeTokenFactory.new();
         sgt = await SGT.new(miniMeFactory.address);
@@ -81,7 +81,7 @@ contract("StatusContribution", (accounts) => {
 
             devTokensHolder.address,
 
-            multisigSecondarySell.address,
+            multisigReserve.address,
             sgt.address,
 
             sgtExchanger.address,

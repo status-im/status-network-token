@@ -2,14 +2,14 @@
 ## Functional Specification
 
 ### Distribution
-- 29% is for a Secondary contribution period (multisig)
+- 29% is for reserve (multisig)
 - 20% goes to the status team and founders (multisig, 2 Year Vesting Contract, 6 month cliffs)
 - Remaining 51% is divided between the initial contribution period itself and SGT, where SGT is <= 10% of total supply.
 
 ### Whitelist
 Addresses can be whitelisted and have guaranteed participation up to a set maximum amount, ignores Dynamic Ceiling. Sending ETH to the smart contract address should be no different, whether whitelisted or not.
 Status Genesis Tokens
-SGT is a Minime Token that’s total supply of 500,000,000 maps to, and cannot exceed 10% of the total supply. 
+SGT is a Minime Token that’s total supply of 500,000,000 maps to, and cannot exceed 10% of the total supply.
 ie. If 250,000,000 of SGT is allocated then SGT maps to 5% of the total supply.
 SGT can be redeemed for SNT after contribution period.
 
