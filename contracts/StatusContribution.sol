@@ -141,7 +141,6 @@ contract StatusContribution is Owned, TokenController {
         destTokensSecondarySale = _destTokensSecondarySale;
 
         require(_sgt != 0x0);
-        require(MiniMeToken(_sgt).controller() == _destTokensSgt);
         SGT = MiniMeToken(_sgt);
 
         require(_destTokensSgt != 0x0);
