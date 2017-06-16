@@ -1,4 +1,4 @@
-module.exports = async (callback) => {
+module.exports = async function(callback) {
     let web3_error_thrown = false;
     try {
         await callback();

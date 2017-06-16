@@ -15,7 +15,7 @@ const ExternalToken = artifacts.require("ExternalToken");
 const setHiddenCurves = require("./helpers/hiddenCurves.js").setHiddenCurves;
 const assertFail = require("./helpers/assertFail");
 
-contract("StatusContribution", (accounts) => {
+contract("StatusContribution", function(accounts) {
     const addressStatus = accounts[0];
     const addressCommunity = accounts[1];
     const addressReserve = accounts[2];
@@ -47,7 +47,7 @@ contract("StatusContribution", (accounts) => {
 
     const maxSGTSupply = 5000 * 2;
 
-    it("Deploys all contracts", async () => {
+    it("Deploys all contracts", async function() {
         multisigStatus = await MultiSigWallet.new([addressStatus], 1);
         multisigCommunity = await MultiSigWallet.new([addressCommunity], 1);
         multisigReserve = await MultiSigWallet.new([addressReserve], 1);
@@ -103,7 +103,7 @@ contract("StatusContribution", (accounts) => {
         await externalToken.generateTokens(addressStatus, 1000);
     });
 
-    it("Sends to and recover tokens from the StatusContribution", async () => {
+    it("Sends to and recover tokens from the StatusContribution", async function() {
         await externalToken.transfer(statusContribution.address, 100);
         const balanceBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(balanceBefore.toNumber(), 900);
@@ -113,7 +113,7 @@ contract("StatusContribution", (accounts) => {
         assert.equal(afterBefore.toNumber(), 1000);
     });
 
-    it("Recovers tokens sent to SNT", async () => {
+    it("Recovers tokens sent to SNT", async function() {
         await externalToken.transfer(snt.address, 100);
         const balanceBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(balanceBefore.toNumber(), 900);
