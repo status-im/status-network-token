@@ -85,42 +85,46 @@ contract StatusContribution is Owned, TokenController {
     /// @notice This method should be called by the owner before the contribution
     ///  period starts This initializes most of the parameters
     /// @param _snt Address of the SNT token contract
+    /// @param _sntController Token controller for the SNT that will be transferred after
+    ///  the contribution finalizes.
     /// @param _startBlock Block when the contribution period starts
     /// @param _endBlock The last block that the contribution period is active
     /// @param _dynamicCeiling Address of the contract that controls the ceiling
     /// @param _destEthDevs Destination address where the contribution ether is sent
-    /// @param _destTokensDevs Address where the tokens for the dev are sent
     /// @param _destTokensReserve Address where the tokens for the reserve are sent
-    /// @param _sgt Address of the SGT token contract
     /// @param _destTokensSgt Address of the exchanger SGT-SNT where the SNT are sent
     ///  to be distributed to the SGT holders.
+    /// @param _destTokensDevs Address where the tokens for the dev are sent
+    /// @param _sgt Address of the SGT token contract
     /// @param _maxSGTSupply Quantity of SGT tokens that would represent 10% of status.
-    /// @param _sntController Token controller for the SNT that will be transferred after
-    ///  the contribution finalizes.
     function initialize(
         address _snt,
+        address _sntController,
+
         uint256 _startBlock,
         uint256 _endBlock,
+
         address _dynamicCeiling,
 
         address _destEthDevs,
 
-        address _destTokensDevs,
         address _destTokensReserve,
-        address _sgt,
-
         address _destTokensSgt,
-        uint256 _maxSGTSupply,
-        address _sntController
+        address _destTokensDevs,
+
+        address _sgt,
+        uint256 _maxSGTSupply
     ) public onlyOwner {
         // Initialize only once
         require(address(SNT) == 0x0);
 
         SNT = MiniMeToken(_snt);
-
         require(SNT.totalSupply() == 0);
         require(SNT.controller() == address(this));
         require(SNT.decimals() == 18);  // Same amount of decimals as ETH
+
+        require(_sntController != 0x0);
+        sntController = _sntController;
 
         require(_startBlock >= getBlockNumber());
         require(_startBlock < _endBlock);
@@ -133,23 +137,20 @@ contract StatusContribution is Owned, TokenController {
         require(_destEthDevs != 0x0);
         destEthDevs = _destEthDevs;
 
-        require(_destTokensDevs != 0x0);
-        destTokensDevs = _destTokensDevs;
-
         require(_destTokensReserve != 0x0);
         destTokensReserve = _destTokensReserve;
-
-        require(_sgt != 0x0);
-        SGT = MiniMeToken(_sgt);
 
         require(_destTokensSgt != 0x0);
         destTokensSgt = _destTokensSgt;
 
+        require(_destTokensDevs != 0x0);
+        destTokensDevs = _destTokensDevs;
+
+        require(_sgt != 0x0);
+        SGT = MiniMeToken(_sgt);
+
         require(_maxSGTSupply >= MiniMeToken(SGT).totalSupply());
         maxSGTSupply = _maxSGTSupply;
-
-        require(_sntController != 0x0);
-        sntController = _sntController;
     }
 
     /// @notice Sets the limit for a guaranteed address. All the guaranteed addresses
