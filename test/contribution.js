@@ -46,7 +46,7 @@ contract("StatusContribution", function(accounts) {
         [web3.toWei(15), 30, 10**12],
     ];
     const startBlock = 1000000;
-    const endBlock = 1030000;
+    const endBlock = 1040000;
 
     const maxSGTSupply = 5000 * 2;
 
@@ -149,7 +149,6 @@ contract("StatusContribution", function(accounts) {
 
         assert.equal(web3.fromWei(balance).toNumber(), b * 10000);
     });
-
     it("Returns the remaining of the last transaction ", async function() {
         await statusContribution.setMockedBlockNumber(1005000);
         await sgt.setMockedBlockNumber(1005000);
@@ -181,9 +180,9 @@ contract("StatusContribution", function(accounts) {
             web3.sha3("pwd1"));
         await dynamicCeiling.moveTo(1);
 
-        await statusContribution.setMockedBlockNumber(1005000);
-        await sgt.setMockedBlockNumber(1005000);
-        await snt.setMockedBlockNumber(1005000);
+        await statusContribution.setMockedBlockNumber(1005200);
+        await sgt.setMockedBlockNumber(1005200);
+        await snt.setMockedBlockNumber(1005200);
 
         const initialBalance = await web3.eth.getBalance(addressStatus);
         await snt.sendTransaction({value: web3.toWei(10), gas: 300000, gasPrice: "20000000000"});
@@ -213,9 +212,11 @@ contract("StatusContribution", function(accounts) {
             web3.sha3("pwd2"));
         await dynamicCeiling.moveTo(2);
 
-        await statusContribution.setMockedBlockNumber(1025000);
-        await sgt.setMockedBlockNumber(1025000);
-        await snt.setMockedBlockNumber(1025000);
+        let blk = 1025100;
+        await statusContribution.setMockedBlockNumber(blk);
+        await sgt.setMockedBlockNumber(blk);
+        await snt.setMockedBlockNumber(blk);
+        blk += 100;
 
         const initialBalance = await web3.eth.getBalance(addressStatus);
         await statusContribution.proxyPayment(
@@ -243,6 +244,9 @@ contract("StatusContribution", function(accounts) {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
 
         while (cur < 14) {
+            await statusContribution.setMockedBlockNumber(blk);
+            blk += 101;
+
             await statusContribution.proxyPayment(
                 addressCommunity,
                 {value: web3.toWei(15), gas: 300000, from: addressStatus, gasPrice: "20000000000"});
@@ -250,8 +254,10 @@ contract("StatusContribution", function(accounts) {
             const b2 = Math.min(5, ((lim - cur) / divs));
             cur += b2;
 
+
             const balanceContributionWallet2 =
                 await web3.eth.getBalance(contributionWallet.address);
+
             assert.isBelow(Math.abs(web3.fromWei(balanceContributionWallet2).toNumber() - cur), 0.0001);
         }
     });
