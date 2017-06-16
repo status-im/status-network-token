@@ -119,8 +119,6 @@ module.exports = async function(deployer, network, accounts) {
 
     // Change controllers
     console.log();
-    await sgt.changeController(sgtExchanger.address);
-    console.log("SGT changed controller!");
     await snt.changeController(statusContribution.address);
     console.log("SNT changed controller!");
 
