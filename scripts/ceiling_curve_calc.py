@@ -28,23 +28,23 @@ def args_parse(arguments: Sequence[str] = None) -> argparse.Namespace:
     par0.add_argument('--collected-start', metavar='WEI', type=Decimal,
                       default=Decimal('0'), help='Amount collected at start of curve')
     par0.add_argument('--gas-per-tx-1st', metavar='AMOUNT', type=Decimal,
-                      default=Decimal('105524'), help='Gas used per 1st transaction')
+                      default=Decimal('126493'), help='Gas used per 1st transaction')
     par0.add_argument('--gas-per-tx-2nd', metavar='AMOUNT', type=Decimal,
-                      default=Decimal('71429'), help='Gas used for all subsequent transactions')
+                      default=Decimal('77398'), help='Gas used for all subsequent transactions')
     par0.add_argument('--gas-price', metavar='WEI', type=Decimal,
                       default=Decimal('50000000000'), help='Gas price')
     par0.add_argument('--fee-token', metavar='FRACTION', type=Decimal,
-                      default=Decimal('0.1'), help='Fee cost as fraction of token value')
+                      default=Decimal('0.1'), help='Max fee cost as fraction of token value')
     par0.add_argument('--collect-min', metavar='WEI', type=Decimal,
                       help='Minimum collection amount')
     par0.add_argument('--gas-limit', metavar='AMOUNT', type=Decimal,
                       default=Decimal('4700000'), help='Gas limit per block')
     par0.add_argument('--secs-per-block', metavar='SECONDS', type=Decimal,
-                      default=Decimal('16.4'), help='Average seconds per block')
+                      default=Decimal('16.07'), help='Average seconds per block')
     par0.add_argument('--print-txs', action='store_true',
                       default=False, help='Print every individual transaction')
     par0.add_argument('--txs-per-address', metavar='NUMBER', type=Decimal,
-                      default=Decimal('1.1'), help='Average number of TXs per address')
+                      default=Decimal('1'), help='Average number of TXs per address')
 
     args0 = par0.parse_args(arguments)
 
