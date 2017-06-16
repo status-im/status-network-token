@@ -7,6 +7,7 @@ import decimal
 from decimal import Decimal
 import math
 import statistics
+import sys
 from typing import List, Sequence
 
 
@@ -26,8 +27,10 @@ def args_parse(arguments: Sequence[str] = None) -> argparse.Namespace:
     # Optional
     par0.add_argument('--collected-start', metavar='WEI', type=Decimal,
                       default=Decimal('0'), help='Amount collected at start of curve')
-    par0.add_argument('--gas-per-tx', metavar='AMOUNT', type=Decimal,
-                      default=Decimal('71429'), help='Gas used per transaction')
+    par0.add_argument('--gas-per-tx-1st', metavar='AMOUNT', type=Decimal,
+                      default=Decimal('105524'), help='Gas used per 1st transaction')
+    par0.add_argument('--gas-per-tx-2nd', metavar='AMOUNT', type=Decimal,
+                      default=Decimal('71429'), help='Gas used for all subsequent transactions')
     par0.add_argument('--gas-price', metavar='WEI', type=Decimal,
                       default=Decimal('50000000000'), help='Gas price')
     par0.add_argument('--fee-token', metavar='FRACTION', type=Decimal,
@@ -40,8 +43,15 @@ def args_parse(arguments: Sequence[str] = None) -> argparse.Namespace:
                       default=Decimal('16.4'), help='Average seconds per block')
     par0.add_argument('--print-txs', action='store_true',
                       default=False, help='Print every individual transaction')
+    par0.add_argument('--txs-per-address', metavar='NUMBER', type=Decimal,
+                      default=Decimal('1.1'), help='Average number of TXs per address')
 
     args0 = par0.parse_args(arguments)
+
+    if args0.txs_per_address < 1:
+        print('--txs-per-address can\'t be less than 1', file=sys.stderr)
+        sys.exit(1)
+
     return args0
 
 
@@ -91,7 +101,12 @@ def fmt_eth(value: Decimal, shift: bool = False) -> str:
 
 def main() -> None:
     ''' Main '''
-    tx_fee = ARGS.gas_per_tx * ARGS.gas_price
+    if ARGS.txs_per_address == 1:
+        gas_per_tx = ARGS.gas_per_tx_1st
+    else:
+        gas_per_tx = ((ARGS.gas_per_tx_1st + (ARGS.gas_per_tx_2nd * (ARGS.txs_per_address - 1)))
+                      / ARGS.txs_per_address).to_integral_value(rounding=decimal.ROUND_HALF_EVEN)
+    tx_fee = gas_per_tx * ARGS.gas_price
     tx_fee_token_limit = tx_fee / ARGS.fee_token
     collect_min = ARGS.collect_min if ARGS.collect_min is not None else tx_fee_token_limit
 
@@ -116,6 +131,8 @@ def main() -> None:
                   f' {fmt_eth(transaction, shift=True)}')
     print()
 
+    print(f'Average TX fee: {fmt_wei(tx_fee)} {fmt_eth(tx_fee)}')
+    print(f'Average gas per TX: {gas_per_tx}')
     print(f'Token fee limit: {fmt_wei(tx_fee_token_limit)} {fmt_eth(tx_fee_token_limit)}')
     print(f'Minimum collect: {fmt_wei(collect_min)} {fmt_eth(collect_min)}')
     transactions_len = len(transactions)
@@ -129,7 +146,7 @@ def main() -> None:
     print(f'Median contribution: {fmt_wei(median)} {fmt_eth(median)}')
 
     decimal.getcontext().rounding = decimal.ROUND_HALF_EVEN
-    blocks = math.ceil((transactions_len * ARGS.gas_per_tx) / ARGS.gas_limit)
+    blocks = math.ceil((transactions_len * gas_per_tx) / ARGS.gas_limit)
     print(f'Minimum blocks for curve: {blocks}')
     print(f'Minimum time for curve: {blocks * ARGS.secs_per_block:.2f}s')
     decimal.getcontext().rounding = decimal.ROUND_DOWN
