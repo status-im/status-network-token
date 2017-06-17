@@ -45,6 +45,13 @@ def args_parse(arguments: Sequence[str] = None) -> argparse.Namespace:
                       default=False, help='Print every individual transaction')
     par0.add_argument('--txs-per-address', metavar='NUMBER', type=Decimal,
                       default=Decimal('1'), help='Average number of TXs per address')
+    par0.add_argument(
+        '--congestion', metavar='FRACTION', type=Decimal,
+        default=Decimal('0.8'),
+        help='Chance of contribution TXs being confirmed due to network congestion'
+    )
+    par0.add_argument('--collect-mean', metavar='FRACTION', type=Decimal,
+                      default=Decimal('0.9'), help='Collected of TX from amount possible')
 
     args0 = par0.parse_args(arguments)
 
@@ -59,6 +66,7 @@ def transactions_calc(
         limit: Decimal,
         curve_factor: Decimal,
         collect_minimum: Decimal,
+        collect_mean: Decimal,
         collected_start: Decimal = Decimal(0),
 ) -> List[Decimal]:
     ''' Calculate transactions '''
@@ -71,8 +79,11 @@ def transactions_calc(
         if to_collect <= collect_minimum:
             if difference > collect_minimum:
                 to_collect = collect_minimum
+                to_collect *= collect_mean
             else:
                 to_collect = difference
+        else:
+            to_collect *= collect_mean
 
         collected += to_collect
         transactions.append(to_collect)
@@ -114,6 +125,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         ARGS.limit,
         ARGS.curve_factor,
         collect_min,
+        ARGS.collect_mean,
         collected_start=ARGS.collected_start,
     )
 
@@ -148,7 +160,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         f'Number of addresses: {transactions_len / ARGS.txs_per_address:.0f}'
     )
     decimal.getcontext().rounding = decimal.ROUND_HALF_EVEN
-    blocks = math.ceil((transactions_len * gas_per_tx) / ARGS.gas_limit)
+    blocks = math.ceil((transactions_len * gas_per_tx) / (ARGS.gas_limit * ARGS.congestion))
     print(
         f'Minimum blocks: {blocks}\n'
         f'Minimum time: {blocks * ARGS.secs_per_block:.2f}s'
