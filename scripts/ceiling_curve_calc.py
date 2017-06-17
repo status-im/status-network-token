@@ -83,7 +83,7 @@ def transactions_calc(
     return transactions
 
 
-def fmt_wei(value: Decimal, shift: bool = False) -> str:
+def fmt_wei(value: Decimal, shift: bool = True) -> str:
     ''' Format wei value '''
     fmt_val = f'{value:.0f}'
     if shift:
@@ -91,7 +91,7 @@ def fmt_wei(value: Decimal, shift: bool = False) -> str:
     return f'{"w" + fmt_val}'  # type: ignore
 
 
-def fmt_eth(value: Decimal, shift: bool = False) -> str:
+def fmt_eth(value: Decimal, shift: bool = True) -> str:
     ''' Format wei value into ether '''
     fmt_val = f'{value / 10**18:.18f}'
     if shift:
@@ -99,7 +99,7 @@ def fmt_eth(value: Decimal, shift: bool = False) -> str:
     return f'{"Ξ" + fmt_val}'  # type: ignore
 
 
-def main() -> None:
+def main() -> None:  # pylint: disable=too-many-locals
     ''' Main '''
     if ARGS.txs_per_address == 1:
         gas_per_tx = ARGS.gas_per_tx_1st
@@ -131,26 +131,48 @@ def main() -> None:
                   f' {fmt_eth(transaction, shift=True)}')
     print()
 
-    print(f'Average TX fee: {fmt_wei(tx_fee)} {fmt_eth(tx_fee)}')
-    print(f'Average gas per TX: {gas_per_tx}')
-    print(f'Token fee limit: {fmt_wei(tx_fee_token_limit)} {fmt_eth(tx_fee_token_limit)}')
-    print(f'Minimum collect: {fmt_wei(collect_min)} {fmt_eth(collect_min)}')
+    print(
+        f'Average gas per TX: {gas_per_tx}\n'
+        f'Average TX fee:  {fmt_wei(tx_fee)} {fmt_eth(tx_fee)}\n'
+        f'Token fee limit: {fmt_wei(tx_fee_token_limit)} {fmt_eth(tx_fee_token_limit)}\n'
+        f'Minimum collect: {fmt_wei(collect_min)} {fmt_eth(collect_min)}'
+    )
+
+    print()
+
     transactions_len = len(transactions)
-    print(f'Number of TXs: {transactions_len}')
-    print(f'Number of TXs <= minimum collect: {collect_minimum_total}')
-    print(f'Number of TXs < token fee limit: {collect_fee_total}')
-    print(f'Number of addresses: {transactions_len / ARGS.txs_per_address:.0f}')
-
-    average = statistics.mean(transactions)
-    print(f'Average contribution: {fmt_wei(average)} {fmt_eth(average)}')
-    median = statistics.median(transactions)
-    print(f'Median contribution: {fmt_wei(median)} {fmt_eth(median)}')
-
+    print(
+        f'Number of TXs: {transactions_len}\n'
+        f'Number of TXs <= minimum collect: {collect_minimum_total}\n'
+        f'Number of TXs < token fee limit: {collect_fee_total}\n'
+        f'Number of addresses: {transactions_len / ARGS.txs_per_address:.0f}'
+    )
     decimal.getcontext().rounding = decimal.ROUND_HALF_EVEN
     blocks = math.ceil((transactions_len * gas_per_tx) / ARGS.gas_limit)
-    print(f'Minimum blocks: {blocks}')
-    print(f'Minimum time: {blocks * ARGS.secs_per_block:.2f}s')
+    print(
+        f'Minimum blocks: {blocks}\n'
+        f'Minimum time: {blocks * ARGS.secs_per_block:.2f}s'
+    )
     decimal.getcontext().rounding = decimal.ROUND_DOWN
+
+    print()
+
+    max_ = max(transactions)
+    min_ = min(transactions)
+    mean = statistics.mean(transactions)
+    median = statistics.median(transactions)
+    print(
+        'Collected:\n'
+        f'Max:      {fmt_wei(max_)} {fmt_eth(max_)}\n'
+        f'Min:      {fmt_wei(min_)} {fmt_eth(min_)}\n'
+        f'Mean:     {fmt_wei(mean)} {fmt_eth(mean)}\n'
+        f'Median:   {fmt_wei(median)} {fmt_eth(median)}'
+    )
+    if transactions_len >= 2:
+        stdev = statistics.stdev(transactions)
+        print(
+            f'Stdev:    {fmt_wei(stdev)} {fmt_eth(stdev)}\n'
+        )
 
 
 if __name__ == '__main__':
