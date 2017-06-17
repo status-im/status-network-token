@@ -68,75 +68,104 @@ const nHiddenCurves = 7;
 module.exports = async function(deployer, network, accounts) {
     if (network === "development") return;  // Don't deploy on tests
 
-    // Multisig wallets
-    let multisigStatus = await MultiSigWallet.new(addressesStatus, multisigStatusReqs);
+    // MultiSigWallet send
+    let multisigStatusFuture = MultiSigWallet.new(addressesStatus, multisigStatusReqs);
+    let multisigCommunityFuture = MultiSigWallet.new(addressesCommunity, multisigCommunityReqs);
+    let multisigReserveFuture = MultiSigWallet.new(addressesReserve, multisigReserveReqs);
+    let multisigDevsFuture = MultiSigWallet.new(addressesDevs, multisigDevsReqs);
+    // MiniMeTokenFactory send
+    let miniMeTokenFactoryFuture = MiniMeTokenFactory.new();
+
+    // MultiSigWallet wait
+    let multisigStatus = await multisigStatusFuture;
     console.log("\nMultiSigWallet Status: " + multisigStatus.address);
-    let multisigCommunity = await MultiSigWallet.new(addressesCommunity, multisigCommunityReqs);
+    let multisigCommunity = await multisigCommunityFuture;
     console.log("MultiSigWallet Community: " + multisigCommunity.address);
-    let multisigReserve = await MultiSigWallet.new(addressesReserve, multisigReserveReqs);
+    let multisigReserve = await multisigReserveFuture;
     console.log("MultiSigWallet Reserve: " + multisigReserve.address);
-    let multisigDevs = await MultiSigWallet.new(addressesDevs, multisigDevsReqs);
+    let multisigDevs = await multisigDevsFuture;
     console.log("MultiSigWallet Devs: " + multisigDevs.address);
-
-    // MiniMe
-    console.log();
-    let miniMeTokenFactory = await MiniMeTokenFactory.new();
+    // MiniMeTokenFactory wait
+    let miniMeTokenFactory = await miniMeTokenFactoryFuture;
     console.log("MiniMeTokenFactory: " + miniMeTokenFactory.address);
+    console.log();
 
-    // SGT
-    let sgt;
+    // SGT send
+    let sgtFuture;
     if (addressSGT.length === 0) {  // Testnet
-        sgt = await SGT.new(miniMeTokenFactory.address);
+        sgtFuture = SGT.new(miniMeTokenFactory.address);
     } else {
-        sgt = await SGT.at(addressSGT);
+        sgtFuture = SGT.at(addressSGT);
     }
+    // SNT send
+    let sntFuture = SNT.new(miniMeTokenFactory.address);
+    // StatusContribution send
+    let statusContributionFuture = StatusContribution.new();
+
+    // SGT wait
+    let sgt = await sgtFuture;
     console.log("SGT: " + sgt.address);
-
-    // SNT
-    let snt = await SNT.new(miniMeTokenFactory.address);
+    // SNT wait
+    let snt = await sntFuture;
     console.log("SNT: " + snt.address);
-
-    // StatusContribution
-    let statusContribution = await StatusContribution.new();
+    // StatusContribution wait
+    let statusContribution = await statusContributionFuture;
     console.log("StatusContribution: " + statusContribution.address);
+    console.log();
 
-    // ContributionWallet
-    let contributionWallet = await ContributionWallet.new(
+    // SNT changeController send
+    let sntChangeControllerFuture = snt.changeController(statusContribution.address);
+    // ContributionWallet send
+    let contributionWalletFuture = ContributionWallet.new(
         multisigStatus.address,
         endBlock,
         statusContribution.address);
-    console.log("ContributionWallet: " + contributionWallet.address);
-
-    // DevTokensHolder
-    let devTokensHolder = await DevTokensHolder.new(
+    // DevTokensHolder send
+    let devTokensHolderFuture = DevTokensHolder.new(
         multisigDevs.address,
         statusContribution.address,
         snt.address);
+    // SGTExchanger send
+    let sgtExchangerFuture = SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
+    // DynamicCeiling send
+    let dynamicCeilingFuture = DynamicCeiling.new(addressOwner, statusContribution.address);
+
+    // SNT changeController wait
+    await sntChangeControllerFuture;
+    console.log("SNT changed controller!");
+    // ContributionWallet wait
+    let contributionWallet = await contributionWalletFuture;
+    console.log("ContributionWallet: " + contributionWallet.address);
+    // DevTokensHolder wait
+    let devTokensHolder = await devTokensHolderFuture;
     console.log("DevTokensHolder: " + devTokensHolder.address);
-
-    // SGTExchanger
-    let sgtExchanger = await SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
+    // SGTExchanger wait
+    let sgtExchanger = await sgtExchangerFuture;
     console.log("SGTExchanger: " + sgtExchanger.address);
-
-    // DynamicCeiling
-    let dynamicCeiling = await DynamicCeiling.new(addressOwner, statusContribution.address);
+    // DynamicCeiling wait
+    let dynamicCeiling = await dynamicCeilingFuture;
     console.log("DynamicCeiling: " + dynamicCeiling.address);
+    console.log();
 
-    // SNTPlaceHolder
-    let sntPlaceHolder = await SNTPlaceHolder.new(
+    // DynamicCeiling setHiddenCurves send
+    let dynamicCeilingSetHiddenCurvesFuture = setHiddenCurves(dynamicCeiling, curves, nHiddenCurves);
+    console.log();
+    // SNTPlaceHolder send
+    let sntPlaceHolderFuture = SNTPlaceHolder.new(
         multisigCommunity.address,
         snt.address,
         statusContribution.address,
         sgtExchanger.address);
+
+    // DynamicCeiling setHiddenCurves wait
+    await dynamicCeilingSetHiddenCurvesFuture;
+    console.log("DynamicCeiling hidden curves set!");
+    // SNTPlaceHolder wait
+    let sntPlaceHolder = await sntPlaceHolderFuture;
     console.log("SNTPlaceHolder: " + sntPlaceHolder.address);
-
-    // Change controllers
     console.log();
-    await snt.changeController(statusContribution.address);
-    console.log("SNT changed controller!");
 
-    // Initialize StatusContribution
-    console.log();
+    // StatusContribution initialize send/wait
     await statusContribution.initialize(
         snt.address,
         sntPlaceHolder.address,
@@ -155,9 +184,4 @@ module.exports = async function(deployer, network, accounts) {
         sgt.address,
         maxSGTSupply);
     console.log("StatusContribution initialized!");
-
-    // Set hidden curves
-    console.log();
-    await setHiddenCurves(dynamicCeiling, curves, nHiddenCurves);
-    console.log("DynamicCeiling hidden curves set!");
 };
