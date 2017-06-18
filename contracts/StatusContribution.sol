@@ -465,7 +465,7 @@ contract StatusContribution is Owned, TokenController {
     }
 
 
-    /// @notice Emergency method the pause the contribution if there is any issue
+    /// @notice Pauses the contribution if there is any issue
     function pauseContribution() onlyOwner {
         paused = true;
     }
