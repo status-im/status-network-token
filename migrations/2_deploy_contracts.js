@@ -113,6 +113,10 @@ module.exports = async function(deployer, network, accounts) {
     console.log("StatusContribution: " + statusContribution.address);
     console.log();
 
+    // SNT initialize checkpoints for 0th TX gas savings
+    await snt.generateTokens('0x0', 1);
+    await snt.destroyTokens('0x0', 1);
+
     // SNT changeController send
     let sntChangeControllerFuture = snt.changeController(statusContribution.address);
     // ContributionWallet send
