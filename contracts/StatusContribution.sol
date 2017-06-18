@@ -69,6 +69,8 @@ contract StatusContribution is Owned, TokenController {
 
     mapping (address => uint256) public lastCallBlock;
 
+    bool public paused;
+
     modifier initialized() {
         require(address(SNT) != 0x0);
         _;
@@ -82,7 +84,14 @@ contract StatusContribution is Owned, TokenController {
         _;
     }
 
-    function StatusContribution() {}
+    modifier notPaused() {
+        require(!paused);
+        _;
+    }
+
+    function StatusContribution() {
+        paused = false;
+    }
 
 
     /// @notice This method should be called by the owner before the contribution
@@ -172,7 +181,7 @@ contract StatusContribution is Owned, TokenController {
 
     /// @notice If anybody sends Ether directly to this contract, consider he is
     ///  getting SNTs.
-    function () public payable {
+    function () public payable notPaused {
         proxyPayment(msg.sender);
     }
 
@@ -185,7 +194,7 @@ contract StatusContribution is Owned, TokenController {
     ///  acquire SNTs. Or directly from third parties that want to acquire SNTs in
     ///  behalf of a token holder.
     /// @param _th SNT holder where the SNTs will be minted.
-    function proxyPayment(address _th) public payable initialized contributionOpen returns (bool) {
+    function proxyPayment(address _th) public payable notPaused initialized contributionOpen returns (bool) {
         require(_th != 0x0);
         if (guaranteedBuyersLimit[_th] > 0) {
             buyGuaranteed(_th);
@@ -453,6 +462,17 @@ contract StatusContribution is Owned, TokenController {
         uint256 balance = token.balanceOf(this);
         token.transfer(owner, balance);
         ClaimedTokens(_token, owner, balance);
+    }
+
+
+    /// @notice Pauses the contribution if there is any issue
+    function pauseContribution() onlyOwner {
+        paused = true;
+    }
+
+    /// @notice Resumes the contribution
+    function resumeContribution() onlyOwner {
+        paused = false;
     }
 
     event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);

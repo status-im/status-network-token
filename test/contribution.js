@@ -149,10 +149,17 @@ contract("StatusContribution", function(accounts) {
 
         assert.equal(web3.fromWei(balance).toNumber(), b * 10000);
     });
-    it("Returns the remaining of the last transaction ", async function() {
+    it("Pauses and resumes the contribution ", async function() {
         await statusContribution.setMockedBlockNumber(1005000);
         await sgt.setMockedBlockNumber(1005000);
         await snt.setMockedBlockNumber(1005000);
+        await statusContribution.pauseContribution();
+        await assertFail(async function() {
+            await snt.sendTransaction({value: web3.toWei(5), gas: 300000, gasPrice: "20000000000"});
+        });
+        await statusContribution.resumeContribution();
+    });
+    it("Returns the remaining of the last transaction ", async function() {
         const initialBalance = await web3.eth.getBalance(addressStatus);
         await snt.sendTransaction({value: web3.toWei(5), gas: 300000, gasPrice: "20000000000"});
         const finalBalance = await web3.eth.getBalance(addressStatus);
