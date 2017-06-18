@@ -89,7 +89,9 @@ contract StatusContribution is Owned, TokenController {
         _;
     }
 
-    function StatusContribution() {}
+    function StatusContribution() {
+        paused = false;
+    }
 
 
     /// @notice This method should be called by the owner before the contribution
