@@ -1,33 +1,26 @@
 // Simulate a full contribution
 
-const MultiSigWallet = artifacts.require("MultiSigWallet");
 const MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
 const SGT = artifacts.require("SGTMock");
 const SNT = artifacts.require("SNTMock");
-const StatusContributionMock = artifacts.require("StatusContributionMock");
+const MultiSigWallet = artifacts.require("MultiSigWallet");
 const ContributionWallet = artifacts.require("ContributionWallet");
+const StatusContributionMock = artifacts.require("StatusContributionMock");
 const DevTokensHolder = artifacts.require("DevTokensHolderMock");
-const SGTExchangerMock = artifacts.require("SGTExchangerMock");
+const SGTExchanger = artifacts.require("SGTExchanger");
 const DynamicCeiling = artifacts.require("DynamicCeiling");
 const SNTPlaceHolderMock = artifacts.require("SNTPlaceHolderMock");
 
 const setHiddenCurves = require("./helpers/hiddenCurves.js").setHiddenCurves;
 const assertFail = require("./helpers/assertFail");
+const assertGasLimit = require("./helpers/assertGasLimit");
 
-contract("StatusContribution", function(accounts) {
-    const addressStatus = accounts[0];
-    const addressCommunity = accounts[1];
-    const addressReserve = accounts[2];
-    const addressDevs = accounts[3];
-    const addressSGTHolder = accounts[4];
-    const addressGuaranteed0 = accounts[7];
-    const addressGuaranteed1 = accounts[8];
-
+contract("StatusContribution", (accounts) => {
     let multisigStatus;
-    let multisigCommunity;
-    let multisigReserve;
+    let multisigComunity;
+    let multisigSecondarySell;
     let multisigDevs;
-    let miniMeTokenFactory;
+    let miniMeFactory;
     let sgt;
     let snt;
     let statusContribution;
@@ -41,28 +34,24 @@ contract("StatusContribution", function(accounts) {
     const divs = 30;
 
     const curves = [
-        [web3.toWei(3), 30, 10**12],
-        [web3.toWei(8), 30, 10**12],
-        [web3.toWei(15), 30, 10**12],
+        [web3.toWei(3)],
+        [web3.toWei(8)],
+        [web3.toWei(15)],
     ];
     const startBlock = 1000000;
-    const endBlock = 1040000;
+    const endBlock = 1030000;
 
-    const maxSGTSupply = 5000 * 2;
+    it("Should deploy Contribution contracts", async () => {
+        multisigStatus = await MultiSigWallet.new([accounts[0]], 1);
+        multisigComunity = await MultiSigWallet.new([accounts[1]], 1);
+        multisigSecondarySell = await MultiSigWallet.new([accounts[2]], 1);
+        multisigDevs = await MultiSigWallet.new([accounts[3]], 1);
+        miniMeFactory = await MiniMeTokenFactory.new();
+        sgt = await SGT.new(miniMeFactory.address);
+        await sgt.generateTokens(accounts[4], 2500);
+        await sgt.generateTokens(accounts[0], 2500);
 
-    it("Deploys all contracts", async function() {
-        multisigStatus = await MultiSigWallet.new([addressStatus], 1);
-        multisigCommunity = await MultiSigWallet.new([addressCommunity], 1);
-        multisigReserve = await MultiSigWallet.new([addressReserve], 1);
-        multisigDevs = await MultiSigWallet.new([addressDevs], 1);
-
-        miniMeTokenFactory = await MiniMeTokenFactory.new();
-
-        sgt = await SGT.new(miniMeTokenFactory.address);
-        await sgt.generateTokens(addressSGTHolder, 2500);
-        await sgt.generateTokens(addressStatus, 2500);
-
-        snt = await SNT.new(miniMeTokenFactory.address);
+        snt = await SNT.new(miniMeFactory.address);
         statusContribution = await StatusContributionMock.new();
         contributionWallet = await ContributionWallet.new(
             multisigStatus.address,
@@ -72,64 +61,66 @@ contract("StatusContribution", function(accounts) {
             multisigDevs.address,
             statusContribution.address,
             snt.address);
-        sgtExchanger = await SGTExchangerMock.new(sgt.address, snt.address, statusContribution.address);
-        dynamicCeiling = await DynamicCeiling.new(addressStatus, statusContribution.address);
+        sgtExchanger = await SGTExchanger.new(sgt.address, snt.address, statusContribution.address);
+        dynamicCeiling = await DynamicCeiling.new(accounts[0], statusContribution.address);
 
         await setHiddenCurves(dynamicCeiling, curves);
 
         sntPlaceHolder = await SNTPlaceHolderMock.new(
-            multisigCommunity.address,
+            multisigComunity.address,
             snt.address,
             statusContribution.address,
             sgtExchanger.address);
 
         await snt.changeController(statusContribution.address);
+        await sgt.changeController(sgtExchanger.address);
 
         await statusContribution.initialize(
             snt.address,
-            sntPlaceHolder.address,
-
             startBlock,
             endBlock,
-
             dynamicCeiling.address,
 
             contributionWallet.address,
 
-            multisigReserve.address,
-            sgtExchanger.address,
             devTokensHolder.address,
 
+            multisigSecondarySell.address,
             sgt.address,
-            maxSGTSupply);
+
+            sgtExchanger.address,
+            5000 * 2,
+
+            sntPlaceHolder.address);
     });
 
-    it("Checks initial parameters", async function() {
+    it("Check initial parameters", async () => {
         assert.equal(await snt.controller(), statusContribution.address);
+        assert.equal(await sgt.controller(), sgtExchanger.address);
     });
 
-    it("Checks that nobody can buy before the sale starts", async function() {
-        await assertFail(async function() {
+    it("Checks that no body can buy before the sale starts", async () => {
+        try {
             await snt.send(web3.toWei(1));
-        });
+        } catch (error) {
+            assertFail(error);
+        }
     });
 
-    it("Adds 2 guaranteed addresses ", async function() {
-        await statusContribution.setGuaranteedAddress(addressGuaranteed0, web3.toWei(1));
-        await statusContribution.setGuaranteedAddress(addressGuaranteed1, web3.toWei(2));
+    it("Add 2 guaranteed addresses ", async () => {
+        await statusContribution.setGuaranteedAddress(accounts[7], web3.toWei(1));
+        await statusContribution.setGuaranteedAddress(accounts[8], web3.toWei(2));
 
-        const permited7 = await statusContribution.guaranteedBuyersLimit(addressGuaranteed0);
-        const permited8 = await statusContribution.guaranteedBuyersLimit(addressGuaranteed1);
+        const permited7 = await statusContribution.guaranteedBuyersLimit(accounts[7]);
+        const permited8 = await statusContribution.guaranteedBuyersLimit(accounts[8]);
 
         assert.equal(web3.fromWei(permited7).toNumber(), 1);
         assert.equal(web3.fromWei(permited8).toNumber(), 2);
     });
 
-    it("Reveals a curve, moves time to start of the ICO, and does the first buy", async function() {
+    it("Reveal a curve, move time to start of the ICO, and do the first buy", async () => {
         await dynamicCeiling.revealCurve(
             curves[0][0],
-            curves[0][1],
-            curves[0][2],
             false,
             web3.sha3("pwd0"));
 
@@ -140,12 +131,12 @@ contract("StatusContribution", function(accounts) {
         lim = 3;
         cur = 0;
 
-        await snt.sendTransaction({value: web3.toWei(1), gas: 300000, gasPrice: "20000000000", from: addressStatus});
+        await snt.sendTransaction({value: web3.toWei(1), gas: 300000, gasPrice: "20000000000", from: accounts[0]});
 
         const b = Math.min(1, ((lim - cur) / divs));
         cur += b;
 
-        const balance = await snt.balanceOf(addressStatus);
+        const balance = await snt.balanceOf(accounts[0]);
 
         assert.equal(web3.fromWei(balance).toNumber(), b * 10000);
     });
@@ -161,8 +152,12 @@ contract("StatusContribution", function(accounts) {
     });
     it("Returns the remaining of the last transaction ", async function() {
         const initialBalance = await web3.eth.getBalance(addressStatus);
+        await statusContribution.setMockedBlockNumber(1005000);
+        await sgt.setMockedBlockNumber(1005000);
+        await snt.setMockedBlockNumber(1005000);
+        const initialBalance = await web3.eth.getBalance(accounts[0]);
         await snt.sendTransaction({value: web3.toWei(5), gas: 300000, gasPrice: "20000000000"});
-        const finalBalance = await web3.eth.getBalance(addressStatus);
+        const finalBalance = await web3.eth.getBalance(accounts[0]);
 
         const b = Math.min(5, ((lim - cur) / divs));
         cur += b;
@@ -178,22 +173,20 @@ contract("StatusContribution", function(accounts) {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
-    it("Reveals second curve and checks that the limit is right", async function() {
+    it("Should reveal second curve and check that every that the limit is right", async () => {
         await dynamicCeiling.revealCurve(
             curves[1][0],
-            curves[1][1],
-            curves[1][2],
             false,
             web3.sha3("pwd1"));
         await dynamicCeiling.moveTo(1);
 
-        await statusContribution.setMockedBlockNumber(1005200);
-        await sgt.setMockedBlockNumber(1005200);
-        await snt.setMockedBlockNumber(1005200);
+        await statusContribution.setMockedBlockNumber(1005000);
+        await sgt.setMockedBlockNumber(1005000);
+        await snt.setMockedBlockNumber(1005000);
 
-        const initialBalance = await web3.eth.getBalance(addressStatus);
+        const initialBalance = await web3.eth.getBalance(accounts[0]);
         await snt.sendTransaction({value: web3.toWei(10), gas: 300000, gasPrice: "20000000000"});
-        const finalBalance = await web3.eth.getBalance(addressStatus);
+        const finalBalance = await web3.eth.getBalance(accounts[0]);
 
         lim = 8;
         const b = Math.min(5, ((lim - cur) / divs));
@@ -210,33 +203,29 @@ contract("StatusContribution", function(accounts) {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
     });
 
-    it("Reveals last curve and fills the collaboration", async function() {
+    it("Should reveal last curve, fill the collaboration", async () => {
         await dynamicCeiling.revealCurve(
             curves[2][0],
-            curves[2][1],
-            curves[2][2],
             true,
             web3.sha3("pwd2"));
         await dynamicCeiling.moveTo(2);
 
-        let blk = 1025100;
-        await statusContribution.setMockedBlockNumber(blk);
-        await sgt.setMockedBlockNumber(blk);
-        await snt.setMockedBlockNumber(blk);
-        blk += 100;
+        await statusContribution.setMockedBlockNumber(1025000);
+        await sgt.setMockedBlockNumber(1025000);
+        await snt.setMockedBlockNumber(1025000);
 
-        const initialBalance = await web3.eth.getBalance(addressStatus);
+        const initialBalance = await web3.eth.getBalance(accounts[0]);
         await statusContribution.proxyPayment(
-            addressCommunity,
-            {value: web3.toWei(15), gas: 300000, from: addressStatus, gasPrice: "20000000000"});
+            accounts[1],
+            {value: web3.toWei(15), gas: 300000, from: accounts[0], gasPrice: "20000000000"});
 
         lim = 15;
         const b = Math.min(5, ((lim - cur) / divs));
         cur += b;
 
-        const finalBalance = await web3.eth.getBalance(addressStatus);
+        const finalBalance = await web3.eth.getBalance(accounts[0]);
 
-        const balance1 = await snt.balanceOf(addressCommunity);
+        const balance1 = await snt.balanceOf(accounts[1]);
 
         assert.equal(web3.fromWei(balance1).toNumber(), b * 10000);
 
@@ -251,42 +240,91 @@ contract("StatusContribution", function(accounts) {
         assert.equal(web3.fromWei(balanceContributionWallet), cur);
 
         while (cur < 14) {
-            await statusContribution.setMockedBlockNumber(blk);
-            blk += 101;
-
             await statusContribution.proxyPayment(
-                addressCommunity,
-                {value: web3.toWei(15), gas: 300000, from: addressStatus, gasPrice: "20000000000"});
+                accounts[1],
+                {value: web3.toWei(15), gas: 300000, from: accounts[0], gasPrice: "20000000000"});
 
             const b2 = Math.min(5, ((lim - cur) / divs));
             cur += b2;
 
-
             const balanceContributionWallet2 =
                 await web3.eth.getBalance(contributionWallet.address);
-
             assert.isBelow(Math.abs(web3.fromWei(balanceContributionWallet2).toNumber() - cur), 0.0001);
         }
     });
 
-    it("Doesn't allow transfers during contribution period", async function() {
-        await assertFail(async function() {
-            await snt.transfer(addressSGTHolder, web3.toWei(1000));
-        });
+    it("Should not allow transfers in contribution period", async () => {
+        try {
+            await snt.transfer(accounts[4], web3.toWei(1000));
+        } catch (error) {
+            assertFail(error);
+        }
     });
 
-    it("Checks that Guaranteed addresses are able to buy", async function() {
-        await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: addressGuaranteed0});
-        await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: addressGuaranteed1});
+    // it("Guaranteed address should still be able to buy", async () => {
+    //     await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: accounts[7]});
+    //     await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: accounts[8]});
+    //
+    //     const balance7 = await snt.balanceOf(accounts[7]);
+    //     const balance8 = await snt.balanceOf(accounts[8]);
+    //
+    //     assert.equal(web3.fromWei(balance7).toNumber(), 10000);
+    //     assert.equal(web3.fromWei(balance8).toNumber(), 20000);
+    // });
 
-        const balance7 = await snt.balanceOf(addressGuaranteed0);
-        const balance8 = await snt.balanceOf(addressGuaranteed1);
+    it("Guaranteed address should still be able to buy if amount less than limit", async () => {
+        await snt.sendTransaction({value: web3.toWei(0.5), gas: 300000, from: accounts[7]});
+        await snt.sendTransaction({value: web3.toWei(0.5), gas: 300000, from: accounts[8]});
+
+        const balance7 = await snt.balanceOf(accounts[7]);
+        const balance8 = await snt.balanceOf(accounts[8]);
+
+        assert.equal(web3.fromWei(balance7).toNumber(), 5000);
+        assert.equal(web3.fromWei(balance8).toNumber(), 5000);
+    });
+
+    it("Guaranteed address should still be able to buy, capped at reserved limit. Surplus eth should be returned.", async () => {
+            const origEthBalance7 = web3.eth.getBalance(accounts[7]).toNumber();
+            const origEthBalance8 = web3.eth.getBalance(accounts[8]).toNumber();
+
+            await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: accounts[7]});
+            await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: accounts[8]});
+
+            //has all reserved SNT tokens:
+            const sntBalance7 = await snt.balanceOf(accounts[7]);
+            const sntBalance8 = await snt.balanceOf(accounts[8]);
+
+            assert.equal(web3.fromWei(sntBalance7).toNumber(), 10000);
+            assert.equal(web3.fromWei(sntBalance8).toNumber(), 20000);
+
+
+            //remaining balance is returned, minus gas fees:
+            const finalEthBalance7 = web3.eth.getBalance(accounts[7]).toNumber();
+            const finalEthBalance8 = web3.eth.getBalance(accounts[8]).toNumber();
+
+            const weiSpent7 = origEthBalance7 - finalEthBalance7;
+            const weiSpent8 = origEthBalance8 - finalEthBalance8;
+            const spentGasOnly7 = (weiSpent7 - web3.toWei(0.5) < 7500000000000000);
+            const spentGasOnly8 = (weiSpent8 - web3.toWei(1.5) < 7500000000000000);
+
+            assert.equal(spentGasOnly7, true);
+            assert.equal(spentGasOnly8, true);
+            //assert.equal(ethSpent7 - web3.toWei(0.5)); // - web3.toWei(0.5));
+            //assert.equal(web3.eth.getBalance(accounts[8]).toNumber(), origEthBalance8.toNumber() - web3.toWei(1.5)); // - );
+    });
+
+    it("Guaranteed address should not be able to buy more after reserved allocation filled", async () => {
+        await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: accounts[7]});
+        await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: accounts[8]});
+
+        const balance7 = await snt.balanceOf(accounts[7]);
+        const balance8 = await snt.balanceOf(accounts[8]);
 
         assert.equal(web3.fromWei(balance7).toNumber(), 10000);
         assert.equal(web3.fromWei(balance8).toNumber(), 20000);
     });
 
-    it("Finalizes", async function() {
+    it("Should finalize", async () => {
         await statusContribution.setMockedBlockNumber(endBlock + 1);
         await statusContribution.finalize();
 
@@ -300,12 +338,11 @@ contract("StatusContribution", function(accounts) {
         const balanceDevs = await snt.balanceOf(devTokensHolder.address);
         assert.equal(balanceDevs.toNumber(), totalSupply.mul(0.20).toNumber());
 
-        const balanceSecondary = await snt.balanceOf(multisigReserve.address);
+        const balanceSecondary = await snt.balanceOf(multisigSecondarySell.address);
         assert.equal(balanceSecondary.toNumber(), totalSupply.mul(0.29).toNumber());
     });
 
-    it("Moves the Ether to the final multisig", async function() {
-        await sgtExchanger.setMockedBlockNumber(endBlock + 5);
+    it("Should move the Ether to the final multisig", async () => {
         await multisigStatus.submitTransaction(
             contributionWallet.address,
             0,
@@ -316,22 +353,105 @@ contract("StatusContribution", function(accounts) {
         assert.isBelow(Math.abs(web3.fromWei(balance).toNumber() - (cur+3)), 0.00001);
     });
 
-    it("Exchanges SGT by SNT", async function() {
-        await sgtExchanger.collect({from: addressSGTHolder});
+    it("Should be able to exchange SGT for SNT", async () => {
+        await sgtExchanger.collect({from: accounts[4]});
 
-        const balance = await snt.balanceOf(addressSGTHolder);
+        const balance = await snt.balanceOf(accounts[4]);
         const totalSupply = await snt.totalSupply();
 
         assert.equal(totalSupply.mul(0.025).toNumber(), balance.toNumber());
     });
 
-    it("Doesn't allow transfers in the 1 week period", async function() {
-        await assertFail(async function() {
-            await snt.transfer(addressSGTHolder, web3.toWei(1000));
-        });
+    it("SGTExchanger should not fail or give SNT if user has no SGT", async () => {
+      await sgtExchanger.collect({from: accounts[5]});
+
+      const sgtBalance = await sgt.balanceOf(accounts[5]);
+
+      assert.equal(sgtBalance.toNumber(), 0);
     });
 
-    it("Allows transfers after 1 week period", async function() {
+    it("Exchanger should graciously handle lack of gas", async () => {
+      const sntBalanceBefore = await snt.balanceOf(accounts[4]);
+      const sgtBalanceBefore = await sgt.balanceOf(accounts[4]);
+
+      try {
+        await sgtExchanger.collect({from: accounts[4], gas: 0, gasPrice: "20000000000"});
+      } catch (error) {
+        assertGasLimit(error);
+      }
+
+      const sntBalanceAfter = await snt.balanceOf(accounts[4]);
+      const sgtBalanceAfter = await sgt.balanceOf(accounts[4]);
+
+      assert.equal(sgtBalanceBefore.toNumber(), sgtBalanceAfter.toNumber());
+      assert.equal(sntBalanceBefore.toNumber(), sntBalanceAfter.toNumber());
+    });
+
+    it("SNT transfer should graciously handle lack of gas", async () => {
+      const ethBalanceBefore = await web3.eth.getBalance(accounts[7]);
+      const sntBalanceBefore = await snt.balanceOf(accounts[7]);
+      try {
+        await snt.sendTransaction({value: web3.toWei(3), gas: 0, from: accounts[7]});
+      } catch (error) {
+        assertGasLimit(error);
+      }
+
+      const sntBalanceAfter = await snt.balanceOf(accounts[7]);
+      const ethBalanceAfter = await web3.eth.getBalance(accounts[7]);
+
+      assert.equal(sntBalanceBefore.toNumber(), sntBalanceAfter.toNumber());
+      assert.equal(ethBalanceBefore.toNumber(), ethBalanceAfter.toNumber());
+    });
+
+    it("ProxyPayment should graciously handle lack of gas", async () => {
+      const ethBalanceBefore = await web3.eth.getBalance(accounts[0]);
+      const sntBalanceBefore = await snt.balanceOf(accounts[0]);
+      try {
+        await statusContribution.proxyPayment(
+                    accounts[1],
+                    {value: web3.toWei(15), gas: 0, from: accounts[0], gasPrice: "20000000000"});
+      } catch (error) {
+        assertGasLimit(error);
+      }
+
+      const ethBalanceAfter = await web3.eth.getBalance(accounts[0]);
+      const sntBalanceAfter = await snt.balanceOf(accounts[0]);
+
+      assert.equal(sntBalanceBefore.toNumber(), sntBalanceAfter.toNumber());
+      assert.equal(ethBalanceBefore.toNumber(), ethBalanceAfter.toNumber());
+    });
+
+    it("Should not allow new SGT tokens to be generated once contribution period has started", async () => {
+      try {
+        await sgt.generateTokens(accounts[0], 1000);
+      } catch (error) {
+        assertFail(error);
+      }
+    });
+
+    it("Exchanger should only trade SGT tokens once", async () => {
+      const sntBalanceBefore = await snt.balanceOf(accounts[4]);
+      const sgtBalanceBefore = await sgt.balanceOf(accounts[4]);
+
+      //try to exchange again
+      await sgtExchanger.collect({from: accounts[4]});
+
+      const sntBalanceAfter = await snt.balanceOf(accounts[4]);
+      const sgtBalanceAfter = await sgt.balanceOf(accounts[4]);
+
+      assert.equal(sgtBalanceBefore.toNumber(), sgtBalanceAfter.toNumber());
+      assert.equal(sntBalanceBefore.toNumber(), sntBalanceAfter.toNumber());
+    });
+
+    it("Should not allow transfers in the 1 week period", async () => {
+        try {
+            await snt.transfer(accounts[4], web3.toWei(1000));
+        } catch (error) {
+            assertFail(error);
+        }
+    });
+
+    it("Should allow transfers after 1 week period", async () => {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await sntPlaceHolder.setMockedTime(t);
 
@@ -342,23 +462,23 @@ contract("StatusContribution", function(accounts) {
         assert.equal(web3.fromWei(balance2).toNumber(), 1000);
     });
 
-    it("Disallows devs from transfering before 6 months have past", async function() {
+    it("Devs should not allow transfers before 6 months", async () => {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 7) + 1000;
         await devTokensHolder.setMockedTime(t);
 
-        // This function will fail in the multisig
-        await multisigDevs.submitTransaction(
-            devTokensHolder.address,
-            0,
-            devTokensHolder.contract.collectTokens.getData(),
-            {from: addressDevs, gas: 1000000});
-
-        const balance = await snt.balanceOf(multisigDevs.address);
-        assert.equal(balance,0);
+        try {
+            await multisigDevs.submitTransaction(
+                devTokensHolder.address,
+                0,
+                devTokensHolder.contract.collectTokens.getData(),
+                {from: accounts[3]});
+        } catch (error) {
+            assertFail(error);
+        }
     });
 
-    it("Allows devs to extract after 6 months", async function() {
-        const t = (await statusContribution.finalizedTime()).toNumber() + (86400 * 360);
+    it("Devs Should be able to extract 1/2 after a year", async () => {
+        const t = Math.floor(new Date().getTime() / 1000) + (86400 * 360);
         await devTokensHolder.setMockedTime(t);
 
         const totalSupply = await snt.totalSupply();
@@ -367,17 +487,17 @@ contract("StatusContribution", function(accounts) {
             devTokensHolder.address,
             0,
             devTokensHolder.contract.collectTokens.getData(),
-            {from: addressDevs});
+            {from: accounts[3]});
 
         const balance = await snt.balanceOf(multisigDevs.address);
 
         const calcTokens = web3.fromWei(totalSupply.mul(0.20).mul(0.5)).toNumber();
         const realTokens = web3.fromWei(balance).toNumber();
 
-        assert.equal(realTokens, calcTokens);
+        assert.isBelow(realTokens - calcTokens, 0.1);
     });
 
-    it("Allows devs to extract everything after 24 months", async function() {
+    it("Devs Should be able to extract every thing after 2 year", async () => {
         const t = Math.floor(new Date().getTime() / 1000) + (86400 * 360 * 2);
         await devTokensHolder.setMockedTime(t);
 
@@ -387,7 +507,7 @@ contract("StatusContribution", function(accounts) {
             devTokensHolder.address,
             0,
             devTokensHolder.contract.collectTokens.getData(),
-            {from: addressDevs});
+            {from: accounts[3]});
 
         const balance = await snt.balanceOf(multisigDevs.address);
 
@@ -397,12 +517,12 @@ contract("StatusContribution", function(accounts) {
         assert.equal(calcTokens, realTokens);
     });
 
-    it("Checks that SNT's Controller is upgradeable", async function() {
-        await multisigCommunity.submitTransaction(
+    it("SNT's Controller should be upgradeable", async () => {
+        await multisigComunity.submitTransaction(
             sntPlaceHolder.address,
             0,
             sntPlaceHolder.contract.changeController.getData(accounts[6]),
-            {from: addressCommunity});
+            {from: accounts[1]});
 
         const controller = await snt.controller();
 
