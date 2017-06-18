@@ -28,9 +28,9 @@ def args_parse(arguments: Sequence[str] = None) -> argparse.Namespace:
     par0.add_argument('--collected-start', metavar='WEI', type=Decimal,
                       default=Decimal('0'), help='Amount collected at start of curve')
     par0.add_argument('--gas-per-tx-1st', metavar='AMOUNT', type=Decimal,
-                      default=Decimal('126493'), help='Gas used per 1st transaction')
+                      default=Decimal('151070'), help='Gas used per 1st transaction')
     par0.add_argument('--gas-per-tx-2nd', metavar='AMOUNT', type=Decimal,
-                      default=Decimal('77398'), help='Gas used for all subsequent transactions')
+                      default=Decimal('123765'), help='Gas used for all subsequent transactions')
     par0.add_argument('--gas-price', metavar='WEI', type=Decimal,
                       default=Decimal('50000000000'), help='Gas price')
     par0.add_argument('--fee-token', metavar='FRACTION', type=Decimal,
