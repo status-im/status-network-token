@@ -18,14 +18,16 @@ const setHiddenCurves = async function(dynamicCeiling, curves, nHiddenCurves) {
     let i = 0;
     for (let c of curves) {
         let salt = await randomBytes(32);
-        console.log(`Curve ${i} has salt: ${salt.toString("hex")}`);
-        let h = await dynamicCeiling.calculateHash(c[0], c[1], c[2], i === curves.length - 1, salt);
+        let salt_hex = "0x" + salt.toString("hex")
+        console.log(`Curve ${i} has salt: ${salt_hex}`);
+        let h = await dynamicCeiling.calculateHash(c[0], c[1], c[2], i === curves.length - 1, salt_hex);
         hashes.push(h);
         i += 1;
     }
     for (; i < nHiddenCurves; i += 1) {
-        let salt = randomBytes(32);
-        hashes.push(web3.sha3(salt));
+        let salt = await randomBytes(32);
+        let salt_hex = "0x" + salt.toString("hex")
+        hashes.push(web3.sha3(salt_hex));
     }
     await dynamicCeiling.setHiddenCurves(hashes);
     console.log(`${i} curves set!`);
