@@ -51,7 +51,7 @@ The audit report is focused on the following key areas - though this is *not an 
 However, this is a minor issue because in both cases no SNT was issued. Since commit `450fbc85fd7a4a0dc17d22fc7a6ab5071277fb46`, PR 106 on 16th June an exception is now thrown:
 https://github.com/status-im/status-network-token/pull/106
 
-**Test Failures** - Tests designed to check for failures where encapsulated within a `catch` and were never properly evaluated. The fix for this issue was addressed on https://github.com/status-im/status-network-token#70 and later improved on https://github.com/status-im/status-network-token#133
+**Test Failures** - Tests designed to check for failures were encapsulated within a `catch` and were never properly evaluated. The fix for this issue was addressed on https://github.com/status-im/status-network-token#70 and later improved on https://github.com/status-im/status-network-token#133
 
 **SGT after Contribution** - As of 19 June, attempts to generate additional SGT tokens after the contribution period has begun do not throw an exception.
 
