@@ -72,7 +72,7 @@ https://blog.golemproject.net/how-to-find-10m-by-just-reading-blockchain-6ae9d39
 While this isn't a critical issue as it only comes into play with user error, we suggest making the fix to MiniMeToken.
 
 A simple fix would be to add a modifier to check address size, and apply this modifier to the transfer function of the MiniMeToken:
-
+```
     modifier onlyPayloadSize(uint size) {
        assert(msg.data.length == size + 4);
        _;
@@ -81,13 +81,13 @@ A simple fix would be to add a modifier to check address size, and apply this mo
     function transfer(address _to, uint256 _value) onlyPayloadSize(2 * 32) {
       //function body unchanged
     }
-
+```
 **DevTokensHolder** - The function collectTokens on the DevTokensHolder contract will mistakenly floor the division of any period of time by 24 months. Making it impossible for developers to collect any token until 2 years. The fix was merged on status-im/status-network-token#105
 
 ### Critical
 _No critical defects were found during this audit._
 
 ## Conclusion
-Overall we have been satisfied with the quality of the code and responsiveness of the developers in fixing defects. There was good test coverage for some components such as MultiSigWallet at MiniMeToken as they've been used in other projects, meanwhile tests for the other contracts/functions were written during the audit period to improve the testability of the project as a whole.
+Overall we have been satisfied with the quality of the code and responsiveness of the developers in fixing defects. There was good test coverage for some components such as MultiSigWallet and MiniMeToken as they've been used in other projects, meanwhile tests for the other contracts/functions were written during the audit period to improve the testability of the project as a whole.
 
 The developers have followed common best practices and demonstrated an awareness of security weaknesses that could put funds at risk. During the audit the **Short Address** advisory was published and we recommend that this be handled upstream as a modifier in the MiniMeToken contract itself.
