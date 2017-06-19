@@ -34,7 +34,7 @@ Code for the SNT token and the offering is being reviewed by:
 - Jordi Baylina, Author.
 - [Smart Contract Solutions (OpenZeppelin)](https://smartcontractsolutions.com/). [Pending audit results](/) [Preliminary](/audits/prelim-smartcontractsolutions-ef163f1b6fd6fb0630a4b8c78d3b706f3fe1da33.md)
 - [CoinFabrik](http://www.coinfabrik.com/). [2152b17aa2ef584a2aea95533c707a345c6ccf69](/audits/coinfabrik-2152b17aa2ef584a2aea95533c707a345c6ccf69.pdf)
-- [BlockchainLabs](http://blockchainlabs.nz/). [Pending audit results](/)
+- [BlockchainLabs.nz](http://blockchainlabs.nz/). [Audit results](/audits/BlockchainLabs-SNT-audit-report.md)
 - [Bok Consulting](https://www.bokconsulting.com.au/). [Pending audit results](/)
 - YYYYYY. [Pending audit results](/)
 
