@@ -279,17 +279,6 @@ contract("StatusContribution", function(accounts) {
         });
     });
 
-    // it("Checks that Guaranteed addresses are able to buy", async function() {
-    //     await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: addressGuaranteed0});
-    //     await snt.sendTransaction({value: web3.toWei(3), gas: 300000, from: addressGuaranteed1});
-    //
-    //     const balance7 = await snt.balanceOf(addressGuaranteed0);
-    //     const balance8 = await snt.balanceOf(addressGuaranteed1);
-    //
-    //     assert.equal(web3.fromWei(balance7).toNumber(), 10000);
-    //     assert.equal(web3.fromWei(balance8).toNumber(), 20000);
-    // });
-
     it("Guaranteed address should still be able to buy if amount less than limit", async function() {
         await snt.sendTransaction({value: web3.toWei(0.5), gas: 300000, from: addressGuaranteed0});
         await snt.sendTransaction({value: web3.toWei(0.5), gas: 300000, from: addressGuaranteed1});
@@ -427,7 +416,7 @@ contract("StatusContribution", function(accounts) {
         const sntBalanceBefore = await snt.balanceOf(addressSGTHolder);
         const sgtBalanceBefore = await sgt.balanceOf(addressSGTHolder);
 
-        assertGasLimit(async function() {
+        await assertGasLimit(async function() {
           await sgtExchanger.collect({from: addressSGTHolder, gas: 0, gasPrice: "20000000000"});
         });
 
@@ -437,15 +426,14 @@ contract("StatusContribution", function(accounts) {
         assert.equal(sgtBalanceBefore.toNumber(), sgtBalanceAfter.toNumber());
         assert.equal(sntBalanceBefore.toNumber(), sntBalanceAfter.toNumber());
       });
-
-
     });
 
     describe( "SNT ", function() {
       it("Graciously handle lack of gas", async function() {
       const ethBalanceBefore = await web3.eth.getBalance(addressGuaranteed0);
       const sntBalanceBefore = await snt.balanceOf(addressGuaranteed0);
-      assertGasLimit(async function() {
+
+      await assertGasLimit(async function() {
         await snt.sendTransaction({value: web3.toWei(3), gas: 0, from: addressGuaranteed0});
       });
 
@@ -459,26 +447,21 @@ contract("StatusContribution", function(accounts) {
 
     describe( "ProxyPayment", function() {
       it("Graciously handle lack of gas", async function() {
-      const ethBalanceBefore = await web3.eth.getBalance(accounts[0]);
-      const sntBalanceBefore = await snt.balanceOf(accounts[0]);
 
-      assertGasLimit(async function() {
+      const ethBalanceBefore = await web3.eth.getBalance(addressStatus);
+      const sntBalanceBefore = await snt.balanceOf(addressStatus);
+
+      await assertGasLimit(async function() {
         await statusContribution.proxyPayment(
-                    accounts[1],
-                    {value: web3.toWei(15), gas: 0, from: accounts[0], gasPrice: "20000000000"});
+                    addressCommunity,
+                    {value: web3.toWei(15), gas: 0, from: addressStatus, gasPrice: "20000000000"});
       });
 
-      const ethBalanceAfter = await web3.eth.getBalance(accounts[0]);
-      const sntBalanceAfter = await snt.balanceOf(accounts[0]);
+      const ethBalanceAfter = await web3.eth.getBalance(addressStatus);
+      const sntBalanceAfter = await snt.balanceOf(addressStatus);
 
       assert.equal(sntBalanceBefore.toNumber(), sntBalanceAfter.toNumber());
       assert.equal(ethBalanceBefore.toNumber(), ethBalanceAfter.toNumber());
-      });
-    });
-
-    it("Not allow new SGT tokens to be generated once contribution period has started", async function() {
-      await assertFail(async function() {
-        await sgt.generateTokens(accounts[0], 1000);
       });
     });
 
@@ -564,5 +547,15 @@ contract("StatusContribution", function(accounts) {
         const controller = await snt.controller();
 
         assert.equal(controller, accounts[6]);
+    });
+
+    it("Not allow new SGT tokens to be generated once contribution period has started", async function() {
+      const sgtBalanceBefore = sgt.balanceOf[addressStatus];
+
+      await sgt.generateTokens(addressStatus, 1000);
+
+      const sgtBalanceAfter = await sgt.balanceOf[addressStatus];
+
+      assert.equal(sgtBalanceBefore, sgtBalanceAfter);
     });
 });
