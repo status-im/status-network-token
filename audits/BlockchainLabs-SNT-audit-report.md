@@ -1,7 +1,7 @@
 # Status Network Token Audit
 
 ## Preamble
-This audit report was undertaken by BlockchainLabs.nz for the  purpose of providing feedback to Status Research & Development Gmbh. It has subsequently been shared publicly without any express or implied warranty.
+This audit report was undertaken by BlockchainLabs.nz for the purpose of providing feedback to Status Research & Development Gmbh. It has subsequently been shared publicly without any express or implied warranty.
 
 Solidity contracts were sourced from the public Github repo [status-im/status-network-token](https://github.com/status-im/status-network-token) as at commit [a1aa79b34c9e99a81a59b3cd8103c4f2a41cfc3b](https://github.com/status-im/status-network-token/tree/a1aa79b34c9e99a81a59b3cd8103c4f2a41cfc3b) - we would encourage all community members and token holders to make their own assessment of the contracts.
 
@@ -46,6 +46,7 @@ The audit report is focused on the following key areas - though this is *not an 
 ## Findings
 #### Minor
 
+
 ==1==
 
 While testing SGTExchanger, we found that it was possible for a user with no SGT tokens to call the collect() function. It was also possible for a user with SGT tokens to call the collect() function for a second time, after having already collected their SNT.
@@ -55,6 +56,9 @@ However, this is a minor issue because in both cases no SNT was issued.
 Since commit 450fbc85fd7a4a0dc17d22fc7a6ab5071277fb46, PR 106 on 16th June an exception is now thrown:
 https://github.com/status-im/status-network-token/pull/106
 
+==2==
+
+Test checking for failures where encapsulated within a `catch` and where never properly evaluated. The fix for this issue was addressed on status-im/status-network-token#70 and later improved on status-im/status-network-token#133
 
 #### Moderate
 
@@ -80,6 +84,9 @@ A simple fix would be to add a modifier to check address size, and apply this mo
     //function body unchanged
   }   
 
+==2==
+
+The function collectTokens on the DevTokensHolder contract will mistakenly floor the division of any period of time by 24 months. Making it impossible for developers to collect any token until 2 years. The fix was merged on status-im/status-network-token#105
 
 #### Critical
 
