@@ -427,11 +427,9 @@ contract("StatusContribution", function(accounts) {
         const sntBalanceBefore = await snt.balanceOf(addressSGTHolder);
         const sgtBalanceBefore = await sgt.balanceOf(addressSGTHolder);
 
-        try {
+        assertGasLimit(async function() {
           await sgtExchanger.collect({from: addressSGTHolder, gas: 0, gasPrice: "20000000000"});
-        } catch (error) {
-          assertGasLimit(error);
-        }
+        });
 
         const sntBalanceAfter = await snt.balanceOf(addressSGTHolder);
         const sgtBalanceAfter = await sgt.balanceOf(addressSGTHolder);
@@ -447,11 +445,9 @@ contract("StatusContribution", function(accounts) {
       it("Graciously handle lack of gas", async function() {
       const ethBalanceBefore = await web3.eth.getBalance(addressGuaranteed0);
       const sntBalanceBefore = await snt.balanceOf(addressGuaranteed0);
-      try {
+      assertGasLimit(async function() {
         await snt.sendTransaction({value: web3.toWei(3), gas: 0, from: addressGuaranteed0});
-      } catch (error) {
-        assertGasLimit(error);
-      }
+      });
 
       const sntBalanceAfter = await snt.balanceOf(addressGuaranteed0);
       const ethBalanceAfter = await web3.eth.getBalance(addressGuaranteed0);
@@ -465,13 +461,12 @@ contract("StatusContribution", function(accounts) {
       it("Graciously handle lack of gas", async function() {
       const ethBalanceBefore = await web3.eth.getBalance(accounts[0]);
       const sntBalanceBefore = await snt.balanceOf(accounts[0]);
-      try {
+
+      assertGasLimit(async function() {
         await statusContribution.proxyPayment(
                     accounts[1],
                     {value: web3.toWei(15), gas: 0, from: accounts[0], gasPrice: "20000000000"});
-      } catch (error) {
-        assertGasLimit(error);
-      }
+      });
 
       const ethBalanceAfter = await web3.eth.getBalance(accounts[0]);
       const sntBalanceAfter = await snt.balanceOf(accounts[0]);
@@ -482,11 +477,9 @@ contract("StatusContribution", function(accounts) {
     });
 
     it("Not allow new SGT tokens to be generated once contribution period has started", async function() {
-      try {
+      await assertFail(async function() {
         await sgt.generateTokens(accounts[0], 1000);
-      } catch (error) {
-        assertFail(error);
-      }
+      });
     });
 
     it("Doesn't allow transfers in the 1 week period", async function() {
