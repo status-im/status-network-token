@@ -41,7 +41,7 @@ contract StatusContribution is Owned, TokenController {
     uint256 constant public maxGuaranteedLimit = 30000 ether;
     uint256 constant public exchangeRate = 10000;
     uint256 constant public maxGasPrice = 50000000000;
-    uint256 constant public maxCallFrequency = 20;
+    uint256 constant public maxCallFrequency = 100;
 
     MiniMeToken public SGT;
     MiniMeToken public SNT;
