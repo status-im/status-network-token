@@ -549,13 +549,16 @@ contract("StatusContribution", function(accounts) {
         assert.equal(controller, accounts[6]);
     });
 
-    it("Not allow new SGT tokens to be generated once contribution period has started", async function() {
-      const sgtBalanceBefore = sgt.balanceOf[addressStatus];
+    it("Allow new SGT tokens to be generated ONLY by the Status address", async function() {
+      const sgtBalanceBefore = (await sgt.balanceOf(addressStatus)).toNumber();
 
-      await sgt.generateTokens(addressStatus, 1000);
+      await sgt.generateTokens(addressStatus, 1000, { from: addressStatus });
+      await assertFail(async function() {
+        await sgt.generateTokens(addressStatus, 1000, { from: addressDevs });
+      });
 
-      const sgtBalanceAfter = await sgt.balanceOf[addressStatus];
+      const sgtBalanceAfter = (await sgt.balanceOf(addressStatus)).toNumber();
 
-      assert.equal(sgtBalanceBefore, sgtBalanceAfter);
+      assert.equal(sgtBalanceBefore + 1000, sgtBalanceAfter);
     });
 });
