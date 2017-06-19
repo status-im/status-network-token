@@ -80,9 +80,9 @@ A simple fix would be to add a modifier to check address size, and apply this mo
        _;
     }
 
-  function transfer(address _to, uint256 _value) onlyPayloadSize(2 * 32) {
-    //function body unchanged
-  }   
+    function transfer(address _to, uint256 _value) onlyPayloadSize(2 * 32) {
+      //function body unchanged
+    }
 
 ==2==
 
