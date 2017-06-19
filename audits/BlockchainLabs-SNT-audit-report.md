@@ -46,9 +46,40 @@ The audit report is focused on the following key areas - though this is *not an 
 ## Findings
 #### Minor
 
+==1==
+
+While testing SGTExchanger, we found that it was possible for a user with no SGT tokens to call the collect() function. It was also possible for a user with SGT tokens to call the collect() function for a second time, after having already collected their SNT.
+
+However, this is a minor issue because in both cases no SNT was issued.
+
+Since commit 450fbc85fd7a4a0dc17d22fc7a6ab5071277fb46, PR 106 on 16th June an exception is now thrown:
+https://github.com/status-im/status-network-token/pull/106
+
+
 #### Moderate
 
 #### Major
+
+==1==
+
+Current implementation of MiniMeToken is vulnerable to ERC20 Short Address 'Attack'
+
+http://vessenes.com/the-erc20-short-address-attack-explained/
+https://blog.golemproject.net/how-to-find-10m-by-just-reading-blockchain-6ae9d39fcd95
+
+While this isn't a critical issue as it only comes into play with user error, we suggest making the fix to MiniMeToken.
+
+A simple fix would be to add a modifier to check address size, and apply this modifier to the transfer function of the MiniMeToken:
+
+  modifier onlyPayloadSize(uint size) {
+     assert(msg.data.length == size + 4);
+     _;
+   }
+
+  function tronansfer(address _to, uint256 _value) onlyPayloadSize(2 * 32) {
+    //function body unchanged
+  }   
+
 
 #### Critical
 
