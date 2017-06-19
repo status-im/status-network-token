@@ -60,6 +60,17 @@ https://github.com/status-im/status-network-token/pull/106
 
 Test checking for failures where encapsulated within a `catch` and where never properly evaluated. The fix for this issue was addressed on status-im/status-network-token#70 and later improved on status-im/status-network-token#133
 
+==3==
+
+As of 19 June, attempts to generate additional SGT tokens after the contribution period has begun do not throw and exception.
+
+Prior to 19 June this resulted in a thrown exception, which is preferable.
+
+However, no new tokens are created so this is only a minor issue.
+
+
+
+
 #### Moderate
 
 #### Major
