@@ -397,7 +397,9 @@ contract("StatusContribution", function(accounts) {
     });
 
     it("Does not give SNT if user has no SGT", async function() {
-      await sgtExchanger.collect({from: accounts[5]});
+      await assertFail(async function() {
+        await sgtExchanger.collect({from: accounts[5]});
+      });
 
       const sgtBalance = await sgt.balanceOf(accounts[5]);
 
@@ -409,7 +411,9 @@ contract("StatusContribution", function(accounts) {
       const sgtBalanceBefore = await sgt.balanceOf(addressSGTHolder);
 
       //try to exchange again
-      await sgtExchanger.collect({from: addressSGTHolder});
+      await assertFail(async function() {
+        await sgtExchanger.collect({from: addressSGTHolder});
+      });
 
       const sntBalanceAfter = await snt.balanceOf(addressSGTHolder);
       const sgtBalanceAfter = await sgt.balanceOf(addressSGTHolder);
