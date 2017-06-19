@@ -75,14 +75,14 @@ While this isn't a critical issue as it only comes into play with user error, we
 
 A simple fix would be to add a modifier to check address size, and apply this modifier to the transfer function of the MiniMeToken:
 
-    modifier onlyPayloadSize(uint size) {
+    ```modifier onlyPayloadSize(uint size) {
        assert(msg.data.length == size + 4);
        _;
     }
 
     function transfer(address _to, uint256 _value) onlyPayloadSize(2 * 32) {
       //function body unchanged
-    }
+    }```
 
 ==2==
 
