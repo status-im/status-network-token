@@ -122,4 +122,15 @@ contract("StatusContribution", function(accounts) {
         const afterBefore = await externalToken.balanceOf(addressStatus);
         assert.equal(afterBefore.toNumber(), 1000);
     });
+
+    it("Recover tokens to the SGTExchanger", async function() {
+        await externalToken.transfer(sgtExchanger.address, 100);
+        const balanceBefore = await externalToken.balanceOf(accounts[0]);
+        assert.equal(balanceBefore.toNumber(), 900);
+
+        await sgtExchanger.claimTokens(externalToken.address);
+        const afterBefore = await externalToken.balanceOf(accounts[0]);
+        assert.equal(afterBefore.toNumber(), 1000);
+    });
+
 });
