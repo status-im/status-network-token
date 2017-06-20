@@ -31,5 +31,4 @@ Required signatures: 2/3
 
 ## Responsibilities
 
-- Status Research & Development Multisig will be the address that controls.
-- It will hold the Status Research & Development ether funds and SNT tokens.
+- Status Research & Development Multisig will hold the Status Research & Development ether funds and SNT tokens.
